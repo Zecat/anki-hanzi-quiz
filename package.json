@@ -33,8 +33,15 @@
     "test": "jest"
   },
   "dependencies": {
+    "@material/mwc-button": "^0.22.1",
+    "@material/mwc-icon-button": "^0.22.1",
+    "@material/mwc-icon-button-toggle": "^0.22.1",
+    "@mdi/js": "^5.9.55",
     "hanzi-writer": "^3.2.0",
+    "lit": "*",
     "lit-element": "^2.5.1",
-    "lit-html": "^1.4.1"
+    "lit-html": "^1.4.1",
+    "material-design-icons": "^3.0.1",
+    "svg-inline-loader": "^0.8.2"
   }
 }
