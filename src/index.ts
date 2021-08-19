@@ -1,3 +1,5 @@
-export * from  './HanziQuizzWC'
+//export * from  './HanziQuizzWC'
+
+export * from './BasicElement'
 
 

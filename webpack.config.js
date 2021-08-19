@@ -17,7 +17,7 @@ const config = {
       inject: true,
       template: "index.html",
     }),
-//    new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/main/]),
+    new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/main/]),
 
     // Add your plugins here
     // Learn more about plugins from https://webpack.js.org/configuration/plugins/
