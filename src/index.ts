@@ -1,5 +1,1 @@
-//export * from  './HanziQuizzWC'
-
-export * from './BasicElement'
-
-
+export * from  './HanziQuiz'

@@ -17,7 +17,7 @@ const config = {
       inject: true,
       template: "index.html",
     }),
-    new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/main/]),
+    //new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/main/]),
 
     // Add your plugins here
     // Learn more about plugins from https://webpack.js.org/configuration/plugins/
@@ -35,7 +35,7 @@ const config = {
       },
       {
         test: /\.(eot|ttf|woff|woff2|svg|png|jpg|gif)$/i,
-        type: "asset",
+        type: "asset/inline",
       },
 
       // Add your rules for custom modules here
@@ -49,8 +49,6 @@ const config = {
   devServer: {
     open: true,
     host: "localhost",
-    contentBase: './src',
-   watchContentBase: true
   },
 
 };

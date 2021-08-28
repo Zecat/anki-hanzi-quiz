@@ -1,1 +1,1 @@
-export * from './BasicElement';
+export * from './HanziQuiz';
