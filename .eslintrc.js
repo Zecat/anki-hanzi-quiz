@@ -7,5 +7,8 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
+    'plugin:wc/recommended',
+    'plugin:wc/best-practice',
+    'plugin:lit/recommended'
   ],
 };
