@@ -14,26 +14,12 @@ export default class HanziWriterComponent extends LitElement {
   @property({type: String})
   character = ''
 
-  hanziWriter: HanziWriter | undefined;
+  async createHanziWriter(character: string): Promise<HanziWriter> {
+    await this.updateComplete
+    const target = this.renderRoot;
+    console.log(target)
 
-  firstUpdated(): void {
-    const hanziTargetElement: HTMLElement = <NonNullable<HTMLElement>>this.renderRoot
-    this.initiateHanziWriter(hanziTargetElement);
-
-    const resizeObserver = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        const cr = entry.contentRect;
-        // TODO prevent calling on first render
-        this.hanziWriter?.updateDimensions({width: cr.width, height: cr.height});
-      }
-    });
-
-    resizeObserver.observe(hanziTargetElement.host);
-  }
-
-  initiateHanziWriter(target: HTMLElement): void {
-
-    this.hanziWriter = HanziWriter.create(target, this.character, {
+    const hanziWriter = HanziWriter.create(<HTMLElement><unknown>target, character, {
       showCharacter: false,
       showOutline: false,
       showHintAfterMisses: 1,
@@ -41,28 +27,31 @@ export default class HanziWriterComponent extends LitElement {
       onLoadCharDataSuccess: () => console.log('success')
     });
 
-    //const mistakeEvent = new Event('@HWQ:mistake', {bubbles: true, composed: true});
-    //const completeEvent = new Event('@HWQ:complete', {bubbles: true, composed: true});
-
-    this.hanziWriter.quiz({
-//      onMistake: this.dispatchEvent(mistakeEvent),
-  //    onComplete: this.dispatchEvent(completeEvent),
+    const resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const cr = entry.contentRect;
+        // TODO prevent calling on first render ?
+        hanziWriter.updateDimensions({width: cr.width, height: cr.height});
+      }
     });
-  }
 
+    resizeObserver.observe((this.renderRoot as ShadowRoot).host);
+
+    return hanziWriter
+  }
 
   static get styles(): CSSResultGroup {
     return css`
       :host {
       position: relative;
       }
-
+      
       :host:after {
       content: "";
       display: block;
       padding-bottom: 100%;
       }
-
+      
       :host > * {
       position: absolute;
       top: 0;
@@ -75,7 +64,7 @@ export default class HanziWriterComponent extends LitElement {
       height: 100%;
       border: 1px solid grey;
       }
-
+      
       #grid-background-target > line {
       stroke: var(--ahw-grid-stroke, grey);
       }

@@ -20,16 +20,29 @@ export default class HanziQuiz extends LitElement {
 
   @property({type: String})
   pinyin = ''
-  
+
   @property({type: String})
   english = ''
-  
+
   @property({type: String})
   character = ''
 
-  // TODO Make this more efficient
-  get hanziWriter(): HanziWriter | undefined {
-    return (this.renderRoot.querySelector('#hanzi-writer') as HanziWriterComponent)?.hanziWriter;
+  hanziWriter: HanziWriter | undefined;
+
+  get hanziWriterComponent(): HanziWriterComponent {
+    return (this.renderRoot as ShadowRoot).getElementById('hanzi-writer') as HanziWriterComponent;
+  }
+
+  async firstUpdated(): Promise<void> {
+    this.hanziWriter = await this.hanziWriterComponent.createHanziWriter(this.character);
+    this.startQuiz()
+  }
+
+  startQuiz() {
+    this.hanziWriter?.quiz({
+      onMistake: this.onMistake.bind(this),
+      onComplete: this.onComplete.bind(this)
+    });
   }
 
   onVisibilityButtonTapped(e: CustomEvent): void {
@@ -134,8 +147,8 @@ export default class HanziQuiz extends LitElement {
   
     </div>
     <hanzi-writer id="hanzi-writer" .character="${this.character}"></hanzi-writer>
-    </div>
-    <h3>${this.english}</h3>
+  </div>
+  <h3>${this.english}</h3>
   
   </div>
   <mwc-tab-bar id="tab-bar" @MDCTabBar:activated="${this.ratingButtonClicked}" .activeIndex="${this.rating - 1}">
