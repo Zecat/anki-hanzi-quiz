@@ -29,12 +29,24 @@ export default class HanziQuiz extends LitElement {
 
   hanziWriter: HanziWriter | undefined;
 
+  currentCharacterIndex = 0;
+
+  get nextCharacter():string {
+    const i = this.currentCharacterIndex;
+    this.currentCharacterIndex++;
+    return this.character[i]
+  }
+
+  get isWordCompleted(): boolean {
+    return this.currentCharacterIndex >= this.character.length;
+  }
+
   get hanziWriterComponent(): HanziWriterComponent {
     return (this.renderRoot as ShadowRoot).getElementById('hanzi-writer') as HanziWriterComponent;
   }
 
   async firstUpdated(): Promise<void> {
-    this.hanziWriter = await this.hanziWriterComponent.createHanziWriter(this.character);
+    this.hanziWriter = await this.hanziWriterComponent.createHanziWriter(this.nextCharacter);
     this.startQuiz()
   }
 
@@ -67,11 +79,17 @@ export default class HanziQuiz extends LitElement {
   }
 
   onComplete(): void {
-    // TODO if all characters done, call ankidroid, otherwise, reset hanziwriter with the next character 
+  setTimeout(()=> {  
+    if (this.isWordCompleted) {
     // TODO better typing ?
     const androidAnswerMethodKey = <keyof Window>`buttonAnswerEase${this.rating}`;
     const method = <() => void>window[androidAnswerMethodKey];
     method();
+    } else {
+     this.hanziWriter?.setCharacter(this.nextCharacter);
+     this.startQuiz()
+    }
+  }, 1000);
   }
 
   // TODO DO this the clean way
