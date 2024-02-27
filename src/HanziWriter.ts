@@ -15,21 +15,21 @@ import {
  *  - exposes hanzi writer
  *  - handle resize
  *  - draws a background sheet
- *  - handle character changes
+ *  - handle hanzi changes
  */
 @customElement("hanzi-writer")
 export default class HanziWriterComponent extends LitElement {
   @property({ type: String })
-  character = "";
+  hanzi = "";
 
-  async createHanziWriter(character: string): Promise<HanziWriter> {
+  async createHanziWriter(hanzi: string): Promise<HanziWriter> {
     await this.updateComplete;
     const target = this.renderRoot;
-    console.log(target);
+   console.log(target);
 
     const hanziWriter = HanziWriter.create(
       <HTMLElement>(<unknown>target),
-      character,
+      hanzi,
       {
         showCharacter: false,
         showOutline: false,

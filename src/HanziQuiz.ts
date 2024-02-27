@@ -32,20 +32,21 @@ export default class HanziQuiz extends LitElement {
   english = "";
 
   @property({ type: String })
-  character = "";
+  hanzi = "";
 
   hanziWriter: HanziWriter | undefined;
 
+  @property({ type: Number })
   currentCharacterIndex = 0;
 
   get nextCharacter(): string {
     const i = this.currentCharacterIndex;
     this.currentCharacterIndex++;
-    return this.character[i];
+    return this.hanzi[i];
   }
 
   get isWordCompleted(): boolean {
-    return this.currentCharacterIndex >= this.character.length;
+    return this.currentCharacterIndex > this.hanzi.length;
   }
 
   get hanziWriterComponent(): HanziWriterComponent {
@@ -66,6 +67,25 @@ export default class HanziQuiz extends LitElement {
       onMistake: this.onMistake.bind(this),
       onComplete: this.onComplete.bind(this),
     });
+  }
+
+  fixTabBarMinWidth() {
+    // HACK mwc is a hell and at that time does not provide a way tu customise min-width
+    setTimeout(() => {
+      const tabs = this.shadowRoot?.querySelectorAll("mwc-tab");
+      console.log("===", tabs);
+      if (!tabs) return;
+      for (const tab of tabs) {
+        const button = tab.shadowRoot?.querySelector("button");
+        if (!button) continue;
+        button.style.minWidth = "0";
+      }
+    }, 0);
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.fixTabBarMinWidth();
   }
 
   onVisibilityButtonTapped(e: CustomEvent): void {
@@ -91,15 +111,15 @@ export default class HanziQuiz extends LitElement {
 
   onComplete(): void {
     setTimeout(() => {
+      this.hanziWriter?.setCharacter(this.nextCharacter);
       if (this.isWordCompleted) {
         // TODO better typing ?
         const androidAnswerMethodKey = <keyof Window>(
           `buttonAnswerEase${this.rating}`
         );
         const method = <() => void>window[androidAnswerMethodKey];
-        method();
+        method && method();
       } else {
-        this.hanziWriter?.setCharacter(this.nextCharacter);
         this.startQuiz();
       }
     }, 1000);
@@ -111,6 +131,11 @@ export default class HanziQuiz extends LitElement {
     if (tabIndex + 1 !== this.rating) {
       this.rating = tabIndex + 1;
     }
+  }
+
+  revealCharacters(hanzi: string, currentCharacterIndex: number): string {
+    if (!hanzi) return "";
+    return hanzi.substring(0, currentCharacterIndex - 1);
   }
 
   static get styles(): CSSResultGroup {
@@ -137,10 +162,18 @@ export default class HanziQuiz extends LitElement {
       #tab-bar {
         position: fixed;
         bottom: 0;
+        width: 100%;
+        --mdc-tab-horizontal-padding: 0px;
       }
+
+      #tab-bar mwc-tab {
+        width: 25%;
+      }
+
       #pinyin {
         flex: 1;
       }
+
       #hanzi-writer {
         position: relative;
         flex: 1;
@@ -156,7 +189,8 @@ export default class HanziQuiz extends LitElement {
   
     <div id="top-bar">
       <h2 id="pinyin">${this.pinyin}</h2>
-  
+      <h2>${this.revealCharacters(this.hanzi, this.currentCharacterIndex)}</h2>
+
       <mwc-icon-button-toggle label="stroke visibility" ?on="${
         this.strokesVisible
       }"
@@ -179,9 +213,7 @@ export default class HanziQuiz extends LitElement {
       </mwc-icon-button>
   
     </div>
-    <hanzi-writer id="hanzi-writer" .character="${
-      this.character
-    }"></hanzi-writer>
+    <hanzi-writer id="hanzi-writer" .character="${this.hanzi}"></hanzi-writer>
   </div>
   <h3>${this.english}</h3>
   
@@ -189,9 +221,9 @@ export default class HanziQuiz extends LitElement {
   <mwc-tab-bar id="tab-bar" @MDCTabBar:activated="${
     this.ratingButtonClicked
   }" .activeIndex="${this.rating - 1}">
-    <mwc-tab label="Again">
+    <mwc-tab label="Again" min>
     </mwc-tab>
-    <mwc-tab label="Difficult">
+    <mwc-tab label="Hard">
     </mwc-tab>
     <mwc-tab label="Good">
     </mwc-tab>

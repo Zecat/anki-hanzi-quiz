@@ -11,7 +11,7 @@ export default class HanziQuiz extends LitElement {
     rating: number;
     pinyin: string;
     english: string;
-    character: string;
+    hanzi: string;
     hanziWriter: HanziWriter | undefined;
     currentCharacterIndex: number;
     get nextCharacter(): string;
@@ -19,6 +19,8 @@ export default class HanziQuiz extends LitElement {
     get hanziWriterComponent(): HanziWriterComponent;
     firstUpdated(): Promise<void>;
     startQuiz(): void;
+    fixTabBarMinWidth(): void;
+    connectedCallback(): void;
     onVisibilityButtonTapped(e: CustomEvent): void;
     revealStrokes(): void;
     hideStrokes(): void;
@@ -26,6 +28,7 @@ export default class HanziQuiz extends LitElement {
     onMistake(): void;
     onComplete(): void;
     ratingButtonClicked(e: CustomEvent): void;
+    revealCharacters(hanzi: string, currentCharacterIndex: number): string;
     static get styles(): CSSResultGroup;
     render(): TemplateResult;
 }

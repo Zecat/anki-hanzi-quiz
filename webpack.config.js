@@ -1,19 +1,24 @@
 // Generated using webpack-cli https://github.com/webpack/webpack-cli
 
-const fs = require('fs');
+const fs = require("fs");
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const HtmlWebpackInlineSourcePlugin = require('@effortlessmotion/html-webpack-inline-source-plugin');
-const TerserPlugin = require('terser-webpack-plugin');
+const HtmlWebpackInlineSourcePlugin = require("@effortlessmotion/html-webpack-inline-source-plugin");
+const TerserPlugin = require("terser-webpack-plugin");
 const isProduction = process.env.NODE_ENV == "production";
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+const HtmlMinimizerPlugin = require("html-minimizer-webpack-plugin");
 
 class ReplaceTextPlugin {
   apply(compiler) {
-    compiler.hooks.afterEmit.tap('ReplaceTextPlugin', (compilation) => {
+    compiler.hooks.afterEmit.tap("ReplaceTextPlugin", (compilation) => {
       const outputPath = compiler.options.output.path;
-      let indexHtml = fs.readFileSync(path.join(outputPath, 'index.html'), 'utf8');
-      indexHtml = indexHtml.replace('{{', '{ {');
-      fs.writeFileSync(path.join(outputPath, 'index.html'), indexHtml, 'utf8');
+      let indexHtml = fs.readFileSync(
+        path.join(outputPath, "index.html"),
+        "utf8"
+      );
+      indexHtml = indexHtml.replace("{{", "{ {");
+      fs.writeFileSync(path.join(outputPath, "index.html"), indexHtml, "utf8");
     });
   }
 }
@@ -44,13 +49,12 @@ const config = {
       // Add your rules for custom modules here
       // Learn more about loaders from https://webpack.js.org/loaders/
     ],
-
   },
   plugins: [
     new HtmlWebpackPlugin({
       inject: true,
       template: "index.html",
-      inlineSource: '.(js|css)$', // Inline all js and css files
+      inlineSource: ".(js|css)$", // Inline all js and css files
       minify: true,
     }),
     // Plugin to inline JavaScript bundle into HTML
@@ -62,14 +66,14 @@ const config = {
     // Add your plugins here
     // Learn more about plugins from https://webpack.js.org/configuration/plugins/
   ],
- //optimization: {
- //   minimize: true, // Minimize JavaScript
- //   minimizer: [
- //     new TerserPlugin({
- //       extractComments: false, // Remove comments
- //     }),
- //   ],
- // },
+  optimization: {
+    minimize: true, // Minimize JavaScript
+    minimizer: [
+      new TerserPlugin({}),
+      new CssMinimizerPlugin(), // Add this line for CSS minification
+      new HtmlMinimizerPlugin(), // Add this line for HTML minification
+    ],
+  },
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
   },
@@ -77,7 +81,6 @@ const config = {
     open: true,
     host: "localhost",
   },
-
 };
 
 module.exports = () => {
