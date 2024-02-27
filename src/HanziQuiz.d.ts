@@ -1,9 +1,11 @@
-import '@material/mwc-icon-button';
-import '@material/mwc-icon-button-toggle';
-import '@material/mwc-tab';
-import '@material/mwc-tab-bar';
-import HanziWriter from 'hanzi-writer';
+import "@material/mwc-icon-button";
+import "@material/mwc-icon-button-toggle";
+import "@material/mwc-tab";
+import "@material/mwc-tab-bar";
 import { LitElement, TemplateResult, CSSResultGroup } from "lit-element";
+import HanziWriterComponent from "./HanziWriter";
+import "./HanziWriter";
+import HanziWriter from "hanzi-writer";
 export default class HanziQuiz extends LitElement {
     strokesVisible: boolean;
     rating: number;
@@ -11,21 +13,19 @@ export default class HanziQuiz extends LitElement {
     english: string;
     character: string;
     hanziWriter: HanziWriter | undefined;
+    currentCharacterIndex: number;
+    get nextCharacter(): string;
+    get isWordCompleted(): boolean;
+    get hanziWriterComponent(): HanziWriterComponent;
+    firstUpdated(): Promise<void>;
+    startQuiz(): void;
     onVisibilityButtonTapped(e: CustomEvent): void;
     revealStrokes(): void;
     hideStrokes(): void;
     onEraserButtonClick(): void;
-    firstUpdated(): void;
-    initiateHanziWriter(target: HTMLElement): void;
-    get sheetSize(): number;
     onMistake(): void;
     onComplete(): void;
     ratingButtonClicked(e: CustomEvent): void;
     static get styles(): CSSResultGroup;
     render(): TemplateResult;
-}
-declare global {
-    interface HTMLElementTagNameMap {
-        "hanzi-quiz": HanziQuiz;
-    }
 }

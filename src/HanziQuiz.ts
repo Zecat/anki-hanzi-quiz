@@ -189,14 +189,13 @@ export default class HanziQuiz extends LitElement {
   <mwc-tab-bar id="tab-bar" @MDCTabBar:activated="${
     this.ratingButtonClicked
   }" .activeIndex="${this.rating - 1}">
-    <mwc-tab label="Again" stacked isMinWidthIndicator>
-  
+    <mwc-tab label="Again">
     </mwc-tab>
-    <mwc-tab label="Difficult" stacked isMinWidthIndicator>
+    <mwc-tab label="Difficult">
     </mwc-tab>
-    <mwc-tab label="Good" stacked isMinWidthIndicator>
+    <mwc-tab label="Good">
     </mwc-tab>
-    <mwc-tab label="Easy" stacked isMinWidthIndicator>
+    <mwc-tab label="Easy">
     </mwc-tab>
   
   </mwc-tab-bar>
