@@ -1,9 +1,22 @@
 // Generated using webpack-cli https://github.com/webpack/webpack-cli
 
+const fs = require('fs');
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const InlineChunkHtmlPlugin =  require("./InlineChunkHtmlPlugin");
+const HtmlWebpackInlineSourcePlugin = require('@effortlessmotion/html-webpack-inline-source-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const isProduction = process.env.NODE_ENV == "production";
+
+class ReplaceTextPlugin {
+  apply(compiler) {
+    compiler.hooks.afterEmit.tap('ReplaceTextPlugin', (compilation) => {
+      const outputPath = compiler.options.output.path;
+      let indexHtml = fs.readFileSync(path.join(outputPath, 'index.html'), 'utf8');
+      indexHtml = indexHtml.replace('{{', '{ {');
+      fs.writeFileSync(path.join(outputPath, 'index.html'), indexHtml, 'utf8');
+    });
+  }
+}
 
 const stylesHandler = "style-loader";
 
@@ -12,16 +25,6 @@ const config = {
   output: {
     path: path.resolve(__dirname, "dist"),
   },
-  plugins: [
-    new HtmlWebpackPlugin({
-      inject: true,
-      template: "index.html",
-    }),
-    //new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/main/]),
-
-    // Add your plugins here
-    // Learn more about plugins from https://webpack.js.org/configuration/plugins/
-  ],
   module: {
     rules: [
       {
@@ -43,6 +46,30 @@ const config = {
     ],
 
   },
+  plugins: [
+    new HtmlWebpackPlugin({
+      inject: true,
+      template: "index.html",
+      inlineSource: '.(js|css)$', // Inline all js and css files
+      minify: true,
+    }),
+    // Plugin to inline JavaScript bundle into HTML
+    new HtmlWebpackInlineSourcePlugin(),
+    // Fixes a little something about litHTML "{{" conflicting in anki template
+    new ReplaceTextPlugin(),
+    //new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/main/]),
+
+    // Add your plugins here
+    // Learn more about plugins from https://webpack.js.org/configuration/plugins/
+  ],
+ //optimization: {
+ //   minimize: true, // Minimize JavaScript
+ //   minimizer: [
+ //     new TerserPlugin({
+ //       extractComments: false, // Remove comments
+ //     }),
+ //   ],
+ // },
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
   },
