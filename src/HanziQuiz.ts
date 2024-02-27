@@ -1,40 +1,47 @@
-import '@material/mwc-icon-button';
-import '@material/mwc-icon-button-toggle';
-import '@material/mwc-tab';
-import '@material/mwc-tab-bar';
-import {customElement, css, html, LitElement, property, TemplateResult, CSSResultGroup} from "lit-element";
-import HanziWriterComponent from './HanziWriter';
-import './HanziWriter';
-import HanziWriter from 'hanzi-writer';
+import "@material/mwc-icon-button";
+import "@material/mwc-icon-button-toggle";
+import "@material/mwc-tab";
+import "@material/mwc-tab-bar";
+import {
+  customElement,
+  css,
+  html,
+  LitElement,
+  property,
+  TemplateResult,
+  CSSResultGroup,
+} from "lit-element";
+import HanziWriterComponent from "./HanziWriter";
+import "./HanziWriter";
+import HanziWriter from "hanzi-writer";
 
 //todo use a font builder https://github.com/Templarian/MaterialDesign-Font-Build
 
-@customElement('hanzi-quiz')
+@customElement("hanzi-quiz")
 export default class HanziQuiz extends LitElement {
+  @property({ type: Boolean })
+  strokesVisible = false;
 
-  @property({type: Boolean})
-  strokesVisible = false
+  @property({ type: Number })
+  rating = 4;
 
-  @property({type: Number})
-  rating = 4
+  @property({ type: String })
+  pinyin = "";
 
-  @property({type: String})
-  pinyin = ''
+  @property({ type: String })
+  english = "";
 
-  @property({type: String})
-  english = ''
-
-  @property({type: String})
-  character = ''
+  @property({ type: String })
+  character = "";
 
   hanziWriter: HanziWriter | undefined;
 
   currentCharacterIndex = 0;
 
-  get nextCharacter():string {
+  get nextCharacter(): string {
     const i = this.currentCharacterIndex;
     this.currentCharacterIndex++;
-    return this.character[i]
+    return this.character[i];
   }
 
   get isWordCompleted(): boolean {
@@ -42,18 +49,22 @@ export default class HanziQuiz extends LitElement {
   }
 
   get hanziWriterComponent(): HanziWriterComponent {
-    return (this.renderRoot as ShadowRoot).getElementById('hanzi-writer') as HanziWriterComponent;
+    return (this.renderRoot as ShadowRoot).getElementById(
+      "hanzi-writer"
+    ) as HanziWriterComponent;
   }
 
   async firstUpdated(): Promise<void> {
-    this.hanziWriter = await this.hanziWriterComponent.createHanziWriter(this.nextCharacter);
-    this.startQuiz()
+    this.hanziWriter = await this.hanziWriterComponent.createHanziWriter(
+      this.nextCharacter
+    );
+    this.startQuiz();
   }
 
   startQuiz() {
     this.hanziWriter?.quiz({
       onMistake: this.onMistake.bind(this),
-      onComplete: this.onComplete.bind(this)
+      onComplete: this.onComplete.bind(this),
     });
   }
 
@@ -62,12 +73,12 @@ export default class HanziQuiz extends LitElement {
   }
 
   revealStrokes(): void {
-    this.hanziWriter?.showOutline()
-    this.rating = 1
+    this.hanziWriter?.showOutline();
+    this.rating = 1;
   }
 
   hideStrokes(): void {
-    this.hanziWriter?.hideOutline()
+    this.hanziWriter?.hideOutline();
   }
 
   onEraserButtonClick(): void {
@@ -79,17 +90,19 @@ export default class HanziQuiz extends LitElement {
   }
 
   onComplete(): void {
-  setTimeout(()=> {  
-    if (this.isWordCompleted) {
-    // TODO better typing ?
-    const androidAnswerMethodKey = <keyof Window>`buttonAnswerEase${this.rating}`;
-    const method = <() => void>window[androidAnswerMethodKey];
-    method();
-    } else {
-     this.hanziWriter?.setCharacter(this.nextCharacter);
-     this.startQuiz()
-    }
-  }, 1000);
+    setTimeout(() => {
+      if (this.isWordCompleted) {
+        // TODO better typing ?
+        const androidAnswerMethodKey = <keyof Window>(
+          `buttonAnswerEase${this.rating}`
+        );
+        const method = <() => void>window[androidAnswerMethodKey];
+        method();
+      } else {
+        this.hanziWriter?.setCharacter(this.nextCharacter);
+        this.startQuiz();
+      }
+    }, 1000);
   }
 
   // TODO DO this the clean way
@@ -103,37 +116,37 @@ export default class HanziQuiz extends LitElement {
   static get styles(): CSSResultGroup {
     return css`
       #container {
-      --quiz-background: white;
-      display: flex;
-      flex-direction: column;
-      --mdc-tab-horizontal-padding: 0px;
-      background: var(--quiz-background);
+        --quiz-background: white;
+        display: flex;
+        flex-direction: column;
+        --mdc-tab-horizontal-padding: 0px;
+        background: var(--quiz-background);
       }
-      
+
       #top-bar {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
       }
-      
+
       #button-easy {
-      --mdc-theme-primary: green;
-      --mdc-theme-on-primary: white;
+        --mdc-theme-primary: green;
+        --mdc-theme-on-primary: white;
       }
-      
+
       #tab-bar {
-      position: fixed;
-      bottom: 0;
+        position: fixed;
+        bottom: 0;
       }
       #pinyin {
-      flex: 1;
+        flex: 1;
       }
       #hanzi-writer {
-      position: relative;
-      flex: 1;
-      margin: 12px;
+        position: relative;
+        flex: 1;
+        margin: 12px;
       }
-    `
+    `;
   }
 
   render(): TemplateResult {
@@ -144,7 +157,9 @@ export default class HanziQuiz extends LitElement {
     <div id="top-bar">
       <h2 id="pinyin">${this.pinyin}</h2>
   
-      <mwc-icon-button-toggle label="stroke visibility" ?on="${this.strokesVisible}"
+      <mwc-icon-button-toggle label="stroke visibility" ?on="${
+        this.strokesVisible
+      }"
         @icon-button-toggle-change="${this.onVisibilityButtonTapped}">
         <svg slot="offIcon" xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px" viewBox="0 0 24 24">
           <path fill="currentColor"
@@ -164,12 +179,16 @@ export default class HanziQuiz extends LitElement {
       </mwc-icon-button>
   
     </div>
-    <hanzi-writer id="hanzi-writer" .character="${this.character}"></hanzi-writer>
+    <hanzi-writer id="hanzi-writer" .character="${
+      this.character
+    }"></hanzi-writer>
   </div>
   <h3>${this.english}</h3>
   
   </div>
-  <mwc-tab-bar id="tab-bar" @MDCTabBar:activated="${this.ratingButtonClicked}" .activeIndex="${this.rating - 1}">
+  <mwc-tab-bar id="tab-bar" @MDCTabBar:activated="${
+    this.ratingButtonClicked
+  }" .activeIndex="${this.rating - 1}">
     <mwc-tab label="Again" stacked isMinWidthIndicator>
   
     </mwc-tab>
