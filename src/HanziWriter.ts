@@ -85,9 +85,3 @@ export default class HanziWriterComponent extends LitElement {
   }
 
 }
-
-declare global {
-  interface HTMLElementTagNameMap {
-    "hanzi-writer": HanziWriterComponent,
-  }
-}

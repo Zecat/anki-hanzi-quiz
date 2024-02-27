@@ -184,9 +184,3 @@ export default class HanziQuiz extends LitElement {
        `;
   }
 }
-
-declare global {
-  interface HTMLElementTagNameMap {
-    "hanzi-quiz": HanziQuiz,
-  }
-}
