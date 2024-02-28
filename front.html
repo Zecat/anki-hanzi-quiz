@@ -3,10 +3,15 @@
 <script>
 
   flipToBack = () => {
+    // Anki desktop
     if (typeof pycmd !== "undefined")
       pycmd("ans");
+    // Anki droid
     else if (typeof AnkiDroidJS !== "undefined")
         showAnswer();
+    // Anki web
+    else
+      document.querySelector('#ansarea button').click();
     //else if (window.anki && window.sendMessage2) // TODO To test
     //  window.sendMessage2("ankitap", "midCenter");
     //else if (typeof study !== "undefined") // TODO To test

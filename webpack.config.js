@@ -29,6 +29,7 @@ const config = {
   entry: "./src/index.ts",
   output: {
     path: path.resolve(__dirname, "dist"),
+    publicPath: '/',
   },
   module: {
     rules: [
@@ -60,7 +61,7 @@ const config = {
     // Plugin to inline JavaScript bundle into HTML
     new HtmlWebpackInlineSourcePlugin(),
     // Fixes a little something about litHTML "{{" conflicting in anki template
-    new ReplaceTextPlugin(),
+    //new ReplaceTextPlugin(),
     //new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/main/]),
 
     // Add your plugins here
@@ -71,7 +72,7 @@ const config = {
     minimizer: [
       new TerserPlugin({}),
       new CssMinimizerPlugin(), // Add this line for CSS minification
-      new HtmlMinimizerPlugin(), // Add this line for HTML minification
+      //new HtmlMinimizerPlugin(), // Add this line for HTML minification
     ],
   },
   resolve: {

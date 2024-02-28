@@ -10,10 +10,11 @@ export default class HanziQuiz extends LitElement {
     strokesVisible: boolean;
     rating: number;
     pinyin: string;
-    english: string;
+    description: string;
     hanzi: string;
     hanziWriter: HanziWriter | undefined;
     currentCharacterIndex: number;
+    getOcclusedDescription(description: string, hanzi: string): string;
     get nextCharacter(): string;
     get isWordCompleted(): boolean;
     get hanziWriterComponent(): HanziWriterComponent;

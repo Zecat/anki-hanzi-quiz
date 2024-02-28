@@ -3,14 +3,15 @@ import "@material/mwc-icon-button-toggle";
 import "@material/mwc-tab";
 import "@material/mwc-tab-bar";
 import {
-  customElement,
   css,
   html,
   LitElement,
-  property,
   TemplateResult,
   CSSResultGroup,
 } from "lit-element";
+import {customElement, property} from 'lit/decorators.js';
+import {unsafeHTML} from 'lit/directives/unsafe-html.js';
+
 import HanziWriterComponent from "./HanziWriter";
 import "./HanziWriter";
 import HanziWriter from "hanzi-writer";
@@ -29,7 +30,7 @@ export default class HanziQuiz extends LitElement {
   pinyin = "";
 
   @property({ type: String })
-  english = "";
+  description = "";
 
   @property({ type: String })
   hanzi = "";
@@ -38,6 +39,12 @@ export default class HanziQuiz extends LitElement {
 
   @property({ type: Number })
   currentCharacterIndex = 0;
+
+  getOcclusedDescription(description: string, hanzi: string): string {
+    // Apply regex replacement to the description
+    const occlused =  description.replace(new RegExp('['+hanzi+']', 'g'), '?');
+    return occlused
+  }
 
   get nextCharacter(): string {
     const i = this.currentCharacterIndex;
@@ -73,7 +80,6 @@ export default class HanziQuiz extends LitElement {
     // HACK mwc is a hell and at that time does not provide a way tu customise min-width
     setTimeout(() => {
       const tabs = this.shadowRoot?.querySelectorAll("mwc-tab");
-      console.log("===", tabs);
       if (!tabs) return;
       for (const tab of tabs) {
         const button = tab.shadowRoot?.querySelector("button");
@@ -167,7 +173,7 @@ export default class HanziQuiz extends LitElement {
         :host {
           display: grid;
           grid-template-rows: [row1-start] 25px [row1-end row2-start] 25px [row2-end];
-          grid-template-columns: auto calc(100vh - 40px);
+          grid-template-columns: auto min(500px, calc(-40px + 100vh));
           grid-template-areas:
             "topbar hanziwriter"
             "hanzi hanziwriter"
@@ -228,7 +234,7 @@ export default class HanziQuiz extends LitElement {
     return html`
 
     <div id="top-bar">
-      <h2 id="pinyin">${this.pinyin}</h2>
+    <h2 id="pinyin">${unsafeHTML(this.pinyin)}</h2>
 
       <mwc-icon-button-toggle label="stroke visibility" ?on="${
         this.strokesVisible
@@ -255,7 +261,7 @@ export default class HanziQuiz extends LitElement {
     <h2 id="hanzi">${this.revealCharacters(this.hanzi, this.currentCharacterIndex)}</h2>
     <hanzi-writer id="hanzi-writer" .character="${this.hanzi}"></hanzi-writer>
   </div>
-  <p id="translation">${this.english}</p>
+  <span id="translation">${unsafeHTML(this.getOcclusedDescription(this.description, this.hanzi))}</span>
   
   <mwc-tab-bar id="tab-bar" @MDCTabBar:activated="${
     this.ratingButtonClicked

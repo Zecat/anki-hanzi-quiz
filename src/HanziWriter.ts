@@ -1,13 +1,13 @@
 import HanziWriter from "hanzi-writer";
 import {
-  customElement,
   css,
   html,
   LitElement,
-  property,
   TemplateResult,
   CSSResultGroup,
 } from "lit-element";
+
+import {customElement, property} from 'lit/decorators.js';
 
 /*
  * This element
@@ -25,7 +25,6 @@ export default class HanziWriterComponent extends LitElement {
   async createHanziWriter(hanzi: string): Promise<HanziWriter> {
     await this.updateComplete;
     const target = this.renderRoot;
-   console.log(target);
 
     const hanziWriter = HanziWriter.create(
       <HTMLElement>(<unknown>target),
@@ -35,7 +34,7 @@ export default class HanziWriterComponent extends LitElement {
         showOutline: false,
         showHintAfterMisses: 1,
         highlightOnComplete: false,
-        onLoadCharDataSuccess: () => console.log("success"),
+        //onLoadCharDataSuccess: () => console.log("success"),
       }
     );
 
