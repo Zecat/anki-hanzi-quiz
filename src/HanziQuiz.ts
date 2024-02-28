@@ -140,12 +140,39 @@ export default class HanziQuiz extends LitElement {
 
   static get styles(): CSSResultGroup {
     return css`
-      #container {
+      :host {
+        position: relative;
         --quiz-background: white;
         display: flex;
         flex-direction: column;
         --mdc-tab-horizontal-padding: 0px;
         background: var(--quiz-background);
+        margin-bottom: 48px;
+      }
+
+      @media (orientation: landscape) {
+        #top-bar {
+          grid-area: topbar;
+        }
+        #translation {
+          grid-area: translation;
+        }
+        #hanzi {
+          grid-area: hanzi;
+        }
+        #hanzi-writer {
+          grid-area: hanziwriter;
+        }
+
+        :host {
+          display: grid;
+          grid-template-rows: [row1-start] 25px [row1-end row2-start] 25px [row2-end];
+          grid-template-columns: auto calc(100vh - 40px);
+          grid-template-areas:
+            "topbar hanziwriter"
+            "hanzi hanziwriter"
+            "translation hanziwriter"
+        }
       }
 
       #top-bar {
@@ -160,10 +187,11 @@ export default class HanziQuiz extends LitElement {
       }
 
       #tab-bar {
-        position: absolute;
+        position: fixed;
         bottom: 0;
         width: 100%;
         --mdc-tab-horizontal-padding: 0px;
+        background: white;
       }
 
       #tab-bar mwc-tab {
@@ -179,6 +207,7 @@ export default class HanziQuiz extends LitElement {
         position: relative;
         flex: 1;
         margin: 12px;
+        aspect-ratio: 1;
       }
 
       #hanzi {
@@ -198,8 +227,6 @@ export default class HanziQuiz extends LitElement {
   render(): TemplateResult {
     return html`
 
-  <div id="container">
-  
     <div id="top-bar">
       <h2 id="pinyin">${this.pinyin}</h2>
 
@@ -230,7 +257,6 @@ export default class HanziQuiz extends LitElement {
   </div>
   <p id="translation">${this.english}</p>
   
-  </div>
   <mwc-tab-bar id="tab-bar" @MDCTabBar:activated="${
     this.ratingButtonClicked
   }" .activeIndex="${this.rating - 1}">
