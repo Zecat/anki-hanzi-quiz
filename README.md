@@ -1,10 +1,12 @@
-# Related doc
-- https://hanziwriter.org/docs.html
-- https://lit.dev/docs/
-- https://www.typescriptlang.org/docs/
-- https://github.com/ankidroid/Anki-Android/wiki/AnkiDroid-Javascript-API
-- https://danielkummer.github.io/git-flow-cheatsheet/
+# anki-hanzi-quizz
 
-# Issues
-- no livereload with 'yarn serve'. Quick Fix => in webpack.config.js, comment the line with => new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/main/]),
+Anki card template to learn Chinese character strokes.
+
+## Add card with pleco
+
+Explanation TODO
+
+# Dev
+## Issues
+- no livereload with 'npm run serve'. Quick Fix => in webpack.config.js, comment the line with => new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/main/]),
 
