@@ -160,7 +160,7 @@ export default class HanziQuiz extends LitElement {
       }
 
       #tab-bar {
-        position: fixed;
+        position: absolute;
         bottom: 0;
         width: 100%;
         --mdc-tab-horizontal-padding: 0px;
@@ -171,6 +171,7 @@ export default class HanziQuiz extends LitElement {
       }
 
       #pinyin {
+        padding-left: 12px;
         flex: 1;
       }
 
@@ -178,6 +179,18 @@ export default class HanziQuiz extends LitElement {
         position: relative;
         flex: 1;
         margin: 12px;
+      }
+
+      #hanzi {
+        width: 100%;
+        padding: 0 12px;
+        margin: 0;
+        height: 36px;
+        box-sizing: border-box;
+      }
+
+      #translation {
+        padding: 0 12px;
       }
     `;
   }
@@ -189,7 +202,6 @@ export default class HanziQuiz extends LitElement {
   
     <div id="top-bar">
       <h2 id="pinyin">${this.pinyin}</h2>
-      <h2>${this.revealCharacters(this.hanzi, this.currentCharacterIndex)}</h2>
 
       <mwc-icon-button-toggle label="stroke visibility" ?on="${
         this.strokesVisible
@@ -213,9 +225,10 @@ export default class HanziQuiz extends LitElement {
       </mwc-icon-button>
   
     </div>
+    <h2 id="hanzi">${this.revealCharacters(this.hanzi, this.currentCharacterIndex)}</h2>
     <hanzi-writer id="hanzi-writer" .character="${this.hanzi}"></hanzi-writer>
   </div>
-  <h3>${this.english}</h3>
+  <p id="translation">${this.english}</p>
   
   </div>
   <mwc-tab-bar id="tab-bar" @MDCTabBar:activated="${
