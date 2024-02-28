@@ -1,0 +1,18 @@
+<div style="display:none;">{{Hanzi}}</div>
+
+<script>
+
+  flipToBack = () => {
+    if (typeof pycmd !== "undefined")
+      pycmd("ans");
+    else if (typeof AnkiDroidJS !== "undefined")
+        showAnswer();
+    //else if (window.anki && window.sendMessage2) // TODO To test
+    //  window.sendMessage2("ankitap", "midCenter");
+    //else if (typeof study !== "undefined") // TODO To test
+    //  study.drawAnswer();
+  }
+
+  flipToBack();
+
+</script>
