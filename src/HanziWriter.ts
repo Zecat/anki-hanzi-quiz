@@ -55,6 +55,7 @@ export default class HanziWriterComponent extends LitElement {
     return css`
       :host {
         position: relative;
+        background: white;
       }
 
       :host:after {
@@ -72,11 +73,11 @@ export default class HanziWriterComponent extends LitElement {
       #grid-background-target {
         width: 100%;
         height: 100%;
-        border: 1px solid grey;
+        border: 1px solid #dfdfdf;
       }
 
       #grid-background-target > line {
-        stroke: var(--ahw-grid-stroke, grey);
+        stroke: #f0f0f0;
       }
     `;
   }

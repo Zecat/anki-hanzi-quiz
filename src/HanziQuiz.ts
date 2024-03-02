@@ -156,7 +156,7 @@ export default class HanziQuiz extends LitElement {
     return css`
       :host {
         position: relative;
-        --quiz-background: white;
+        --quiz-background: #fbfbfb;
         display: flex;
         flex-direction: column;
         --mdc-tab-horizontal-padding: 0px;
@@ -215,6 +215,7 @@ export default class HanziQuiz extends LitElement {
       #pinyin {
         padding-left: 12px;
         flex: 1;
+        margin: 0;
       }
 
       #hanzi-writer {

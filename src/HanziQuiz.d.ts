@@ -26,6 +26,7 @@ export default class HanziQuiz extends LitElement {
     revealStrokes(): void;
     hideStrokes(): void;
     onEraserButtonClick(): void;
+    onTeachMe(): void;
     onMistake(): void;
     onComplete(): void;
     ratingButtonClicked(e: CustomEvent): void;
