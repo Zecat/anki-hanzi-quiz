@@ -9,9 +9,13 @@
 </style>
 <hanzi-quiz id="hanziquiz" hanzi="{{Hanzi}}"></hanzi-quiz>
 <script>
-    const hanziquiz = document.getElementById('hanziquiz')
-    hanziquiz.description = `{{Description}}`;
-    hanziquiz.pinyin = `{{Pinyin}}`;
-</script>
 
-<!-- <hanzi-quiz pinyin="{{Pinyin}}" english="to get divorced shortly after marriage to resign shortly after getting employedto get divorced shortly after marriage to resign shortly after getting employedto get divorced shortly after marriage to resign shortly after getting employedto get divorced shortly after marriage to resign shortly after getting employedto get divorced shortly after marriage to resign shortly after getting employedto get divorced shortly after marriage to resign shortly after getting employedto get divorced shortly after marriage to resign shortly after getting employedto get divorced shortly after marriage to resign shortly after getting employedto get divorced shortly after marriage to resign shortly after getting employedto get divorced shortly after marriage to resign shortly after getting employed" hanzi="{{Hanzi}}"></hanzi-quiz> -->
+document.addEventListener('DOMContentLoaded', function() {
+    const hanziquiz = document.getElementById('hanziquiz')
+
+    hanziquiz.setData({
+        description: `{{Description}}`,
+        pinyin: `{{Pinyin}}`
+    })
+});
+</script>

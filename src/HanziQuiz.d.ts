@@ -1,36 +1,36 @@
+/// <reference path="pouic.d.ts" />
 import "@material/mwc-icon-button";
+import "@material/mwc-button";
 import "@material/mwc-icon-button-toggle";
 import "@material/mwc-tab";
 import "@material/mwc-tab-bar";
-import { LitElement, TemplateResult, CSSResultGroup } from "lit-element";
-import HanziWriterComponent from "./HanziWriter";
+import "./CharactersSlideshowQuiz";
+import "./CharacterAnim";
 import "./HanziWriter";
 import HanziWriter from "hanzi-writer";
-export default class HanziQuiz extends LitElement {
+import { Component } from 'pouic';
+export default class HanziQuiz extends Component {
     strokesVisible: boolean;
-    rating: number;
     pinyin: string;
-    description: string;
-    hanzi: string;
     hanziWriter: HanziWriter | undefined;
-    currentCharacterIndex: number;
+    nextCharIdx: number;
+    currentCharacterComplete: boolean;
+    static get observedAttributes(): string[];
+    attributeChangedCallback(name: string, _: string, newValue: string): void;
     getOcclusedDescription(description: string, hanzi: string): string;
     get nextCharacter(): string;
-    get isWordCompleted(): boolean;
-    get hanziWriterComponent(): HanziWriterComponent;
     firstUpdated(): Promise<void>;
-    startQuiz(): void;
     fixTabBarMinWidth(): void;
+    setData(data: any): void;
     connectedCallback(): void;
     onVisibilityButtonTapped(e: CustomEvent): void;
-    revealStrokes(): void;
-    hideStrokes(): void;
     onEraserButtonClick(): void;
     onTeachMe(): void;
+    practice(): void;
     onMistake(): void;
-    onComplete(): void;
+    next(): void;
     ratingButtonClicked(e: CustomEvent): void;
-    revealCharacters(hanzi: string, currentCharacterIndex: number): string;
-    static get styles(): CSSResultGroup;
-    render(): TemplateResult;
+    isHintHidden(complete: boolean, strokesVisible: boolean): boolean;
+    static template: any;
+    static css: any;
 }

@@ -9,19 +9,19 @@ const isProduction = process.env.NODE_ENV == "production";
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const HtmlMinimizerPlugin = require("html-minimizer-webpack-plugin");
 
-class ReplaceTextPlugin {
-  apply(compiler) {
-    compiler.hooks.afterEmit.tap("ReplaceTextPlugin", (compilation) => {
-      const outputPath = compiler.options.output.path;
-      let indexHtml = fs.readFileSync(
-        path.join(outputPath, "index.html"),
-        "utf8"
-      );
-      indexHtml = indexHtml.replace("{{", "{ {");
-      fs.writeFileSync(path.join(outputPath, "index.html"), indexHtml, "utf8");
-    });
-  }
-}
+//class ReplaceTextPlugin {
+//  apply(compiler) {
+//    compiler.hooks.afterEmit.tap("ReplaceTextPlugin", (compilation) => {
+//      const outputPath = compiler.options.output.path;
+//      let indexHtml = fs.readFileSync(
+//        path.join(outputPath, "index.html"),
+//        "utf8"
+//      );
+//      indexHtml = indexHtml.replace("{{", "{ {");
+//      fs.writeFileSync(path.join(outputPath, "index.html"), indexHtml, "utf8");
+//    });
+//  }
+//}
 
 const stylesHandler = "style-loader";
 
@@ -54,12 +54,11 @@ const config = {
   plugins: [
     new HtmlWebpackPlugin({
       inject: true,
-      template: "index.html",
+      template: isProduction ? "index.html" : "index-dev.html",
       inlineSource: ".(js|css)$", // Inline all js and css files
       minify: true,
     }),
     // Plugin to inline JavaScript bundle into HTML
-    new HtmlWebpackInlineSourcePlugin(),
     // Fixes a little something about litHTML "{{" conflicting in anki template
     //new ReplaceTextPlugin(),
     //new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/main/]),
@@ -70,7 +69,12 @@ const config = {
   optimization: {
     minimize: true, // Minimize JavaScript
     minimizer: [
-      new TerserPlugin({}),
+      new TerserPlugin({
+                terserOptions: {
+mangle: {
+                        keep_classnames: true,
+}}
+      }),
       new CssMinimizerPlugin(), // Add this line for CSS minification
       //new HtmlMinimizerPlugin(), // Add this line for HTML minification
     ],
@@ -84,11 +88,18 @@ const config = {
   },
 };
 
+if (isProduction) {
+  config.plugins.push(new HtmlWebpackInlineSourcePlugin())
+}
+
 module.exports = () => {
   if (isProduction) {
     config.mode = "production";
   } else {
     config.mode = "development";
+    config.devServer.static= {
+      directory: path.join(__dirname, 'static'), // Serve other static files from the 'public' directory
+    };
   }
   return config;
 };
