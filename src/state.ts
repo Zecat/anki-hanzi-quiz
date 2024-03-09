@@ -10,7 +10,7 @@ const dict: HanziDictionary = new HanziDictionary();
 
 type ComponentData = CharDataItem & ComponentDefinition
 
-const initialState = {
+const initialState:any = {
   minusone: (a: any) => {console.log(a); return a - 1},
   equal: (a:any, b:any) => a === b,
   hanzi: '',
@@ -19,6 +19,11 @@ const initialState = {
   selectedIdx: 0,
   strokesVisible: false,
   rating: 4,
+  hanziWriters: {},
+
+  selectCharacterIdx: (idx: number)  => {
+   state.selectedIdx = idx;
+  },
 
   prev:() => state.selectedIdx = Math.max(0, state.selectedIdx-1),
   next:()=> state.selectedIdx = Math.min(state.hanziData.length-1, state.selectedIdx+1),
@@ -41,14 +46,30 @@ const initialState = {
     return state.hanziData && state.hanziData[idx]
   }),
 
+  getCurrentHanziWriter: () => state.hanziWriters[state.currentComponent?.character]?.__target,
 
-  //  Array.from(this.hanzi).map((char: string, i: number) => {
-  //    return this.dict.get(char).then((charData: CharDataItem) => {
-  //      state.hanziData[i] = { ...charData, ...getDecomposition(charData) };
-  //    })
-  //  })
-  //  return Array.from(this.hanzi).map(character => ({character}))
-  //})
+  resetComponentMistakes: (cmp:ComponentData = state.currentComponent)=>{
+    cmp.mistakeCount = 0;
+    cmp.components.forEach(state.resetComponentMistakes)
+  },
+
+  restartCurrentQuiz: () => {
+    state.resetComponentMistakes()
+    state.getCurrentHanziWriter()?.quiz()
+  },
+
+  breiflyShowAndRestartQuiz: () => {
+    const hw = state.getCurrentHanziWriter()
+    if (!hw)
+      return
+    hw.showOutline();
+    setTimeout(() => {
+      hw.hideOutline();
+      state.restartCurrentQuiz()
+    }, 3000);
+
+  }
+
 }
 
 export const state = setup(initialState)

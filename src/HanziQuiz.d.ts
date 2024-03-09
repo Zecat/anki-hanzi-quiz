@@ -1,9 +1,10 @@
 /// <reference path="pouic.d.ts" />
-import "@material/mwc-icon-button";
-import "@material/mwc-button";
-import "@material/mwc-icon-button-toggle";
-import "@material/mwc-tab";
-import "@material/mwc-tab-bar";
+import "@material/web/iconbutton/icon-button";
+import "@material/web/icon/icon";
+import "@material/web/button/filled-button";
+import "@material/web/button/outlined-button";
+import '@material/web/tabs/tabs.js';
+import '@material/web/tabs/primary-tab.js';
 import "./CharactersSlideshowQuiz";
 import "./CharacterAnim";
 import "./HanziWriter";
@@ -20,9 +21,7 @@ export default class HanziQuiz extends Component {
     getOcclusedDescription(description: string, hanzi: string): string;
     get nextCharacter(): string;
     firstUpdated(): Promise<void>;
-    fixTabBarMinWidth(): void;
     setData(data: any): void;
-    connectedCallback(): void;
     onVisibilityButtonTapped(e: CustomEvent): void;
     onEraserButtonClick(): void;
     onTeachMe(): void;

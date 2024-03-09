@@ -680,31 +680,12 @@
   dependencies:
     tslib "^2.1.0"
 
-"@material/density@14.0.0-canary.53b3cad2f.0":
-  version "14.0.0-canary.53b3cad2f.0"
-  resolved "https://registry.npmjs.org/@material/density/-/density-14.0.0-canary.53b3cad2f.0.tgz"
-  integrity sha512-Eh/vZ3vVyqtpylg5Ci33qlgtToS4H1/ppd450Ib3tcdISIoodgijYY0w4XsRvrnZgbI/h/1STFdLxdzS0UNuFw==
-  dependencies:
-    tslib "^2.1.0"
-
 "@material/dom@=14.0.0-canary.53b3cad2f.0", "@material/dom@14.0.0-canary.53b3cad2f.0":
   version "14.0.0-canary.53b3cad2f.0"
   resolved "https://registry.npmjs.org/@material/dom/-/dom-14.0.0-canary.53b3cad2f.0.tgz"
   integrity sha512-aR+rfncF6oi2ivdOlKSJI4UXwNzWV5rXM88MLDoSJF1D7lXxhAKhge+tMUBodWGV/q0+FnXLuVAa0WYTrKjo+A==
   dependencies:
     "@material/feature-targeting" "14.0.0-canary.53b3cad2f.0"
-    tslib "^2.1.0"
-
-"@material/elevation@14.0.0-canary.53b3cad2f.0":
-  version "14.0.0-canary.53b3cad2f.0"
-  resolved "https://registry.npmjs.org/@material/elevation/-/elevation-14.0.0-canary.53b3cad2f.0.tgz"
-  integrity sha512-3h+EkR588RMZ5TSNQ4UeXD1FOBnL3ABQix0DQIGwtNJCqSMoPndT/oJEFvwQbTkZNDbFIKN9p1Q7/KuFPVY8Pw==
-  dependencies:
-    "@material/animation" "14.0.0-canary.53b3cad2f.0"
-    "@material/base" "14.0.0-canary.53b3cad2f.0"
-    "@material/feature-targeting" "14.0.0-canary.53b3cad2f.0"
-    "@material/rtl" "14.0.0-canary.53b3cad2f.0"
-    "@material/theme" "14.0.0-canary.53b3cad2f.0"
     tslib "^2.1.0"
 
 "@material/feature-targeting@14.0.0-canary.53b3cad2f.0":
@@ -714,15 +695,6 @@
   dependencies:
     tslib "^2.1.0"
 
-"@material/focus-ring@14.0.0-canary.53b3cad2f.0":
-  version "14.0.0-canary.53b3cad2f.0"
-  resolved "https://registry.npmjs.org/@material/focus-ring/-/focus-ring-14.0.0-canary.53b3cad2f.0.tgz"
-  integrity sha512-exPX5VrjQimipBwgcFDGRiEE783sOBgpkFui59A6i6iGvS2UrLHlYY2E65fyyyQnD1f/rv4Po1OOnCesE1kulg==
-  dependencies:
-    "@material/dom" "14.0.0-canary.53b3cad2f.0"
-    "@material/feature-targeting" "14.0.0-canary.53b3cad2f.0"
-    "@material/rtl" "14.0.0-canary.53b3cad2f.0"
-
 "@material/mwc-base@^0.27.0":
   version "0.27.0"
   resolved "https://registry.npmjs.org/@material/mwc-base/-/mwc-base-0.27.0.tgz"
@@ -730,16 +702,6 @@
   dependencies:
     "@material/base" "=14.0.0-canary.53b3cad2f.0"
     "@material/dom" "=14.0.0-canary.53b3cad2f.0"
-    lit "^2.0.0"
-    tslib "^2.0.1"
-
-"@material/mwc-button@^0.27.0":
-  version "0.27.0"
-  resolved "https://registry.npmjs.org/@material/mwc-button/-/mwc-button-0.27.0.tgz"
-  integrity sha512-t5m2zfE93RNKHMjdsU67X6csFzuSG08VJKKvXVQ+BriGE3xBgzY5nZdmZXomFpaWjDENPAlyS4ppCFm6o+DILw==
-  dependencies:
-    "@material/mwc-icon" "^0.27.0"
-    "@material/mwc-ripple" "^0.27.0"
     lit "^2.0.0"
     tslib "^2.0.1"
 
@@ -763,14 +725,6 @@
     lit "^2.0.0"
     tslib "^2.0.1"
 
-"@material/mwc-icon@^0.27.0":
-  version "0.27.0"
-  resolved "https://registry.npmjs.org/@material/mwc-icon/-/mwc-icon-0.27.0.tgz"
-  integrity sha512-Sul44I37M9Ewynn0A9DjkEBrmll2VtNbth6Pxj7I1A/EAwEfaCrPvryyGqfIu1T2hTsRcaojzQx6QjF+B5QW9A==
-  dependencies:
-    lit "^2.0.0"
-    tslib "^2.0.1"
-
 "@material/mwc-ripple@^0.27.0":
   version "0.27.0"
   resolved "https://registry.npmjs.org/@material/mwc-ripple/-/mwc-ripple-0.27.0.tgz"
@@ -782,53 +736,7 @@
     lit "^2.0.0"
     tslib "^2.0.1"
 
-"@material/mwc-tab-bar@^0.27.0":
-  version "0.27.0"
-  resolved "https://registry.npmjs.org/@material/mwc-tab-bar/-/mwc-tab-bar-0.27.0.tgz"
-  integrity sha512-CqRZ38m8kOfSJo87Ek61eubO8AGR10Dp12c3pCyyy6mtK/0FSY+rfcmnMPxEzkxREqUnQPgw9lhqmGZXBSqzZQ==
-  dependencies:
-    "@material/mwc-base" "^0.27.0"
-    "@material/mwc-tab" "^0.27.0"
-    "@material/mwc-tab-scroller" "^0.27.0"
-    "@material/tab" "=14.0.0-canary.53b3cad2f.0"
-    "@material/tab-bar" "=14.0.0-canary.53b3cad2f.0"
-    lit "^2.0.0"
-    tslib "^2.0.1"
-
-"@material/mwc-tab-indicator@^0.27.0":
-  version "0.27.0"
-  resolved "https://registry.npmjs.org/@material/mwc-tab-indicator/-/mwc-tab-indicator-0.27.0.tgz"
-  integrity sha512-bdE5mYP2ze/8d8cGTTJUS0+ByzEK5tmWsXfphFr/Dyy9b+gOnIOt1iX8tmKTOpbYKsV43LxtSkumhTTPDXEJLg==
-  dependencies:
-    "@material/mwc-base" "^0.27.0"
-    "@material/tab-indicator" "=14.0.0-canary.53b3cad2f.0"
-    lit "^2.0.0"
-    tslib "^2.0.1"
-
-"@material/mwc-tab-scroller@^0.27.0":
-  version "0.27.0"
-  resolved "https://registry.npmjs.org/@material/mwc-tab-scroller/-/mwc-tab-scroller-0.27.0.tgz"
-  integrity sha512-WL/CYVx1cHjC1a/STIB/BaBfxGz3Rz4szNNX35FkYzm6GSGxUNkXZfKOAK7R8RdZOAETa8Gy5tTEhKZKKJ/aUA==
-  dependencies:
-    "@material/dom" "=14.0.0-canary.53b3cad2f.0"
-    "@material/mwc-base" "^0.27.0"
-    "@material/tab-scroller" "=14.0.0-canary.53b3cad2f.0"
-    lit "^2.0.0"
-    tslib "^2.0.1"
-
-"@material/mwc-tab@^0.27.0":
-  version "0.27.0"
-  resolved "https://registry.npmjs.org/@material/mwc-tab/-/mwc-tab-0.27.0.tgz"
-  integrity sha512-BhX6hZYjPL+d3Gcl6rVHNPiEAudgMHA+7mHo2keqbIiFRLKa2CU+omHZO/82+EBan/TPL6ZK39Oki8aIaAJcRQ==
-  dependencies:
-    "@material/mwc-base" "^0.27.0"
-    "@material/mwc-ripple" "^0.27.0"
-    "@material/mwc-tab-indicator" "^0.27.0"
-    "@material/tab" "=14.0.0-canary.53b3cad2f.0"
-    lit "^2.0.0"
-    tslib "^2.0.1"
-
-"@material/ripple@=14.0.0-canary.53b3cad2f.0", "@material/ripple@14.0.0-canary.53b3cad2f.0":
+"@material/ripple@=14.0.0-canary.53b3cad2f.0":
   version "14.0.0-canary.53b3cad2f.0"
   resolved "https://registry.npmjs.org/@material/ripple/-/ripple-14.0.0-canary.53b3cad2f.0.tgz"
   integrity sha512-6g2G62vd8DsMuIUSXlRrzb98qkZ4o8ZREknNwNP2zaLQEOkJ//4j9HaqDt98/3LIjUTY9UIVFTQENiMmlwKHYQ==
@@ -849,62 +757,6 @@
     "@material/theme" "14.0.0-canary.53b3cad2f.0"
     tslib "^2.1.0"
 
-"@material/tab-bar@=14.0.0-canary.53b3cad2f.0":
-  version "14.0.0-canary.53b3cad2f.0"
-  resolved "https://registry.npmjs.org/@material/tab-bar/-/tab-bar-14.0.0-canary.53b3cad2f.0.tgz"
-  integrity sha512-qLTxl0SWwSpsWBV5o7fMO4HaA3NSCTroM+qkUJYNq7lumMXxax8XP6+GvgbXXfsF1K6VqwSPJHnFt5g1kvtBOA==
-  dependencies:
-    "@material/animation" "14.0.0-canary.53b3cad2f.0"
-    "@material/base" "14.0.0-canary.53b3cad2f.0"
-    "@material/density" "14.0.0-canary.53b3cad2f.0"
-    "@material/elevation" "14.0.0-canary.53b3cad2f.0"
-    "@material/feature-targeting" "14.0.0-canary.53b3cad2f.0"
-    "@material/tab" "14.0.0-canary.53b3cad2f.0"
-    "@material/tab-indicator" "14.0.0-canary.53b3cad2f.0"
-    "@material/tab-scroller" "14.0.0-canary.53b3cad2f.0"
-    "@material/theme" "14.0.0-canary.53b3cad2f.0"
-    "@material/typography" "14.0.0-canary.53b3cad2f.0"
-    tslib "^2.1.0"
-
-"@material/tab-indicator@=14.0.0-canary.53b3cad2f.0", "@material/tab-indicator@14.0.0-canary.53b3cad2f.0":
-  version "14.0.0-canary.53b3cad2f.0"
-  resolved "https://registry.npmjs.org/@material/tab-indicator/-/tab-indicator-14.0.0-canary.53b3cad2f.0.tgz"
-  integrity sha512-CMh5MuQamk10oYs0NpQwJ+JLPcY+WftU1b2NpAxbke+6yaV0XrcEkymSfHDkMB5itDvtpXR4fe2Yw9wO8gvcgg==
-  dependencies:
-    "@material/animation" "14.0.0-canary.53b3cad2f.0"
-    "@material/base" "14.0.0-canary.53b3cad2f.0"
-    "@material/feature-targeting" "14.0.0-canary.53b3cad2f.0"
-    "@material/theme" "14.0.0-canary.53b3cad2f.0"
-    tslib "^2.1.0"
-
-"@material/tab-scroller@=14.0.0-canary.53b3cad2f.0", "@material/tab-scroller@14.0.0-canary.53b3cad2f.0":
-  version "14.0.0-canary.53b3cad2f.0"
-  resolved "https://registry.npmjs.org/@material/tab-scroller/-/tab-scroller-14.0.0-canary.53b3cad2f.0.tgz"
-  integrity sha512-eJJWfNDSdjrRVNHkSecblN26PtM8rTeK2FqcZh3iCYRZ74ywhKmHF+elrM2KRH8ez+u/YcZoQacgS8rX3v6ygw==
-  dependencies:
-    "@material/animation" "14.0.0-canary.53b3cad2f.0"
-    "@material/base" "14.0.0-canary.53b3cad2f.0"
-    "@material/dom" "14.0.0-canary.53b3cad2f.0"
-    "@material/feature-targeting" "14.0.0-canary.53b3cad2f.0"
-    "@material/tab" "14.0.0-canary.53b3cad2f.0"
-    tslib "^2.1.0"
-
-"@material/tab@=14.0.0-canary.53b3cad2f.0", "@material/tab@14.0.0-canary.53b3cad2f.0":
-  version "14.0.0-canary.53b3cad2f.0"
-  resolved "https://registry.npmjs.org/@material/tab/-/tab-14.0.0-canary.53b3cad2f.0.tgz"
-  integrity sha512-Vmjugm9TBF906pNE2kORSDcMUYXQXV+uspFdbyoSH3hVOTjX+Bw+ODL9agW+pDsJRqGMLO/BAoZ0YQDCrCNX/A==
-  dependencies:
-    "@material/base" "14.0.0-canary.53b3cad2f.0"
-    "@material/elevation" "14.0.0-canary.53b3cad2f.0"
-    "@material/feature-targeting" "14.0.0-canary.53b3cad2f.0"
-    "@material/focus-ring" "14.0.0-canary.53b3cad2f.0"
-    "@material/ripple" "14.0.0-canary.53b3cad2f.0"
-    "@material/rtl" "14.0.0-canary.53b3cad2f.0"
-    "@material/tab-indicator" "14.0.0-canary.53b3cad2f.0"
-    "@material/theme" "14.0.0-canary.53b3cad2f.0"
-    "@material/typography" "14.0.0-canary.53b3cad2f.0"
-    tslib "^2.1.0"
-
 "@material/theme@14.0.0-canary.53b3cad2f.0":
   version "14.0.0-canary.53b3cad2f.0"
   resolved "https://registry.npmjs.org/@material/theme/-/theme-14.0.0-canary.53b3cad2f.0.tgz"
@@ -913,14 +765,13 @@
     "@material/feature-targeting" "14.0.0-canary.53b3cad2f.0"
     tslib "^2.1.0"
 
-"@material/typography@14.0.0-canary.53b3cad2f.0":
-  version "14.0.0-canary.53b3cad2f.0"
-  resolved "https://registry.npmjs.org/@material/typography/-/typography-14.0.0-canary.53b3cad2f.0.tgz"
-  integrity sha512-9J0k2fq7uyHsRzRqJDJLGmg3YzRpfRPtFDVeUH/xBcYoqpZE7wYw5Mb7s/l8eP626EtR7HhXhSPjvRTLA6NIJg==
+"@material/web@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.npmjs.org/@material/web/-/web-1.3.0.tgz"
+  integrity sha512-yUqF35yygXreiPXQneD3l210UoSMlbgHZrJ0V1dUiEizGpWfVmuAKp9LnLnV/Qx5MhJlNOZddsGJOGR9lU8R/w==
   dependencies:
-    "@material/feature-targeting" "14.0.0-canary.53b3cad2f.0"
-    "@material/theme" "14.0.0-canary.53b3cad2f.0"
-    tslib "^2.1.0"
+    lit "^2.7.4 || ^3.0.0"
+    tslib "^2.4.0"
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -5114,7 +4965,7 @@ lit@^2.0.0:
     lit-element "^3.3.0"
     lit-html "^2.8.0"
 
-lit@^3.1.2:
+"lit@^2.7.4 || ^3.0.0", lit@^3.1.2:
   version "3.1.2"
   resolved "https://registry.npmjs.org/lit/-/lit-3.1.2.tgz"
   integrity sha512-VZx5iAyMtX7CV4K8iTLdCkMaYZ7ipjJZ0JcSdJ0zIdGxxyurjIn7yuuSxNBD7QmjvcNJwr0JS4cAdAtsy7gZ6w==
@@ -7725,7 +7576,7 @@ ts-loader@^9.5.1:
     semver "^7.3.4"
     source-map "^0.7.4"
 
-tslib@^2.0.0, tslib@^2.0.1, tslib@^2.0.3, tslib@^2.1.0:
+tslib@^2.0.0, tslib@^2.0.1, tslib@^2.0.3, tslib@^2.1.0, tslib@^2.4.0:
   version "2.6.2"
   resolved "https://registry.npmjs.org/tslib/-/tslib-2.6.2.tgz"
   integrity sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==

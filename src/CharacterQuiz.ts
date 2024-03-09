@@ -1,17 +1,6 @@
 import HanziWriter from "hanzi-writer";
 
 import { Component, register, html, css } from 'pouic'
-//import {
-//  css,
-//  html,
-//  LitElement,
-//  TemplateResult,
-//  CSSResultGroup,
-//} from "lit-element";
-//
-//import { when } from "lit/directives/when.js";
-//import { customElement, property } from "lit/decorators.js";
-
 import {state} from "./state"
 import { getComponentAtStrokeIdx } from "./HanziDesc";
 
@@ -26,33 +15,19 @@ import { ComponentDefinition } from "./HanziDesc";
  *  - handle hanzi changes
  */
 export default class CharacterQuiz extends Component {
-  //@property({ type: String })
-  //hanzi = "";
-
-  //@property({ type: Boolean })
   backboard = false;
 
-  //@property({ type: Boolean })
   active = false;
 
-  //@property({ type: Object })
   options = {};
 
-  //@property({ type: Object })
   hanzicomponent?: ComponentDefinition;
 
-  //@property({ type: Number })
   cmpMistakeThreshold = 2;
 
   hanziWriter: HanziWriter | undefined;
 
   quizStarted= false
-
-  //static observers = {
-  //  strokesVisible: (newValue: boolean) =>{
-  //    console.log(this, "!!!",this.hanziWriter)
-  //    newValue ? this.hanziWriter?.showOutline() : this.hanziWriter?.hideOutline()},
-  //}
 
   static get observedAttributes() {
     return ['character', 'active', 'strokes-visible'];
@@ -65,42 +40,22 @@ export default class CharacterQuiz extends Component {
       newValue != null ? this.hanziWriter?.showOutline() : this.hanziWriter?.hideOutline()
    }
     if (name === 'character' && newValue != null) {
-      //setTimeout(() => {
       this.createHanziWriter(newValue)
 
      this.startQuiz() // TODO security if hanziWriter not yet created
-//},500)
     }
    //if (name == "active" && newValue != null && !this.quizStarted) {
    //  this.startQuiz() // TODO security if hanziWriter not yet created
    //  this.quizStarted = true
    //}
 
-    //if (!this.complete && this.isPropBecomingTrue("active", newValue)) this.startQuiz();
   }
-
-  //isPropBecomingTrue(
-  //  propName: string,
-  //  newValue,
-  //) {
-  //  if (changedProperties.has(propName)) {
-  //    const oldValue = changedProperties.get(propName) as boolean;
-  //    const newValue = Reflect.get(this, propName);
-  //    console.log(oldValue, newValue)
-  //    if (!oldValue && newValue) return true;
-  //  }
-  //  return false;
-  //}
-
-  //updated(changedProperties: Map<string, unknown>) {
-  //}
 
   createHanziWriter(hanzi: string): HanziWriter {
     //await this.updateComplete;
     const target = this.shadowRoot;
 
-    //state.toto = `yo from ${hanzi}, ${state.hanziData.length}, ${Object.keys(state.hanziData[0])}`
-    this.hanziWriter = HanziWriter.create(
+     this.hanziWriter = HanziWriter.create(
       <HTMLElement>(<unknown>target),
       hanzi,
       {
@@ -108,31 +63,41 @@ export default class CharacterQuiz extends Component {
         showHintAfterMisses: 1,
         highlightOnComplete: false,
         showOutline: false,
+      onMistake: this.onMistake.bind(this),
+      onCorrectStroke: this.onCorrectStroke.bind(this),
         ...this.options,
-        //onLoadCharDataSuccess: () => console.log("success"),
       },
     );
 
-    //const resizeObserver = new ResizeObserver((entries) => {
-    //  for (const entry of entries) {
-    //    const cr = entry.contentRect;
+state.hanziWriters[hanzi] = this.hanziWriter
 
-    //    // TODO prevent calling on first render ?
-    //    this.hanziWriter?.updateDimensions({
-    //      width: cr.width,
-    //      height: cr.height,
-    //    });
-    //  }
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const cr = entry.contentRect;
+
+        // TODO prevent calling on first render ?
+        this.hanziWriter?.updateDimensions({
+          width: cr.width,
+          height: cr.height,
+        });
+      }
+    });
+
+    resizeObserver.observe((this.shadowRoot as ShadowRoot).host);
+    //Reflect.set(this.hanziWriter, "startQuiz",this.startQuiz)
+    //this.hanziWriter.quiz = this.startQuiz
+
+    //this.hanziWriter.quiz = ({
+    //  onMistake: this.onMistake.bind(this),
+    //  onCorrectStroke: this.onCorrectStroke.bind(this),
+    //  quizStartStrokeNum,
     //});
-
-    //resizeObserver.observe((this.shadowRoot as ShadowRoot).host);
 
     return this.hanziWriter;
   }
 
   strokeIdxToCmp(strokeIdx: number) {
     if (!this.hanzicomponent) throw new Error("No component specified");
-    //const charData = this.hanziData[this.nextCharIdx-1]
     const cmp = getComponentAtStrokeIdx(
       strokeIdx,
       this.hanzicomponent.matches,
@@ -144,11 +109,9 @@ export default class CharacterQuiz extends Component {
   startQuiz(quizStartStrokeNum: number = 0) {
     if (!this.hanziWriter) return;
 
-    //this.hanzicomponent.complete = false
-
     this.hanziWriter.quiz({
-      onMistake: this.onMistake.bind(this),
-      onCorrectStroke: this.onCorrectStroke.bind(this),
+      //onMistake: this.onMistake.bind(this),
+      //onCorrectStroke: this.onCorrectStroke.bind(this),
       quizStartStrokeNum,
     });
 
@@ -171,6 +134,7 @@ export default class CharacterQuiz extends Component {
     state.rating = state.rating -1;
     cmp.mistakeCount++;
   }
+
 	static css = css`
       :host {
         position: relative;
@@ -193,9 +157,6 @@ export default class CharacterQuiz extends Component {
       #grid-background-target > line {
         stroke: #f0f0f0;
       }
-
-
-
     `;
 
 	static template = html`
