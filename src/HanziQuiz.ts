@@ -73,17 +73,44 @@ export default class HanziQuiz extends Component {
   }
 
   // TODO DO this the clean way
-  ratingButtonClicked(e: CustomEvent): void {
+  ratingButtonChange(e: CustomEvent): void {
     const tabsEl = e.target as MdTabs
     const tabIndex = tabsEl.activeTabIndex;
     if (tabIndex + 1 !== state.rating) {
-      state.rating = tabIndex + 1;
+      state.rating = Math.max(1, Math.min(4,tabIndex + 1));
     }
   }
 
   isHintHidden(complete: boolean, strokesVisible:boolean) {
     return !complete && !strokesVisible
   }
+
+  cleanPinyin(str: string) {
+    if (!str)
+      return
+    const match = str.match(/^[^(]+/);
+    return match ? match[0] : "";
+  }
+getPinyinTone(pinyin: string) {
+    // Define a dictionary mapping accents to tone numbers
+    const toneMap:{ [key: string]: number} = {
+        "ā": 1, "á": 2, "ǎ": 3, "à": 4,
+        "ē": 1, "é": 2, "ě": 3, "è": 4,
+        "ī": 1, "í": 2, "ǐ": 3, "ì": 4,
+        "ō": 1, "ó": 2, "ǒ": 3, "ò": 4,
+        "ū": 1, "ú": 2, "ǔ": 3, "ù": 4,
+        "ǖ": 1, "ǘ": 2, "ǚ": 3, "ǜ": 4,
+        "ü": 5 // Neutral tone for ü
+    };
+
+    for (let char of pinyin) {
+        if (char in toneMap) {
+            return toneMap[char];
+        }
+    }
+
+    return 5;
+}
 
 	static template = html`
     <div id="quiz-area">
@@ -154,17 +181,17 @@ export default class HanziQuiz extends Component {
         >
 
         </character-anim>
-        <div class="pinyin">{hanziComponent.pinyin}</div>
+<div class="pinyin" tone="{this.getPinyinTone(hanziComponent.pinyin.0)}">{this.cleanPinyin(hanziComponent.pinyin.0)}</div>
       </div>
     </div>
 </div>
   </div>
 
-<md-tabs id="tab-bar" @change="this.ratingButtonClicked(event)">
+<md-tabs id="tab-bar" @change="this.ratingButtonChange(event)" .active-tab-index="{minusone(rating)}">
   <md-primary-tab>Again</md-primary-tab>
   <md-primary-tab>Hard</md-primary-tab>
   <md-primary-tab>Good</md-primary-tab>
-  <md-primary-tab>Easy</md-primary-tab>
+  <md-primary-tab selected>Easy</md-primary-tab>
 </md-tabs>
 
   <span id="description"></span>
@@ -299,6 +326,22 @@ padding: 0 8px;
 }
 #character-def:first-letter {
     text-transform: uppercase;
+}
+
+[tone="1"] {
+color: red;
+}
+[tone="2"] {
+color: green;
+}
+[tone="3"] {
+color: blue;
+}
+[tone="4"] {
+color: purple;
+}
+[tone="5"] {
+color: grey;
 }
 
 `

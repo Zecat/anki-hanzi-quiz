@@ -11,7 +11,7 @@ const dict: HanziDictionary = new HanziDictionary();
 type ComponentData = CharDataItem & ComponentDefinition
 
 const initialState:any = {
-  minusone: (a: any) => {console.log(a); return a - 1},
+  minusone: (a: any) => a - 1,
   equal: (a:any, b:any) => a === b,
   hanzi: '',
   toto: false,
@@ -55,11 +55,12 @@ const initialState:any = {
 
   restartCurrentQuiz: () => {
     state.resetComponentMistakes()
-    state.getCurrentHanziWriter()?.quiz()
+    state.getCurrentHanziWriter()?.quiz(0)
   },
 
   breiflyShowAndRestartQuiz: () => {
     const hw = state.getCurrentHanziWriter()
+    state.rating = 1
     if (!hw)
       return
     hw.showOutline();
@@ -67,6 +68,7 @@ const initialState:any = {
       hw.hideOutline();
       state.restartCurrentQuiz()
     }, 3000);
+
 
   }
 
@@ -79,7 +81,7 @@ observe('hanzi', (newValue: string) => {
   const promisesArray = Array.from(newValue).map((char:string, i:number) => {
     return dict.get(char).then((charData: CharDataItem ) => {
       const cmpDef: ComponentDefinition = getDecomposition(charData)
-      hanziData[i] = { ...charData, ...cmpDef }; // TODO better typing
+      hanziData[i] = Object.assign(cmpDef, charData) ; // TODO better typing
     })
   })
   Promise.all(promisesArray).then(() => {

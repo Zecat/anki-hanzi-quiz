@@ -2,7 +2,6 @@ import HanziWriter from "hanzi-writer";
 
 import { Component, register, html, css } from 'pouic'
 import {state} from "./state"
-import { getComponentAtStrokeIdx } from "./HanziDesc";
 
 import { ComponentDefinition } from "./HanziDesc";
 
@@ -59,12 +58,14 @@ export default class CharacterQuiz extends Component {
       <HTMLElement>(<unknown>target),
       hanzi,
       {
+//strokeFadeDuration: 0,
         showCharacter: false,
         showHintAfterMisses: 1,
         highlightOnComplete: false,
         showOutline: false,
       onMistake: this.onMistake.bind(this),
       onCorrectStroke: this.onCorrectStroke.bind(this),
+        //renderer: "canvas",
         ...this.options,
       },
     );
@@ -98,40 +99,75 @@ state.hanziWriters[hanzi] = this.hanziWriter
 
   strokeIdxToCmp(strokeIdx: number) {
     if (!this.hanzicomponent) throw new Error("No component specified");
-    const cmp = getComponentAtStrokeIdx(
-      strokeIdx,
-      this.hanzicomponent.matches,
-      this.hanzicomponent,
-    );
-    return cmp;
+    return this.hanzicomponent.matches[strokeIdx]
+    //const cmp = getComponentAtStrokeIdx(
+    //  strokeIdx,
+    //  this.hanzicomponent.matches,
+    //  this.hanzicomponent,
+    //);
+    //return cmp;
   }
 
   startQuiz(quizStartStrokeNum: number = 0) {
     if (!this.hanziWriter) return;
+    const c = state.getCurrentHanziWriter()
+let tmpDuration:number
+    if (quizStartStrokeNum && c) {
+      tmpDuration = c._options.strokeFadeDuration
+      c._options.strokeFadeDuration = 0
+    }
 
     this.hanziWriter.quiz({
-      //onMistake: this.onMistake.bind(this),
-      //onCorrectStroke: this.onCorrectStroke.bind(this),
       quizStartStrokeNum,
     });
 
+    setTimeout(() => {
+    const c = state.getCurrentHanziWriter()
+    if (quizStartStrokeNum && c)
+      c._options.strokeFadeDuration = tmpDuration
+    },0)
+
+
+  }
+
+
+  checkCompleteRec(cmp:any) {
+    const parent = cmp.parent
+    console.log(parent, cmp.parent, "PARENT")
+
+    if(!parent)
+      return
+    if(parent.components.every((cmp: any) => cmp.complete))
+      parent.complete = true
+    this.checkCompleteRec(parent)
   }
 
   onCorrectStroke(strokeData: any): void {
+    if (!this.hanziWriter)
+      return
     const strokeIdx = strokeData.strokeNum;
     const cmp = this.strokeIdxToCmp(strokeIdx);
-    if (cmp.mistakeCount >= this.cmpMistakeThreshold) {
+    if (cmp && strokeIdx == cmp.lastIdx) {
+
+    if (cmp.mistakeCount >= 3) {
       cmp.mistakeCount = 0;
-      this.startQuiz(cmp.firstIdx);
-    } else if (this.hanzicomponent && strokeIdx == this.hanzicomponent.lastIdx) {
-      state.currentComponent.complete = true // TODO this is weird
+      // Wait a bit so the final stroke can be seen before requizing
+      setTimeout(()=> {
+        this.startQuiz(cmp.firstIdx);
+      }, 600)
+    }else
+      cmp.complete = true // TODO this is weird
+      this.checkCompleteRec(cmp)
+      // HACK trigger proxy update
+      if (state.currentComponent.complete)
+        state.currentComponent.complete = true
     }
   }
 
   onMistake(strokeData: any): void {
     // TODO typing
     const cmp = this.strokeIdxToCmp(strokeData.strokeNum);
-    state.rating = state.rating -1;
+    state.rating = Math.max(0, state.rating-1);
     cmp.mistakeCount++;
   }
 

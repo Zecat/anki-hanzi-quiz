@@ -1,4 +1,6 @@
-import {CharDataItem, Matches} from "./HanziDictionary"
+import { CharDataItem } from "./HanziDictionary";
+
+type Matches = ComponentDefinition[];
 
 type CDLChar =
     | "⿰"
@@ -18,8 +20,6 @@ type CDLChar =
     | "⿲"
     | "⿳";
 
-
-
 //type SingleChar = string & { length: 1 };
 
 export type ComponentDefinition = {
@@ -30,9 +30,9 @@ export type ComponentDefinition = {
     parent: ComponentDefinition | null;
     components: ComponentDefinition[];
     cdl: CDLChar | null;
-    mistakeCount: number;// TODO move somewhere else
-    matches: Matches
-    complete: boolean
+    mistakeCount: number; // TODO move somewhere else
+    matches: Matches;
+    complete: boolean;
 };
 
 const getCDLLen = (c: string): 0 | 2 | 3 => {
@@ -44,30 +44,79 @@ const getCDLLen = (c: string): 0 | 2 | 3 => {
 const isCDLChar = (c: string) => {
     return c >= "⿰" && c <= "⿿";
 };
+function getNextNumber(input: string[], idx: number): { number: number | null, length: number } {
+    let numberStr = '';
+    console.log(input, "====!!")
+    input = input.slice(idx)
+    console.log(input, "====")
+
+    for (const char of input) {
+        if (/[0-9]/.test(char)) {
+            numberStr += char;
+        } else {
+            break;
+        }
+    }
+
+    const nextNumber = numberStr.length > 0 ? parseInt(numberStr, 10) : null;
+
+    return { number: nextNumber, length: numberStr.length };
+}
+
 
 export const getNextComponent = (
-    decomposition: string,
-    i: number = 0,
-): [number, ComponentDefinition] => {
-    const component = getEmptyComponent()
-    const c: string = decomposition.charAt(i);
+    acjk: string[],
+    acjkIdx: number = 0,
+    strokeIdx: number = 0,
+): [number, number, ComponentDefinition] => {
+    const component = getEmptyComponent();
+    const c: string = acjk[acjkIdx];
     const cdlLen = getCDLLen(c);
-    i++;
+    acjkIdx++;
     if (cdlLen) {
-        component.cdl = <CDLChar>c
+        component.cdl = <CDLChar>c;
         for (let j = 0; j < cdlLen; j++) {
-            const [nextI, subComponent] = getNextComponent(decomposition, i);
-            i = nextI;
-            subComponent.parent = component
+            const [nextDecIdx, nextStrokeIdx, subComponent] = getNextComponent(
+                acjk,
+                acjkIdx,
+                strokeIdx,
+            );
+            acjkIdx = nextDecIdx;
+            strokeIdx = nextStrokeIdx;
+            subComponent.parent = component;
             component.components.push(subComponent);
         }
     } else {
         component.character = c;
+        component.firstIdx = strokeIdx;
+        const {number: charLen, length: forward} = getNextNumber(acjk, acjkIdx)
+        console.log(acjkIdx, charLen, forward)
+        const c2: string = acjk[acjkIdx];
+        if (charLen != null) {
+            component.lastIdx = strokeIdx + charLen - 1;
+            acjkIdx+=forward;
+            strokeIdx += charLen;
+        } else if (c2 == ":") {
+            acjkIdx++;
+            const c3: string = acjk[acjkIdx];
+            const partialCharLen = toDigit(c3);
+            if (isNaN(partialCharLen)) throw new Error("Digit expected");
+            component.lastIdx += partialCharLen;
+            strokeIdx += partialCharLen;
+        }
     }
-    return [i, component];
+    return [acjkIdx, strokeIdx, component];
 };
 
-const getEmptyComponent = ():ComponentDefinition =>{
+function toDigit(char: string) {
+    if (isDigit(char)) {
+        return parseInt(char);
+    } else {
+        return NaN; // Not a digit
+    }
+}
+
+const getEmptyComponent = (): ComponentDefinition => {
     return {
         character: "",
         firstIdx: -1,
@@ -78,22 +127,32 @@ const getEmptyComponent = ():ComponentDefinition =>{
         cdl: null,
         mistakeCount: 0,
         matches: [],
-        complete: false
+        complete: false,
     };
+};
+
+function isDigit(char: string) {
+    return /^\d$/.test(char);
 }
 
-export const getComponentAtStrokeIdx =(strokeIdx: number,matches:Matches, cmp: ComponentDefinition):ComponentDefinition => {// TODO typing
-    const match = matches[strokeIdx]
-    if (match === null)
-        return cmp
-    for (const cmpIdx of match) {
-       cmp = cmp.components[cmpIdx]
+function removeDots(str: string) {
+    return str.replace(/\./g, "");
+}
+
+function assignSubMatches(cmp: ComponentDefinition, matches: Matches) {
+    for (const subCmp of cmp.components) {
+        for (let i = subCmp.firstIdx; i <= subCmp.lastIdx; i++) {
+            matches[i] = subCmp;
+            assignSubMatches(subCmp, matches);
+        }
     }
-    return cmp
 }
 
-export const getDecomposition = (charData: CharDataItem): ComponentDefinition => {
-    const { decomposition, character, matches } = charData;
+export const getDecomposition = (
+    charData: CharDataItem,
+): ComponentDefinition => {
+    const { decomposition, character, acjk } = charData;
+    const acjk_cleaned = [...removeDots(acjk).slice(1)];
     if (!character) {
         console.warn(
             "The character data does not specify the character.",
@@ -106,31 +165,13 @@ export const getDecomposition = (charData: CharDataItem): ComponentDefinition =>
         console.warn("Decomposition for character ${character} is empty.");
         return getEmptyComponent();
     }
-    const [_,component] = getNextComponent(decomposition, 0);
+    const [_, lastStrokeIdx, component] = getNextComponent(acjk_cleaned, 0, 0);
     component.character = character;
+    component.mistakeCount = 0;
     component.firstIdx = 0;
-    component.lastIdx = matches.length-1;
-    component.strokeCount = matches.length-1;
-    component.matches = matches
-    //if (match == null) {
-    //    component.strokeCount = match.length
-    //    component.firstIdx = 0
-    //    component.lastIdx = strokeCount -1;
-    //    return component
-    //}
-    matches.forEach((strokeMatch: number[] | null, strokeIdx: number) =>{
-        let cmp = component
-        if (strokeMatch === null) // TODO handle for example ⺈
-            return
-        for (const i of strokeMatch) {
-            cmp = cmp.components[i]
-            if (cmp.firstIdx == -1)
-                cmp.firstIdx = strokeIdx;
-            if (strokeIdx > cmp.lastIdx)
-                cmp.lastIdx = strokeIdx
-           cmp.strokeCount++;
-        }
-    });
+    component.lastIdx = lastStrokeIdx;
+    component.matches = Array(lastStrokeIdx + 1).fill(component);
+    assignSubMatches(component, component.matches);
 
     return component;
     /*

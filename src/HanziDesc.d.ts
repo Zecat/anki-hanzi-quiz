@@ -1,4 +1,5 @@
-import { CharDataItem, Matches } from "./HanziDictionary";
+import { CharDataItem } from "./HanziDictionary";
+type Matches = ComponentDefinition[];
 type CDLChar = "⿰" | "⿱" | "⿴" | "⿵" | "⿶" | "⿷" | "⿼" | "⿸" | "⿹" | "⿺" | "⿽" | "⿻" | "⿾" | "⿿" | "⿲" | "⿳";
 export type ComponentDefinition = {
     character: string;
@@ -12,7 +13,6 @@ export type ComponentDefinition = {
     matches: Matches;
     complete: boolean;
 };
-export declare const getNextComponent: (decomposition: string, i?: number) => [number, ComponentDefinition];
-export declare const getComponentAtStrokeIdx: (strokeIdx: number, matches: Matches, cmp: ComponentDefinition) => ComponentDefinition;
+export declare const getNextComponent: (acjk: string[], acjkIdx?: number, strokeIdx?: number) => [number, number, ComponentDefinition];
 export declare const getDecomposition: (charData: CharDataItem) => ComponentDefinition;
 export {};

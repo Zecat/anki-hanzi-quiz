@@ -32,6 +32,7 @@ export default class CharacterAnim extends Component {
       showCharacter: false,
   showOutline: false,
       padding: 0,
+
     };
     //state.toto = `yo from ${hanzi}, ${state.hanziData.length}, ${Object.keys(state.hanziData[0])}`
     this.hanziWriter = HanziWriter.create(

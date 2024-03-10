@@ -5,23 +5,23 @@ import storage from "localforage";
 import {state} from "./state"
 declare const window: any;
 
-export type Matches = number[][] | null[];
+//export type Matches = number[][] | null[];
 export type CharDataItem = {
     character: string;
     definition: string;
     pinyin: string[];
     decomposition: string;
-    etymology: {
-        type: string;
-        semantic: string;
-        hint: string;
-    };
+    //etymology: {
+    //    type: string;
+    //    semantic: string;
+    //    hint: string;
+    //};
     radical: string;
-    matches: Matches
+    acjk: string;
 };
 
 export default class HanziDictionary {
-    _dictMediaFilename = "hanzi_dictionary_2.json";
+    _dictMediaFilename = "dictionaryZhHans.json";
     _dbName = "hanzi_dictionary";
     _storeName = "characters";
     _dbVersion = 1;
@@ -178,19 +178,18 @@ getEmptyItem() :CharDataItem {
     definition: "",
     pinyin: [],
     decomposition: "",
-    etymology: {
-        type: "",
-        semantic: "",
-        hint: "",
-    },
+    acjk:"",
+    //etymology: {
+    //    type: "",
+    //    semantic: "",
+    //    hint: "",
+    //},
     radical: "",
-    matches: []
     };
 }
 
     async get(char: string): Promise<CharDataItem> {
         await this.dictReady
-        console.log(char)
         return {...this.data[char], character: char} || this.getEmptyItem()
         // try {
         //    await this._dataStoredPromise;

@@ -1,16 +1,10 @@
-export type Matches = number[][] | null[];
 export type CharDataItem = {
     character: string;
     definition: string;
     pinyin: string[];
     decomposition: string;
-    etymology: {
-        type: string;
-        semantic: string;
-        hint: string;
-    };
     radical: string;
-    matches: Matches;
+    acjk: string;
 };
 export default class HanziDictionary {
     _dictMediaFilename: string;

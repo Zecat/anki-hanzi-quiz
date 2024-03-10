@@ -15,21 +15,17 @@ export default class HanziQuiz extends Component {
     pinyin: string;
     hanziWriter: HanziWriter | undefined;
     nextCharIdx: number;
-    currentCharacterComplete: boolean;
     static get observedAttributes(): string[];
     attributeChangedCallback(name: string, _: string, newValue: string): void;
     getOcclusedDescription(description: string, hanzi: string): string;
     get nextCharacter(): string;
-    firstUpdated(): Promise<void>;
     setData(data: any): void;
     onVisibilityButtonTapped(e: CustomEvent): void;
-    onEraserButtonClick(): void;
-    onTeachMe(): void;
-    practice(): void;
-    onMistake(): void;
     next(): void;
-    ratingButtonClicked(e: CustomEvent): void;
+    ratingButtonChange(e: CustomEvent): void;
     isHintHidden(complete: boolean, strokesVisible: boolean): boolean;
+    cleanPinyin(str: string): string | undefined;
+    getPinyinTone(pinyin: string): number;
     static template: any;
     static css: any;
 }

@@ -15,6 +15,7 @@ export default class CharacterQuiz extends Component {
     createHanziWriter(hanzi: string): HanziWriter;
     strokeIdxToCmp(strokeIdx: number): ComponentDefinition;
     startQuiz(quizStartStrokeNum?: number): void;
+    checkCompleteRec(cmp: any): void;
     onCorrectStroke(strokeData: any): void;
     onMistake(strokeData: any): void;
     static css: any;

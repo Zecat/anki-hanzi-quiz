@@ -8,9 +8,7 @@ export default class CharactersSlideshowQuiz extends Component {
     charactersData: any[];
     currentCharacterComplete: boolean;
     sliderWidth: number;
-    updated(changedProperties: Map<string, unknown>): void;
     static css: any;
-    _triggerEventHanziComplete(): void;
     getShiftWidth(idx: number): string;
     static template: any;
 }
