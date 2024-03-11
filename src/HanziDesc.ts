@@ -61,7 +61,26 @@ function getNextNumber(input: string[], idx: number): { number: number | null, l
     return { number: nextNumber, length: numberStr.length };
 }
 
-
+const handleCdl = (component: ComponentDefinition, cdl: CDLChar,cdlLen:number,
+                    acjk: string[],
+                    acjkIdx:number,
+                    strokeIdx:number,) : [number, number]=> {
+            component.cdl = cdl;
+            for (let j = 0; j < cdlLen; j++) {
+                const [nextDecIdx, nextStrokeIdx, subComponent] = getNextComponent(
+                    acjk,
+                    acjkIdx,
+                    strokeIdx,
+                );
+                acjkIdx = nextDecIdx;
+                strokeIdx = nextStrokeIdx;
+                subComponent.parent = component;
+                component.components.push(subComponent);
+                if (subComponent.lastIdx > component.lastIdx)
+                    component.lastIdx = subComponent.lastIdx
+            }
+    return [acjkIdx, strokeIdx]
+}
 export const getNextComponent = (
     acjk: string[],
     acjkIdx: number = 0,
@@ -70,9 +89,16 @@ export const getNextComponent = (
     const component = getEmptyComponent();
     const c: string = acjk[acjkIdx];
 
-    component.character = c;
-    component.firstIdx = strokeIdx;
+    let cdlLen = getCDLLen(c);
     acjkIdx++;
+    component.firstIdx = strokeIdx;
+    if (cdlLen) {
+       [acjkIdx, strokeIdx] = handleCdl(component, c as CDLChar, cdlLen, acjk, acjkIdx, strokeIdx,)
+        if (acjkIdx >= acjk.length)
+            return [acjkIdx, strokeIdx, component];
+    } else {
+        component.character = c;
+    }
     const {number: charLen, length: forward} = getNextNumber(acjk, acjkIdx)
     const c2: string = acjk[acjkIdx];
     if (charLen != null) {
@@ -87,23 +113,12 @@ export const getNextComponent = (
         component.lastIdx += partialCharLen;
         strokeIdx += partialCharLen;
     } else {
-        const cdlLen = getCDLLen(c2);
-        acjkIdx++;
+        cdlLen = getCDLLen(c2);
         if (cdlLen) {
-            component.cdl = <CDLChar>c2;
-            for (let j = 0; j < cdlLen; j++) {
-                const [nextDecIdx, nextStrokeIdx, subComponent] = getNextComponent(
-                    acjk,
-                    acjkIdx,
-                    strokeIdx,
-                );
-                acjkIdx = nextDecIdx;
-                strokeIdx = nextStrokeIdx;
-                subComponent.parent = component;
-                component.components.push(subComponent);
-                if (subComponent.lastIdx > component.lastIdx)
-                    component.lastIdx = subComponent.lastIdx
-            }
+            acjkIdx++;
+            [acjkIdx, strokeIdx] = handleCdl(component, c2 as CDLChar, cdlLen, acjk, acjkIdx, strokeIdx,)
+        } else {
+            throw new Error(`Unexpected character ${c2} in acjk:"${acjk}"`)
         }
     }
     return [acjkIdx, strokeIdx, component];
