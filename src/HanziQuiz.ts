@@ -172,10 +172,14 @@ getPinyinTone(pinyin: string) {
     </div>
 
 <div id="revealed-hanzi-wrapper">
-    <div id="revealed-hanzi" repeat="hanziData" as="hanziComponent" index-as="index">
+    <div
+      id="revealed-hanzi"
+      repeat="hanziData"
+      as="hanziComponent"
+      index-as="index"
+      @click="selectCharacterIdx(index)">
       <div class="revealed-char">
         <character-anim
-          @click="selectCharacterIdx(index)"
           character="{hanziComponent.character}"
           reveal="{hanziComponent.complete}"
         >
@@ -260,6 +264,7 @@ getPinyinTone(pinyin: string) {
       .revealed-char {
         display: flex;
         flex-direction: column;
+        pointer-events: all;
       }
 
       #revealed-hanzi-wrapper {
@@ -268,6 +273,7 @@ flex: 1;
 position: sticky;
   bottom: 48px;
 padding-bottom: 16px;
+pointer-events: none;
 }
       #revealed-hanzi {
         display: flex;
