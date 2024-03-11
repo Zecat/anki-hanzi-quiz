@@ -55,7 +55,7 @@ const initialState:any = {
 
   restartCurrentQuiz: () => {
     state.resetComponentMistakes()
-    state.getCurrentHanziWriter()?.quiz(0)
+    state.getCurrentHanziWriter()?.quiz({quizStartStrokeNum:0})
   },
 
   breiflyShowAndRestartQuiz: () => {
