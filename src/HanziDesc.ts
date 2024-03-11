@@ -46,9 +46,7 @@ const isCDLChar = (c: string) => {
 };
 function getNextNumber(input: string[], idx: number): { number: number | null, length: number } {
     let numberStr = '';
-    console.log(input, "====!!")
     input = input.slice(idx)
-    console.log(input, "====")
 
     for (const char of input) {
         if (/[0-9]/.test(char)) {
@@ -71,38 +69,41 @@ export const getNextComponent = (
 ): [number, number, ComponentDefinition] => {
     const component = getEmptyComponent();
     const c: string = acjk[acjkIdx];
-    const cdlLen = getCDLLen(c);
+
+    component.character = c;
+    component.firstIdx = strokeIdx;
     acjkIdx++;
-    if (cdlLen) {
-        component.cdl = <CDLChar>c;
-        for (let j = 0; j < cdlLen; j++) {
-            const [nextDecIdx, nextStrokeIdx, subComponent] = getNextComponent(
-                acjk,
-                acjkIdx,
-                strokeIdx,
-            );
-            acjkIdx = nextDecIdx;
-            strokeIdx = nextStrokeIdx;
-            subComponent.parent = component;
-            component.components.push(subComponent);
-        }
+    const {number: charLen, length: forward} = getNextNumber(acjk, acjkIdx)
+    const c2: string = acjk[acjkIdx];
+    if (charLen != null) {
+        component.lastIdx = strokeIdx + charLen - 1;
+        acjkIdx+=forward;
+        strokeIdx += charLen;
+    } else if (c2 == ":") {
+        acjkIdx++;
+        const c3: string = acjk[acjkIdx];
+        const partialCharLen = toDigit(c3);
+        if (isNaN(partialCharLen)) throw new Error("Digit expected");
+        component.lastIdx += partialCharLen;
+        strokeIdx += partialCharLen;
     } else {
-        component.character = c;
-        component.firstIdx = strokeIdx;
-        const {number: charLen, length: forward} = getNextNumber(acjk, acjkIdx)
-        console.log(acjkIdx, charLen, forward)
-        const c2: string = acjk[acjkIdx];
-        if (charLen != null) {
-            component.lastIdx = strokeIdx + charLen - 1;
-            acjkIdx+=forward;
-            strokeIdx += charLen;
-        } else if (c2 == ":") {
-            acjkIdx++;
-            const c3: string = acjk[acjkIdx];
-            const partialCharLen = toDigit(c3);
-            if (isNaN(partialCharLen)) throw new Error("Digit expected");
-            component.lastIdx += partialCharLen;
-            strokeIdx += partialCharLen;
+        const cdlLen = getCDLLen(c2);
+        acjkIdx++;
+        if (cdlLen) {
+            component.cdl = <CDLChar>c2;
+            for (let j = 0; j < cdlLen; j++) {
+                const [nextDecIdx, nextStrokeIdx, subComponent] = getNextComponent(
+                    acjk,
+                    acjkIdx,
+                    strokeIdx,
+                );
+                acjkIdx = nextDecIdx;
+                strokeIdx = nextStrokeIdx;
+                subComponent.parent = component;
+                component.components.push(subComponent);
+                if (subComponent.lastIdx > component.lastIdx)
+                    component.lastIdx = subComponent.lastIdx
+            }
         }
     }
     return [acjkIdx, strokeIdx, component];
@@ -152,7 +153,7 @@ export const getDecomposition = (
     charData: CharDataItem,
 ): ComponentDefinition => {
     const { decomposition, character, acjk } = charData;
-    const acjk_cleaned = [...removeDots(acjk).slice(1)];
+    const acjk_cleaned = [...removeDots(acjk)];
     if (!character) {
         console.warn(
             "The character data does not specify the character.",
@@ -166,7 +167,7 @@ export const getDecomposition = (
         return getEmptyComponent();
     }
     const [_, lastStrokeIdx, component] = getNextComponent(acjk_cleaned, 0, 0);
-    component.character = character;
+    //component.character = character;
     component.mistakeCount = 0;
     component.firstIdx = 0;
     component.lastIdx = lastStrokeIdx;
