@@ -9,14 +9,14 @@ export default class CharacterAnim extends Component {
     return ['character', 'reveal'];
   }
 
- attributeChangedCallback(name: string, _: string, newValue:string|null) {
+ attributeChangedCallback(name: string, oldValue: string|null, newValue:string|null) {
     if (newValue && newValue[0] == "{")
       return
     if (name === 'character' && newValue != null) {
       this.createHanziWriter(newValue)
     }
    if (name == "reveal")  {
-     if (newValue != null) {
+     if (newValue != null && oldValue==null) {
          this.hanziWriter?.animateCharacter();
      }
       // this.hanziWriter?.showOutline() : this.hanziWriter?.hideOutline()
