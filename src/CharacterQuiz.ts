@@ -167,7 +167,7 @@ let tmpDuration:number
   onMistake(strokeData: any): void {
     // TODO typing
     const cmp = this.strokeIdxToCmp(strokeData.strokeNum);
-    state.rating = Math.max(0, state.rating-1);
+    state.rating = Math.max(1, state.rating-1);
     cmp.mistakeCount++;
   }
 
