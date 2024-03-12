@@ -176,9 +176,8 @@ getPinyinTone(pinyin: string) {
       id="revealed-hanzi"
       repeat="hanziData"
       as="hanziComponent"
-      index-as="index"
-      @click="selectCharacterIdx(index)">
-      <div class="revealed-char">
+      index-as="index">
+      <div class="revealed-char" @click="selectCharacterIdx(index)">
         <character-anim
           character="{hanziComponent.character}"
           reveal="{hanziComponent.complete}"
