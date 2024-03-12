@@ -133,7 +133,6 @@ let tmpDuration:number
 
   checkCompleteRec(cmp:any) {
     const parent = cmp.parent
-    console.log(parent, cmp.parent, "PARENT")
 
     if(!parent)
       return

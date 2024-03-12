@@ -167,7 +167,7 @@ function assignSubMatches(cmp: ComponentDefinition, matches: Matches) {
 export const getDecomposition = (
     charData: CharDataItem,
 ): ComponentDefinition => {
-    const { decomposition, character, acjk } = charData;
+    const { character, acjk } = charData;
     const acjk_cleaned = [...removeDots(acjk)];
     if (!character) {
         console.warn(
@@ -177,8 +177,8 @@ export const getDecomposition = (
         return getEmptyComponent();
     }
 
-    if (decomposition.length === 0) {
-        console.warn("Decomposition for character ${character} is empty.");
+    if (acjk_cleaned.length === 0) {
+        console.warn("acjk for character ${character} is empty.");
         return getEmptyComponent();
     }
     const [_, lastStrokeIdx, component] = getNextComponent(acjk_cleaned, 0, 0);
