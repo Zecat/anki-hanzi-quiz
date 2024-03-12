@@ -244,7 +244,7 @@ getPinyinTone(pinyin: string) {
       }
 
       #hanzi-slideshow {
-        margin: 12px;
+        margin: 12px 8px;
         aspect-ratio: 1;
         max-width: 500px;
         background: white;
