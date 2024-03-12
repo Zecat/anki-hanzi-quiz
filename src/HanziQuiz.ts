@@ -278,7 +278,7 @@ pointer-events: none;
         display: flex;
 align-self: end;
  background: rgb(255,255,255);
-background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 50%);
+background: linear-gradient(180deg, rgba(251,251,251,0) 0%, rgba(251,251,251,1) 50%);
 
         justify-content: center;
 flex: 1;
