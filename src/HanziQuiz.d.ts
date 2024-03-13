@@ -26,6 +26,7 @@ export default class HanziQuiz extends Component {
     isHintHidden(complete: boolean, strokesVisible: boolean): boolean;
     cleanPinyin(str: string): string | undefined;
     getPinyinTone(pinyin: string): number;
+    getPlecoLink(hanzi: string): string;
     static template: any;
     static css: any;
 }
