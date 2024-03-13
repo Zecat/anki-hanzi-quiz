@@ -27,6 +27,8 @@ export default class HanziQuiz extends Component {
 
   nextCharIdx = 0;
 
+  description = ""
+
   static get observedAttributes() {
     return ['hanzi'];
   }
@@ -37,12 +39,17 @@ export default class HanziQuiz extends Component {
     }
   }
 
-  getOcclusedDescription(description: string, hanzi: string): string {
+  getOcclusedDescription(description: string, uncompleteHanzi: string): string {
     const occlused = description.replace(
-      new RegExp("[" + hanzi + "]", "g"),
+      new RegExp("[" + uncompleteHanzi + "]", "g"),
       "?",
     );
     return occlused;
+  }
+
+  updateOcclusedDescription():void {
+    const uncompleteHanzi= state.hanziData.filter((data:any) => !data.complete).map((data:any) => data.character)
+    this.shadowRoot.getElementById('description').innerHTML = this.getOcclusedDescription(this.description, uncompleteHanzi)
   }
 
   get nextCharacter(): string {
@@ -53,7 +60,8 @@ export default class HanziQuiz extends Component {
 
   setData(data: any) {
       this.shadowRoot.getElementById('pinyin').innerHTML = data.pinyin
-      this.shadowRoot.getElementById('description').innerHTML = this.getOcclusedDescription(data.description, state.hanzi)
+      this.description = data.description;
+      this.updateOcclusedDescription();
   }
 
   onVisibilityButtonTapped(e: CustomEvent): void {
