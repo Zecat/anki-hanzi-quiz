@@ -38,6 +38,7 @@ export default class CharacterAnim extends Component {
       <HTMLElement>(<unknown>target),
       hanzi,
       hanziWriterAnimOptions
+      //{...hanziWriterAnimOptions, renderer: "canvas"}
     );
     return this.hanziWriter;
   }

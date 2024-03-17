@@ -7,8 +7,7 @@ import HanziDictionary, {CharDataItem} from "./HanziDictionary";
 
 const dict: HanziDictionary = new HanziDictionary();
 
-
-type ComponentData = CharDataItem & ComponentDefinition
+export type ComponentData = CharDataItem & ComponentDefinition
 
 const initialState:any = {
   minusone: (a: any) => a - 1,
@@ -68,8 +67,6 @@ const initialState:any = {
       hw.hideOutline();
       state.restartCurrentQuiz()
     }, 3000);
-
-
   }
 
 }

@@ -1,5 +1,7 @@
 import { CharDataItem } from "./HanziDictionary";
 
+//import HanziWriter from "hanzi-writer";
+
 type Matches = ComponentDefinition[];
 
 type CDLChar =
@@ -33,6 +35,10 @@ export type ComponentDefinition = {
     mistakeCount: number; // TODO move somewhere else
     matches: Matches;
     complete: boolean;
+    svgGroup: Element | undefined;
+    gridEl: HTMLElement | undefined;
+    scaleFactor: number,
+    cumulativeScaleFactor: number,
 };
 
 const getCDLLen = (c: string): 0 | 2 | 3 => {
@@ -144,6 +150,10 @@ const getEmptyComponent = (): ComponentDefinition => {
         mistakeCount: 0,
         matches: [],
         complete: false,
+        svgGroup: undefined,
+        gridEl: undefined,
+    scaleFactor: 1,
+    cumulativeScaleFactor: 1,
     };
 };
 
@@ -188,24 +198,26 @@ export const getDecomposition = (
     component.lastIdx = lastStrokeIdx;
     component.matches = Array(lastStrokeIdx + 1).fill(component);
     assignSubMatches(component, component.matches);
+    //if (component.character)
+    //    component.characterDataPromise = HanziWriter.loadCharacterData(component.character)
 
     return component;
-    /*
-⿰ 	U+2FF0 	Ideographic description character left to right
-⿱ 	U+2FF1 	Ideographic description character above to below
-⿲ 	U+2FF2 	Ideographic description character left to middle and right
-⿳ 	U+2FF3 	Ideographic description character above to middle and below
-⿴ 	U+2FF4 	Ideographic description character full surround
-⿵ 	U+2FF5 	Ideographic description character surround from above
-⿶ 	U+2FF6 	Ideographic description character surround from below
-⿷ 	U+2FF7 	Ideographic description character surround from left
-⿼ 	U+2FFC 	Ideographic description character surround from right
-⿸ 	U+2FF8 	Ideographic description character surround from upper left
-⿹ 	U+2FF9 	Ideographic description character surround from upper right
-⿺ 	U+2FFA 	Ideographic description character surround from lower left
-⿽ 	U+2FFD 	Ideographic description character surround from lower right
-⿻ 	U+2FFB 	Ideographic description character overlaid
-⿾ 	U+2FFE 	Ideographic description character horizontal reflection
+    /*⿰*
+⿰   ⿱   U+2FF0 	Ideographic description character left to right
+⿱   ⿲   U+2FF1 	Ideographic description character above to below
+⿲   ⿳   U+2FF2 	Ideographic description character left to middle and right
+⿳   ⿴   U+2FF3 	Ideographic description character above to middle and below
+⿴   ⿵   U+2FF4 	Ideographic description character full surround
+⿵   ⿶   U+2FF5 	Ideographic description character surround from above
+⿶   ⿷   U+2FF6 	Ideographic description character surround from below
+⿷   ⿼   U+2FF7 	Ideographic description character surround from left
+⿼ 	U⿸+2FFC 	Ideographic description character surround from right
+⿸   ⿹   U+2FF8 	Ideographic description character surround from upper left
+⿹   ⿺   U+2FF9 	Ideographic description character surround from upper right
+⿺   ⿽   U+2FFA 	Ideographic description character surround from lower left
+⿽ 	U⿻+2FFD 	Ideographic description character surround from lower right
+⿻   ⿾   U+2FFB 	Ideographic description character overlaid
+⿾ 	U⿿+2FFE 	Ideographic description character horizontal reflection
 ⿿ 	U+2FFF 	Ideographic description character rotation
 */
 };

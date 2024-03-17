@@ -41,12 +41,12 @@ export default class CharacterQuiz extends Component {
     if (name === 'character' && newValue != null) {
       this.createHanziWriter(newValue)
 
-     this.startQuiz() // TODO security if hanziWriter not yet created
+     //this.startQuiz() // TODO security if hanziWriter not yet created
     }
-   //if (name == "active" && newValue != null && !this.quizStarted) {
-   //  this.startQuiz() // TODO security if hanziWriter not yet created
-   //  this.quizStarted = true
-   //}
+   if (name == "active" && newValue != null && !this.quizStarted) {
+     this.startQuiz() // TODO security if hanziWriter not yet created
+     this.quizStarted = true
+   }
 
   }
 
@@ -65,6 +65,7 @@ export default class CharacterQuiz extends Component {
         showOutline: false,
       onMistake: this.onMistake.bind(this),
       onCorrectStroke: this.onCorrectStroke.bind(this),
+padding: 0,
         //renderer: "canvas",
         ...this.options,
       },

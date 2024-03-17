@@ -11,6 +11,7 @@ import '@material/web/tabs/primary-tab.js';
 
 import "./CharactersSlideshowQuiz";
 import "./CharacterAnim";
+import "./CharacterMorph";
 import "./HanziWriter";
 import HanziWriter from "hanzi-writer";
 
@@ -174,7 +175,8 @@ getPinyinTone(pinyin: string) {
 
     </div>
 
-    <characters-slideshow-quiz id="hanzi-slideshow"></characters-slideshow-quiz>
+    <character-morph .data={currentComponent}></character-morph>
+    <!--<characters-slideshow-quiz id="hanzi-slideshow"></characters-slideshow-quiz>-->
     <div id="after-buttons" >
       <md-outlined-button reveal="{currentComponent.complete}" @click="restartCurrentQuiz()">Practice</md-outlined-button>
       <md-filled-button reveal="{complete}" @click="this.next()">Next</md-filled-button>
