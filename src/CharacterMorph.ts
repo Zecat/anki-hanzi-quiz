@@ -77,8 +77,6 @@ _updateGroupTransformRec(cmp: ComponentDefinition) {
   if (cmp.gridEl.offsetParent === null)// element is display none
     {
 
-  //cmp.scaleFactor = 1
-  //cmp.cumulativeScaleFactor = cmp.parent.cumulativeScaleFactor
    // TODO cleanup
     cmp.svgGroup.setAttribute('transform', `translate(0, 0) scale(1, 1)`);
     for (let subCmp of cmp.components) {
@@ -87,23 +85,13 @@ _updateGroupTransformRec(cmp: ComponentDefinition) {
     return
   }
   const clientRects = cmp.gridEl.getBoundingClientRect()
-  console.log(clientRects)
   const { x,y, width } = clientRects
   const {x:px,y:py,width: pwidth} = cmp.parent.gridEl.getBoundingClientRect()
   const scaleFactor =  width/pwidth || 1;
-  //cmp.scaleFactor = scaleFactor
-  //cmp.cumulativeScaleFactor = scaleFactor*cmp.parent.cumulativeScaleFactor
-  //const translateX = (x - px)/cmp.parent.cumulativeScaleFactor || 0
-  //const translateY = (py - y)/cmp.parent.cumulativeScaleFactor  || 0
-  console.log(pwidth, py, y, width)
-  //const shiftY = 2*100*(pwidth - (y - py)-width)/pwidth
-  //const shiftX = 50;//2*100*(pwidth - (px - x)-width)/pwidth - 100
-  //const shiftY = 100/(-pwidth + width) * (y - py + width/2 - 250)
   const r = pwidth/width
 
   const shiftX = 100/(-pwidth+width) * (-x + px -pwidth  ) - 100* (r / (r - 1)) // TODO simplify calculation
   const shiftY = 100/(-pwidth+width) * (y - py -pwidth  ) - 100 / (r - 1) - 10
-  //console.log(translateY, cmp.character)
 
   cmp.svgGroup.setAttribute('transform', `scale(${scaleFactor}, ${scaleFactor})`);
   cmp.svgGroup.setAttribute('transform-origin', `${shiftX}% ${shiftY}%`);
