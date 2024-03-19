@@ -24,7 +24,7 @@ export default class CharacterMorph extends Component {
   }
 
   connectedCallback() {
-    HanziWriter.loadCharacterData('大').then((charData:any)=> {
+    HanziWriter.loadCharacterData('傻').then((charData:any)=> {
 this.initialStrokes = charData.strokes
   const target:HTMLElement = this.shadowRoot;
    this.renderFanningStrokes(target, charData.strokes);
@@ -53,9 +53,9 @@ this.initialStrokes = charData.strokes
 
     this.generateGrid(grid, data);
     this.createSubGroupRec(data)
-    data.scaleFactor = 1
+    //data.scaleFactor = 300/1024
 
-    data.cumulativeScaleFactor =1
+    //data.cumulativeScaleFactor =300/1024
     this.updateGroupTransform(data)
     this.attachGridEventListener(data)
   }
@@ -77,8 +77,8 @@ _updateGroupTransformRec(cmp: ComponentDefinition) {
   if (cmp.gridEl.offsetParent === null)// element is display none
     {
 
-  cmp.scaleFactor = 1
-  cmp.cumulativeScaleFactor = cmp.parent.cumulativeScaleFactor
+  //cmp.scaleFactor = 1
+  //cmp.cumulativeScaleFactor = cmp.parent.cumulativeScaleFactor
    // TODO cleanup
     cmp.svgGroup.setAttribute('transform', `translate(0, 0) scale(1, 1)`);
     for (let subCmp of cmp.components) {
@@ -88,16 +88,25 @@ _updateGroupTransformRec(cmp: ComponentDefinition) {
   }
   const clientRects = cmp.gridEl.getBoundingClientRect()
   console.log(clientRects)
-  const {x, y, width } = clientRects
+  const { x,y, width } = clientRects
   const {x:px,y:py,width: pwidth} = cmp.parent.gridEl.getBoundingClientRect()
   const scaleFactor =  width/pwidth || 1;
-  cmp.scaleFactor = scaleFactor
-  cmp.cumulativeScaleFactor = scaleFactor*cmp.parent.cumulativeScaleFactor
-  const translateX = (x - px)/cmp.parent.cumulativeScaleFactor || 0
-  const translateY = (py - y)/cmp.parent.cumulativeScaleFactor || 0
-  console.log(translateY, cmp.character)
+  //cmp.scaleFactor = scaleFactor
+  //cmp.cumulativeScaleFactor = scaleFactor*cmp.parent.cumulativeScaleFactor
+  //const translateX = (x - px)/cmp.parent.cumulativeScaleFactor || 0
+  //const translateY = (py - y)/cmp.parent.cumulativeScaleFactor  || 0
+  console.log(pwidth, py, y, width)
+  //const shiftY = 2*100*(pwidth - (y - py)-width)/pwidth
+  //const shiftX = 50;//2*100*(pwidth - (px - x)-width)/pwidth - 100
+  //const shiftY = 100/(-pwidth + width) * (y - py + width/2 - 250)
+  const r = pwidth/width
 
-  cmp.svgGroup.setAttribute('transform', `translate(${translateX}, ${translateY}) scale(${scaleFactor}, ${scaleFactor})`);
+  const shiftX = 100/(-pwidth+width) * (-x + px -pwidth  ) - 100* (r / (r - 1)) // TODO simplify calculation
+  const shiftY = 100/(-pwidth+width) * (y - py -pwidth  ) - 100 / (r - 1) - 10
+  //console.log(translateY, cmp.character)
+
+  cmp.svgGroup.setAttribute('transform', `scale(${scaleFactor}, ${scaleFactor})`);
+  cmp.svgGroup.setAttribute('transform-origin', `${shiftX}% ${shiftY}%`);
     for (let subCmp of cmp.components) {
       this._updateGroupTransformRec(subCmp)
     }
@@ -141,7 +150,7 @@ _updateGroupTransformRec(cmp: ComponentDefinition) {
 
   onClick(e:any) {
     e.stopPropagation()
-    if ("unfolded" in e.target.classList)
+    if ("unfolded" in e.target.classList || !e.target.childElementCount)
       return
     this.unfoldList.push(e.target)
     for(const child of  e.target.children){
@@ -205,9 +214,10 @@ renderFanningStrokes(target:any, strokes:any) {
   this.mainSvgGroup = group
 
   // set the transform property on the g element so the character renders at 75x75
-  const transformData = "scale(1, -1) translate(0, -900)"//HanziWriter.getScalingTransform(200, 200, -15);
-  group.setAttributeNS(null, 'transform', transformData);
-    svg.setAttributeNS(null, 'viewBox', "0 0 1024 1024");//"0 0 1080 720");
+    //const transformData = "scale(1, -1)"//HanziWriter.getScalingTransform(200, 200, -15);
+  //group.setAttributeNS(null, 'transform', transformData);
+  //group.setAttributeNS(null, 'transform-orgin', "center center"); // svg needs a -900px vertical translation
+    svg.setAttributeNS(null, 'viewBox', "0 -100 1000 1000");//"0 0 1080 720");
   svg.appendChild(group);
 
   const paths:any[] = []
@@ -258,11 +268,15 @@ svg {
 pointer-events: none;
 width: 300px;
 height: 300px;
+    scale: 1 -1;
+    transform-origin: 50% 50%;
 }
 
       svg g {
         transition: transform 1s;
-transform-origin: 0 0;
+}
+
+svg  g {
 }
 
       svg path{
@@ -276,6 +290,8 @@ align-items: center;
 aspect-ratio: 1;
 }
       #grid * {
+border: 1px solid grey;
+position: relative;
 display: none;
 flex: 1;
     aspect-ratio: 1 / 1;
@@ -283,7 +299,6 @@ flex: 1;
 
 align-items: center;
 background: rgba(255, 255, 0, 0.3);
-border: 1px solid orange;
 
     }
 
@@ -294,12 +309,12 @@ border: 1px solid orange;
  .⿰ {
 flex-direction: row;
 }
- .⿱ {
+ .⿱, .⿳ {
 flex-direction: column;
 }
 #reassemble-btn {
 position: relative;
-left: 200px;
+left: 300px;
 
 }
 /*

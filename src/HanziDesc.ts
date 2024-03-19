@@ -123,9 +123,10 @@ export const getNextComponent = (
         if (cdlLen) {
             acjkIdx++;
             [acjkIdx, strokeIdx] = handleCdl(component, c2 as CDLChar, cdlLen, acjk, acjkIdx, strokeIdx,)
-        } else {
-            throw new Error(`Unexpected character ${c2} in acjk:"${acjk}"`)
         }
+        //else {
+        //    throw new Error(`Unexpected character ${c2} in acjk:"${acjk}"`)
+        //}
     }
     return [acjkIdx, strokeIdx, component];
 };
