@@ -15,16 +15,17 @@ export default class CharacterMorph extends Component {
   constructor() {
     super()
     this.animStartTime = 0
-    this.animDuration = 1000
+    this.animDuration = 500
     this.interpolators = []
     this.initialStrokes = []
     this._data = undefined;
     this.mainSvgGroup = undefined
     this.unfoldList = []
+    //this.backward = false
   }
 
   connectedCallback() {
-    HanziWriter.loadCharacterData('傻').then((charData:any)=> {
+    HanziWriter.loadCharacterData('徵').then((charData:any)=> {
 this.initialStrokes = charData.strokes
   const target:HTMLElement = this.shadowRoot;
    this.renderFanningStrokes(target, charData.strokes);
@@ -133,7 +134,100 @@ _updateGroupTransformRec(cmp: ComponentDefinition) {
      child.classList.toggle('unfolded', false)
     }
 
+
+    const cmp = this.getCmpForGridEl(lastEl, this._data)
+    if(!cmp)
+      return
+    this.runCharacterMorphBackward(cmp).then(() => {
     this.updateGroupTransform(this._data)
+
+    })
+    //this.updateGroupTransform(this._data)
+    //this.backward = true
+    //this.anim()
+    //setTimeout(() => {
+    //this.backward = false
+
+    //}, 1000)
+  }
+
+
+  resetInterpolators() {
+    this.interpolators = Array(this.initialStrokes.length).fill(undefined)
+  }
+
+  // TODO make generic the 2 following methods
+  async runCharacterMorphBackward(cmp: ComponentDefinition) {
+    this.resetInterpolators()
+    let initialStrokes:any
+    if (!cmp.character)
+      initialStrokes = this.initialStrokes.slice(cmp.firstIdx)
+    else {
+    const cmpData:any = await HanziWriter.loadCharacterData(cmp.character)
+    initialStrokes = cmpData.strokes
+    }
+    const promises = cmp.components
+      .filter((subCmp: ComponentDefinition) => subCmp.character)
+      .map((subCmp: ComponentDefinition) => HanziWriter.loadCharacterData(subCmp.character).then((charData:any)=> {
+        charData.strokes.forEach((strokePath: any, idx: number) => {
+          this.interpolators[idx +subCmp.firstIdx ] = interpolate(strokePath, initialStrokes[idx + subCmp.firstIdx - cmp.firstIdx]  );
+        })
+      }).catch((e:any) => {
+        console.warn(e);
+      }))
+
+    return Promise.all(promises).then(this.anim.bind(this));
+
+
+    //HanziWriter.loadCharacterData('日').then((charData:any)=> {
+    //   charData.strokes.forEach((strokePath: any, idx: number) => {
+    //    this.interpolators[idx] = interpolate(this.initialStrokes[idx], strokePath );
+    //  })
+    //}).then(this.anim.bind(this));
+  }
+
+  async runCharacterMorph(cmp: ComponentDefinition) {
+    this.resetInterpolators()
+    let initialStrokes:any
+    if (!cmp.character)
+      initialStrokes = this.initialStrokes.slice(cmp.firstIdx)
+    else {
+    const cmpData:any = await HanziWriter.loadCharacterData(cmp.character)
+    initialStrokes = cmpData.strokes
+    }
+    const promises = cmp.components
+      .map((subCmp: ComponentDefinition) => this.computeInterpolations(subCmp, cmp.firstIdx, initialStrokes)).flat()
+
+    return Promise.all(promises).then(this.anim.bind(this));
+
+
+    //HanziWriter.loadCharacterData('日').then((charData:any)=> {
+    //   charData.strokes.forEach((strokePath: any, idx: number) => {
+    //    this.interpolators[idx] = interpolate(this.initialStrokes[idx], strokePath );
+    //  })
+    //}).then(this.anim.bind(this));
+  }
+
+computeInterpolations(cmp:ComponentDefinition, cmpFirstStrokeIdx: number, initialStrokes: any): Promise<any> | undefined |Promise<any>[] {
+   if (!cmp.character)
+     return // TODO recursivly develop character
+     //return cmp.components.map((subCmp: ComponentDefinition) => this.computeInterpolations(subCmp, cmp.firstIdx- cmpFirstStrokeIdx, initialStrokes)).flat()
+
+     //return this.computeInterpolations()
+   return HanziWriter.loadCharacterData(cmp.character).then((charData:any)=> {
+        charData.strokes.forEach((strokePath: any, idx: number) => {
+          this.interpolators[idx +cmp.firstIdx ] = interpolate(initialStrokes[idx + cmp.firstIdx - cmpFirstStrokeIdx], strokePath );
+        })
+   }).catch((e:any) => {
+        console.warn(e);
+      })
+}
+getCmpForGridEl(target: HTMLElement, cmp: ComponentDefinition):ComponentDefinition | undefined {
+   if (cmp.gridEl == target)
+     return cmp
+    for (const subCmp of cmp.components)
+      if (subCmp.gridEl === target) return subCmp
+    return undefined
   }
 
   onClick(e:any) {
@@ -144,7 +238,13 @@ _updateGroupTransformRec(cmp: ComponentDefinition) {
     for(const child of  e.target.children){
      child.classList.toggle('unfolded', true)
     }
+    const cmp = this.getCmpForGridEl(e.target, this._data)
+    if(!cmp)
+      return
+    this.runCharacterMorph(cmp).then(() => {
     this.updateGroupTransform(this._data)
+
+    })
 
   }
 
@@ -179,7 +279,8 @@ requestAnimationFrame(this._anim.bind(this));
   }
 
 _drawAnim(time:number) {
-    const progress = this.progress(time);
+    let progress = this.progress(time);
+
     this.strokeUpdate(progress)
 
     if (progress < 1) {
@@ -188,7 +289,13 @@ _drawAnim(time:number) {
 }
 
   strokeUpdate(progress: number) {
+
+    //if (this.backward)
+    //  progress = 1 - progress
    for (let i = 0; i < this.interpolators.length; i++)  {
+     if (!this.interpolators[i])
+       continue
+
      const strokePath = this.interpolators[i](progress)
      this.paths[i].setAttribute('d', strokePath)
    }
@@ -261,7 +368,7 @@ height: 300px;
 }
 
       svg g {
-        transition: transform 1s;
+        transition: transform 0.5s linear;
 }
 
 svg  g {
@@ -294,11 +401,11 @@ background: rgba(255, 255, 0, 0.3);
         display: flex;
 }
 
- .⿰ {
-flex-direction: row;
-}
  .⿱, .⿳ {
-flex-direction: column;
+flex-direction: column !important;
+}
+ #grid * {
+flex-direction: row;
 }
 #reassemble-btn {
 position: relative;

@@ -5,6 +5,8 @@
     "noImplicitAny": true,
     "module": "esnext",
     "target": "es6",
+
+"lib": ["esnext", "dom", ],
     "declaration": true,
      "strict": true,
      "noImplicitAny": true /* Raise error on expressions and declarations with an implied 'any' type. */,

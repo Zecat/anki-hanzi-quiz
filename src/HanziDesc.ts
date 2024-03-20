@@ -39,6 +39,7 @@ export type ComponentDefinition = {
     gridEl: HTMLElement | undefined;
     scaleFactor: number,
     cumulativeScaleFactor: number,
+    //strokesPromise: Promise<any> | undefined
 };
 
 const getCDLLen = (c: string): 0 | 2 | 3 => {
