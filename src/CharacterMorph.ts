@@ -25,10 +25,10 @@ export default class CharacterMorph extends Component {
   }
 
   connectedCallback() {
-    HanziWriter.loadCharacterData('徵').then((charData:any)=> {
+    HanziWriter.loadCharacterData('单').then((charData:any)=> {
 this.initialStrokes = charData.strokes
   const target:HTMLElement = this.shadowRoot;
-   this.renderFanningStrokes(target, charData.strokes);
+   this.renderGroupedStrokes(target, charData.strokes);
 
 //      setTimeout(() => {
 //
@@ -75,7 +75,7 @@ _updateGroupTransformRec(cmp: ComponentDefinition) {
   if (!cmp.svgGroup)
     throw("No component svgGroup")
 
-  if (cmp.gridEl.offsetParent === null)// element is display none
+  if (cmp.gridEl.offsetParent === null || cmp.opened)// element is display none
     {
 
    // TODO cleanup
@@ -87,7 +87,7 @@ _updateGroupTransformRec(cmp: ComponentDefinition) {
   }
   const clientRects = cmp.gridEl.getBoundingClientRect()
   const { x,y, width } = clientRects
-  const {x:px,y:py,width: pwidth} = cmp.parent.gridEl.getBoundingClientRect()
+  const {x:px,y:py,width: pwidth} = this.shadowRoot.getElementById('grid').getBoundingClientRect()//cmp.parent.gridEl.getBoundingClientRect()
   const scaleFactor =  width/pwidth || 1;
   const r = pwidth/width
 
@@ -109,11 +109,17 @@ _updateGroupTransformRec(cmp: ComponentDefinition) {
     }
   }
 
+  getHorizontalCharacterCount() {
+    return 3
+  }
+
   generateGrid(el: Element, cmp: ComponentDefinition) {
     if (cmp.cdl)
       el.classList.add(cmp.cdl);
     for (let subCmp of cmp.components) {
       const subEl = document.createElement('div')
+      if (subCmp.character)
+        subEl.setAttribute("char", subCmp.character)
       el.appendChild(subEl)
       subCmp.gridEl = subEl
       this.generateGrid(subEl, subCmp)
@@ -138,6 +144,8 @@ _updateGroupTransformRec(cmp: ComponentDefinition) {
     const cmp = this.getCmpForGridEl(lastEl, this._data)
     if(!cmp)
       return
+
+    cmp.opened = false;
     this.runCharacterMorphBackward(cmp).then(() => {
     this.updateGroupTransform(this._data)
 
@@ -192,8 +200,15 @@ _updateGroupTransformRec(cmp: ComponentDefinition) {
     if (!cmp.character)
       initialStrokes = this.initialStrokes.slice(cmp.firstIdx)
     else {
+      try {
     const cmpData:any = await HanziWriter.loadCharacterData(cmp.character)
+
     initialStrokes = cmpData.strokes
+      } catch(e) {
+        console.log(e)
+
+      initialStrokes = this.initialStrokes.slice(cmp.firstIdx)
+      }
     }
     const promises = cmp.components
       .map((subCmp: ComponentDefinition) => this.computeInterpolations(subCmp, cmp.firstIdx, initialStrokes)).flat()
@@ -241,6 +256,7 @@ getCmpForGridEl(target: HTMLElement, cmp: ComponentDefinition):ComponentDefiniti
     const cmp = this.getCmpForGridEl(e.target, this._data)
     if(!cmp)
       return
+    cmp.opened = true;
     this.runCharacterMorph(cmp).then(() => {
     this.updateGroupTransform(this._data)
 
@@ -289,30 +305,20 @@ _drawAnim(time:number) {
 }
 
   strokeUpdate(progress: number) {
-
-    //if (this.backward)
-    //  progress = 1 - progress
    for (let i = 0; i < this.interpolators.length; i++)  {
      if (!this.interpolators[i])
        continue
-
      const strokePath = this.interpolators[i](progress)
      this.paths[i].setAttribute('d', strokePath)
    }
   }
 
-renderFanningStrokes(target:any, strokes:any) {
+renderGroupedStrokes(target:any, strokes:any) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.style.border = '1px solid #EEE'
   target.appendChild(svg);
   const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   this.mainSvgGroup = group
-
-  // set the transform property on the g element so the character renders at 75x75
-    //const transformData = "scale(1, -1)"//HanziWriter.getScalingTransform(200, 200, -15);
-  //group.setAttributeNS(null, 'transform', transformData);
-  //group.setAttributeNS(null, 'transform-orgin', "center center"); // svg needs a -900px vertical translation
-    svg.setAttributeNS(null, 'viewBox', "0 -100 1000 1000");//"0 0 1080 720");
+  svg.setAttributeNS(null, 'viewBox', "0 -100 1000 1000");//"0 0 1080 720");
   svg.appendChild(group);
 
   const paths:any[] = []
@@ -320,32 +326,12 @@ renderFanningStrokes(target:any, strokes:any) {
   strokes.forEach((strokePath:any)=> {
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttributeNS(null, 'd', strokePath);
-    // style the character paths
-    path.style.fill = '#555';
     group.appendChild(path);
     paths.push(path)
   });
-  //svg.addEventListener("click", this.onSvgClick.bind(this))
   this.svg = svg
   this.paths = paths
 }
-
-  //generateInterpolations(component: ComponentDefinition) {
-  //  this.interpolators = component.components.map()
-  //  HanziWriter.loadCharacterData('日').then((charData:any)=> {
-  //     charData.strokes.forEach((strokePath: any, idx: number) => {
-  //      this.interpolators[idx] = interpolate(this.initialStrokes[idx], strokePath );
-  //    })
-  //  }).then(this.anim.bind(this));
-  //}
-
-  onSvgClick() {
-    HanziWriter.loadCharacterData('日').then((charData:any)=> {
-       charData.strokes.forEach((strokePath: any, idx: number) => {
-        this.interpolators[idx] = interpolate(this.initialStrokes[idx], strokePath );
-      })
-    }).then(this.anim.bind(this));
-  }
 
 	static css = css`
       :host {
@@ -365,6 +351,11 @@ width: 300px;
 height: 300px;
     scale: 1 -1;
     transform-origin: 50% 50%;
+border: 1px solid #EEE;
+}
+
+svg path {
+fill: #555;
 }
 
       svg g {
@@ -380,37 +371,52 @@ svg  g {
 #grid {
 display: flex;
 width: 300px;
+min-height: 300px;
     padding-bottom: 100%;
 align-items: center;
-aspect-ratio: 1;
 }
       #grid * {
 border: 1px solid grey;
 position: relative;
-display: none;
 flex: 1;
-    aspect-ratio: 1 / 1;
     overflow: hidden;
 
 align-items: center;
 background: rgba(255, 255, 0, 0.3);
-
+    box-sizing: border-box;
+min-width: 150px;
+    min-height: 150px;
+display: none;
     }
 
 #grid .unfolded {
         display: flex;
+overflow: visible;
 }
 
  .⿱, .⿳ {
 flex-direction: column !important;
+flex: none;
+}
+
+ .⿰, .⿲, .⿻ {
+flex-direction: row !important;
+
+flex: none;
 }
  #grid * {
-flex-direction: row;
+justify-content: center;
+}
+[char="帀"] {
+height: 150px;
 }
 #reassemble-btn {
 position: relative;
 left: 300px;
 
+}
+
+[char] {
 }
 /*
  ⿲

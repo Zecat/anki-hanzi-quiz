@@ -39,6 +39,7 @@ export type ComponentDefinition = {
     gridEl: HTMLElement | undefined;
     scaleFactor: number,
     cumulativeScaleFactor: number,
+    opened: boolean,
     //strokesPromise: Promise<any> | undefined
 };
 
@@ -156,6 +157,7 @@ const getEmptyComponent = (): ComponentDefinition => {
         gridEl: undefined,
     scaleFactor: 1,
     cumulativeScaleFactor: 1,
+        opened: false,
     };
 };
 
