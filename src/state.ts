@@ -5,7 +5,7 @@ import { getDecomposition, ComponentDefinition } from "./HanziDesc";
 import HanziDictionary, {CharDataItem} from "./HanziDictionary";
 //import {CharDataItem} from "./HanziDesc";
 
-const dict: HanziDictionary = new HanziDictionary();
+export const dict: HanziDictionary = new HanziDictionary();
 
 export type ComponentData = CharDataItem & ComponentDefinition
 

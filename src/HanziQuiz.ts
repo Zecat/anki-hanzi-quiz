@@ -100,7 +100,10 @@ export default class HanziQuiz extends Component {
     const match = str.match(/^[^(]+/);
     return match ? match[0] : "";
   }
-getPinyinTone(pinyin: string) {
+getPinyinTone(pinyin: any) {
+    if (!pinyin)
+      return 5
+    pinyin = pinyin[0]
     // Define a dictionary mapping accents to tone numbers
     const toneMap:{ [key: string]: number} = {
         "ā": 1, "á": 2, "ǎ": 3, "à": 4,
@@ -175,10 +178,11 @@ getPinyinTone(pinyin: string) {
 
     </div>
 
-    <character-morph .data={currentComponent}></character-morph>
-    <!--<characters-slideshow-quiz id="hanzi-slideshow"></characters-slideshow-quiz>-->
+    <characters-slideshow-quiz id="hanzi-slideshow"></characters-slideshow-quiz>
     <div id="after-buttons" >
       <md-outlined-button reveal="{currentComponent.complete}" @click="restartCurrentQuiz()">Practice</md-outlined-button>
+      <md-outlined-button reveal="{currentComponent.complete}" @click="decomposeCharacter()">Decompose</md-outlined-button>
+      <div style="flex: 1"></div>
       <md-filled-button reveal="{complete}" @click="this.next()">Next</md-filled-button>
     </div>
 
@@ -200,7 +204,7 @@ getPinyinTone(pinyin: string) {
         >
 
         </character-anim>
-<div class="pinyin" tone="{this.getPinyinTone(hanziComponent.pinyin.0)}">{this.cleanPinyin(hanziComponent.pinyin.0)}</div>
+<div class="pinyin" tone="{this.getPinyinTone(hanziComponent.pinyin)}">{this.cleanPinyin(hanziComponent.pinyin.0)}</div>
       </div>
     </div>
 </div>
@@ -261,7 +265,6 @@ getPinyinTone(pinyin: string) {
 
       #hanzi-slideshow {
         margin: 12px 8px;
-        aspect-ratio: 1;
         max-width: 500px;
         background: white;
       }
@@ -322,9 +325,10 @@ text-align: center;
       #after-buttons {
         display: flex;
         justify-content: space-around;
-margin-top: 8px;
+margin: 8px;
   margin-bottom: 24px;
         pointer-events: none;
+gap: 8px;
       }
 
 #after-buttons > * {
@@ -336,6 +340,7 @@ margin-top: 8px;
       #after-buttons > [reveal] {
         pointer-events: initial;
         opacity: 1;
+margin: 8px;
       }
 
       #character-hint {

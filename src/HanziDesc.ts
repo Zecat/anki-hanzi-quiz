@@ -1,5 +1,7 @@
 import { CharDataItem } from "./HanziDictionary";
 
+import HanziWriter from "hanzi-writer";
+
 //import HanziWriter from "hanzi-writer";
 
 type Matches = ComponentDefinition[];
@@ -37,9 +39,10 @@ export type ComponentDefinition = {
     complete: boolean;
     svgGroup: Element | undefined;
     gridEl: HTMLElement | undefined;
-    scaleFactor: number,
-    cumulativeScaleFactor: number,
-    opened: boolean,
+    scaleFactor: number;
+    cumulativeScaleFactor: number;
+    opened: boolean;
+    strokesPromise: Promise<any> | undefined;
     //strokesPromise: Promise<any> | undefined
 };
 
@@ -52,9 +55,12 @@ const getCDLLen = (c: string): 0 | 2 | 3 => {
 const isCDLChar = (c: string) => {
     return c >= "⿰" && c <= "⿿";
 };
-function getNextNumber(input: string[], idx: number): { number: number | null, length: number } {
-    let numberStr = '';
-    input = input.slice(idx)
+function getNextNumber(
+    input: string[],
+    idx: number,
+): { number: number | null; length: number } {
+    let numberStr = "";
+    input = input.slice(idx);
 
     for (const char of input) {
         if (/[0-9]/.test(char)) {
@@ -69,26 +75,30 @@ function getNextNumber(input: string[], idx: number): { number: number | null, l
     return { number: nextNumber, length: numberStr.length };
 }
 
-const handleCdl = (component: ComponentDefinition, cdl: CDLChar,cdlLen:number,
-                    acjk: string[],
-                    acjkIdx:number,
-                    strokeIdx:number,) : [number, number]=> {
-            component.cdl = cdl;
-            for (let j = 0; j < cdlLen; j++) {
-                const [nextDecIdx, nextStrokeIdx, subComponent] = getNextComponent(
-                    acjk,
-                    acjkIdx,
-                    strokeIdx,
-                );
-                acjkIdx = nextDecIdx;
-                strokeIdx = nextStrokeIdx;
-                subComponent.parent = component;
-                component.components.push(subComponent);
-                if (subComponent.lastIdx > component.lastIdx)
-                    component.lastIdx = subComponent.lastIdx
-            }
-    return [acjkIdx, strokeIdx]
-}
+const handleCdl = (
+    component: ComponentDefinition,
+    cdl: CDLChar,
+    cdlLen: number,
+    acjk: string[],
+    acjkIdx: number,
+    strokeIdx: number,
+): [number, number] => {
+    component.cdl = cdl;
+    for (let j = 0; j < cdlLen; j++) {
+        const [nextDecIdx, nextStrokeIdx, subComponent] = getNextComponent(
+            acjk,
+            acjkIdx,
+            strokeIdx,
+        );
+        acjkIdx = nextDecIdx;
+        strokeIdx = nextStrokeIdx;
+        subComponent.parent = component;
+        component.components.push(subComponent);
+        if (subComponent.lastIdx > component.lastIdx)
+            component.lastIdx = subComponent.lastIdx;
+    }
+    return [acjkIdx, strokeIdx];
+};
 export const getNextComponent = (
     acjk: string[],
     acjkIdx: number = 0,
@@ -101,17 +111,23 @@ export const getNextComponent = (
     acjkIdx++;
     component.firstIdx = strokeIdx;
     if (cdlLen) {
-       [acjkIdx, strokeIdx] = handleCdl(component, c as CDLChar, cdlLen, acjk, acjkIdx, strokeIdx,)
-        if (acjkIdx >= acjk.length)
-            return [acjkIdx, strokeIdx, component];
+        [acjkIdx, strokeIdx] = handleCdl(
+            component,
+            c as CDLChar,
+            cdlLen,
+            acjk,
+            acjkIdx,
+            strokeIdx,
+        );
+        if (acjkIdx >= acjk.length) return [acjkIdx, strokeIdx, component];
     } else {
         component.character = c;
     }
-    const {number: charLen, length: forward} = getNextNumber(acjk, acjkIdx)
+    const { number: charLen, length: forward } = getNextNumber(acjk, acjkIdx);
     const c2: string = acjk[acjkIdx];
     if (charLen != null) {
         component.lastIdx = strokeIdx + charLen - 1;
-        acjkIdx+=forward;
+        acjkIdx += forward;
         strokeIdx += charLen;
     } else if (c2 == ":") {
         acjkIdx++;
@@ -124,12 +140,25 @@ export const getNextComponent = (
         cdlLen = getCDLLen(c2);
         if (cdlLen) {
             acjkIdx++;
-            [acjkIdx, strokeIdx] = handleCdl(component, c2 as CDLChar, cdlLen, acjk, acjkIdx, strokeIdx,)
+            [acjkIdx, strokeIdx] = handleCdl(
+                component,
+                c2 as CDLChar,
+                cdlLen,
+                acjk,
+                acjkIdx,
+                strokeIdx,
+            );
         }
         //else {
         //    throw new Error(`Unexpected character ${c2} in acjk:"${acjk}"`)
         //}
     }
+
+    if (component.character)
+        component.strokesPromise = HanziWriter.loadCharacterData(component.character).catch(e => {
+            console.warn(e)
+            return e
+        })
     return [acjkIdx, strokeIdx, component];
 };
 
@@ -155,9 +184,10 @@ const getEmptyComponent = (): ComponentDefinition => {
         complete: false,
         svgGroup: undefined,
         gridEl: undefined,
-    scaleFactor: 1,
-    cumulativeScaleFactor: 1,
+        scaleFactor: 1,
+        cumulativeScaleFactor: 1,
         opened: false,
+        strokesPromise: undefined,
     };
 };
 
@@ -166,6 +196,8 @@ function isDigit(char: string) {
 }
 
 function removeDots(str: string) {
+    if (!str)
+        return ""
     return str.replace(/\./g, "");
 }
 

@@ -1,5 +1,3 @@
-import HanziWriter from "hanzi-writer";
-
 import "@material/web/iconbutton/icon-button";
 import "@material/web/icon/icon";
 
@@ -8,29 +6,41 @@ import { interpolate } from "flubber"; // ES6
 
 import { ComponentDefinition } from "./HanziDesc";
 
+import {dict} from './state'
+
+const sum = (array: number[]) : number => array.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+
+const ANIM_DURATION = 500
+
 export default class CharacterMorph extends Component {
   constructor() {
     super();
     this.animStartTime = 0;
-    this.animDuration = 500;
+    this.animDuration = ANIM_DURATION;
     this.interpolators = [];
     this.initialStrokes = [];
     this._data = undefined;
     this.mainSvgGroup = undefined;
-    this.unfoldList = [];
-  }
-
-  connectedCallback() {
-    HanziWriter.loadCharacterData("单").then((charData: any) => {
-      this.initialStrokes = charData.strokes;
-      const target: HTMLElement = this.shadowRoot;
-      this.renderGroupedStrokes(target, charData.strokes);
-    });
+    this.openedList = [];
+    this.animation = undefined;
   }
 
   public set data(data: any) {
     if (!data || this._data === data) return;
+    data = data.__target // HACK retreive the proxy target to avoid promise incompatibility
+
+    if (!data.strokesPromise) {
+      console.warn('Component has no strokes data')
+      return
+    }
+
     this._data = data;
+    console.log("===", data,this._data)
+    data.strokesPromise.then((charData: any) => {
+      this.initialStrokes = charData.strokes;
+      const target: HTMLElement = this.shadowRoot;
+      this.renderGroupedStrokes(target, charData.strokes);
+
     data.svgGroup = this.mainSvgGroup;
     const grid = this.shadowRoot.getElementById("grid");
     data.gridEl = grid;
@@ -39,9 +49,16 @@ export default class CharacterMorph extends Component {
     this.createSubGroupRec(data);
     this.updateGroupTransform(data);
     this.attachGridEventListener(data);
+
+    }).catch((e:any) => console.log(e));
+
   }
 
   updateGroupTransform(cmp: ComponentDefinition) {
+    const horizontalLen = this.getHorizontalCharacterCount(cmp)
+    const gridEl = this.shadowRoot.getElementById('grid')
+    gridEl.setAttribute('horizontal-len', horizontalLen)
+
     cmp.components.forEach(this._updateGroupTransformRec.bind(this));
   }
 
@@ -50,7 +67,6 @@ export default class CharacterMorph extends Component {
     if (!cmp.parent) throw "No parent component";
     if (!cmp.parent.gridEl) throw "No parent component gridEl";
     if (!cmp.svgGroup) throw "No component svgGroup";
-
     if (cmp.gridEl.offsetParent === null || cmp.opened) {
       // element is display none
       // TODO cleanup
@@ -93,15 +109,87 @@ export default class CharacterMorph extends Component {
     }
   }
 
-  getHorizontalCharacterCount() {
-    return 3;
+  isHorizontalCdl(cdl: string) {
+    return "⿲⿻⿰".includes(cdl)
   }
 
+  getHorizontalCharacterCount(cmp: ComponentDefinition): number {
+    if (!cmp.cdl || !cmp.opened)
+      return 1
+    if (this.isHorizontalCdl(cmp.cdl))
+      return sum(cmp.components.map(this.getHorizontalCharacterCount.bind(this)))
+    else
+      return Math.max(...cmp.components.map(this.getHorizontalCharacterCount.bind(this)))
+  }
+
+  // TODO extract
+getPinyinTone(pinyin: string) {
+    // Define a dictionary mapping accents to tone numbers
+    const toneMap:{ [key: string]: number} = {
+        "ā": 1, "á": 2, "ǎ": 3, "à": 4,
+        "ē": 1, "é": 2, "ě": 3, "è": 4,
+        "ī": 1, "í": 2, "ǐ": 3, "ì": 4,
+        "ō": 1, "ó": 2, "ǒ": 3, "ò": 4,
+        "ū": 1, "ú": 2, "ǔ": 3, "ù": 4,
+        "ǖ": 1, "ǘ": 2, "ǚ": 3, "ǜ": 4,
+        "ü": 5 // Neutral tone for ü
+    };
+
+    for (let char of pinyin) {
+        if (char in toneMap) {
+            return toneMap[char];
+        }
+    }
+
+    return 5;
+}
+  cleanPinyin(strArr: string[] | undefined): string {
+    if (!strArr)
+      return 'pinyin unavailable'
+    const str = strArr[0]
+
+    //if (!pinyinData)
+    //  return 5
+    //const pinyin = Array.isArray(pinyinData) ? pinyinData[0] : pinyinData
+
+    if (!str)
+      return ''
+    const match = str.match(/^[^(]+/);
+    return match ? match[0] : "";
+  }
+
+  cleanDescription(desc: string | undefined): string {
+    if (!desc)
+      return ''
+let regex = /Kangxi\s+radical\s+\d+;?/g;
+
+// Remove occurrences of the pattern
+let result = desc.replace(regex, '');
+let result2 = result.replace(/;(\s*)$/, '$1');
+    return result2
+  }
+
+
   generateGrid(el: Element, cmp: ComponentDefinition) {
-    if (cmp.cdl) el.classList.add(cmp.cdl);
+    if (cmp.cdl) el.setAttribute('cdl',cmp.cdl);
     for (let subCmp of cmp.components) {
       const subEl = document.createElement("div");
-      if (subCmp.character) subEl.setAttribute("char", subCmp.character);
+      if (subCmp.character) {
+        subEl.setAttribute("char", subCmp.character);
+        const content = document.createElement("div");
+        content.classList.toggle('character-content')
+        dict.get(subCmp.character).then(charData => {
+          const cleanPinyin = this.cleanPinyin(charData.pinyin)
+          const tone = String(this.getPinyinTone(cleanPinyin))
+          content.innerHTML = `
+          <div class="pinyin" tone="${tone}">
+            ${cleanPinyin}
+          </div>
+<div class="description">${this.cleanDescription(charData.definition)}</div>`
+        })
+
+        subEl.appendChild(content);
+      }
       el.appendChild(subEl);
       subCmp.gridEl = subEl;
       this.generateGrid(subEl, subCmp);
@@ -115,19 +203,20 @@ export default class CharacterMorph extends Component {
   }
 
   reassemble() {
-    const lastEl = this.unfoldList.pop();
-    if (!lastEl) return;
-    for (const child of lastEl.children) {
-      child.classList.toggle("unfolded", false);
-    }
+    const lastCmp = this.openedList.pop();
+    if (!lastCmp) return;
 
-    const cmp = this.getCmpForGridEl(lastEl, this._data);
-    if (!cmp) return;
-
-    cmp.opened = false;
-    this.runCharacterMorphBackward(cmp).then(() => {
+    this.closeComponent(lastCmp)
+    this.runCharacterMorph(lastCmp, true).then(() => {
       this.updateGroupTransform(this._data);
     });
+  }
+
+  closeComponent(cmp: ComponentDefinition) {
+    console.log(cmp)
+    cmp.opened = false;
+    cmp.gridEl && cmp.gridEl.removeAttribute('opened') // TODO closeComponent recursive // TODO gridEl better typing no need to check
+    cmp.components.forEach(this.closeComponent.bind(this))
   }
 
   resetInterpolators() {
@@ -135,105 +224,151 @@ export default class CharacterMorph extends Component {
   }
 
   // TODO make generic the 2 following methods
-  async runCharacterMorphBackward(cmp: ComponentDefinition) {
+  //async runCharacterMorphBackward(cmp: ComponentDefinition) {
+  //  this.resetInterpolators();
+  //  let initialStrokes: any;
+  //  if (!cmp.character)
+  //    initialStrokes = this.initialStrokes.slice(cmp.firstIdx);
+  //  else {
+  //    const cmpData: any = await cmp.strokesPromise;
+  //    initialStrokes = cmpData.strokes;
+  //  }
+  //  const promises = cmp.components
+  //    .filter((subCmp: ComponentDefinition) => subCmp.character)
+  //    .map((subCmp: ComponentDefinition) =>
+  //      subCmp.strokesPromise && subCmp.strokesPromise
+  //        .then((charData: any) => {
+  //          charData.strokes.forEach((strokePath: any, idx: number) => {
+  //            this.interpolators[idx + subCmp.firstIdx] = interpolate(
+  //              strokePath,
+  //              initialStrokes[idx + subCmp.firstIdx - cmp.firstIdx],
+  //            );
+  //          });
+  //        })
+  //        .catch((e: any) => {
+  //          console.warn(e);
+  //        }),
+  //    );
+
+  //  return Promise.all(promises).then(this.anim.bind(this));
+  //}
+
+  async runCharacterMorph(cmp: ComponentDefinition, backward: Boolean = false) {
     this.resetInterpolators();
     let initialStrokes: any;
-    if (!cmp.character)
-      initialStrokes = this.initialStrokes.slice(cmp.firstIdx);
-    else {
-      const cmpData: any = await HanziWriter.loadCharacterData(cmp.character);
-      initialStrokes = cmpData.strokes;
-    }
-    const promises = cmp.components
-      .filter((subCmp: ComponentDefinition) => subCmp.character)
-      .map((subCmp: ComponentDefinition) =>
-        HanziWriter.loadCharacterData(subCmp.character)
-          .then((charData: any) => {
-            charData.strokes.forEach((strokePath: any, idx: number) => {
-              this.interpolators[idx + subCmp.firstIdx] = interpolate(
-                strokePath,
-                initialStrokes[idx + subCmp.firstIdx - cmp.firstIdx],
-              );
-            });
-          })
-          .catch((e: any) => {
-            console.warn(e);
-          }),
-      );
-
-    return Promise.all(promises).then(this.anim.bind(this));
-  }
-
-  async runCharacterMorph(cmp: ComponentDefinition) {
-    this.resetInterpolators();
-    let initialStrokes: any;
+    let initialStrokesFirstIdx = 0;
     if (!cmp.character)
       initialStrokes = this.initialStrokes.slice(cmp.firstIdx);
     else {
       try {
-        const cmpData: any = await HanziWriter.loadCharacterData(cmp.character);
+        const cmpData: any = await cmp.strokesPromise;
 
         initialStrokes = cmpData.strokes;
+
       } catch (e) {
         console.log(e);
-
         initialStrokes = this.initialStrokes.slice(cmp.firstIdx);
       }
     }
     const promises = cmp.components
       .map((subCmp: ComponentDefinition) =>
-        this.computeInterpolations(subCmp, cmp.firstIdx, initialStrokes),
+        {
+        return this.computeInterpolations(subCmp, initialStrokesFirstIdx, initialStrokes, backward)
+        }
       )
       .flat();
 
-    return Promise.all(promises).then(this.anim.bind(this));
+    return Promise.all(promises).then(this.anim.bind(this)).catch(e => console.warn(e));
   }
 
   computeInterpolations(
     cmp: ComponentDefinition,
-    cmpFirstStrokeIdx: number,
+    initialStrokesFirstIdx: number,
     initialStrokes: any,
-  ): Promise<any> | undefined | Promise<any>[] {
-    if (!cmp.character) return; // TODO recursivly develop character
-    //return cmp.components.map((subCmp: ComponentDefinition) => this.computeInterpolations(subCmp, cmp.firstIdx- cmpFirstStrokeIdx, initialStrokes)).flat()
+    backward: Boolean = false
+  ): Promise<any>[] {
+    if (!cmp.character)
+      {
+      return cmp.components.map((subCmp: ComponentDefinition) => this.computeInterpolations(subCmp, initialStrokesFirstIdx, initialStrokes, backward)).flat()
+    }
+
+    if (!cmp.strokesPromise) return []; // TODO recursivly develop character
 
     //return this.computeInterpolations()
-    return HanziWriter.loadCharacterData(cmp.character)
+    return [cmp.strokesPromise
       .then((charData: any) => {
+        if (charData.strokes === undefined) // edge case, strokes not found
+          return
         charData.strokes.forEach((strokePath: any, idx: number) => {
-          this.interpolators[idx + cmp.firstIdx] = interpolate(
-            initialStrokes[idx + cmp.firstIdx - cmpFirstStrokeIdx],
-            strokePath,
-          );
+          if (backward)
+            this.interpolators[idx + cmp.firstIdx] = interpolate(
+              strokePath,
+              initialStrokes[idx + cmp.firstIdx - initialStrokesFirstIdx],
+            );
+          else
+            this.interpolators[idx + cmp.firstIdx] = interpolate(
+              initialStrokes[idx + cmp.firstIdx - initialStrokesFirstIdx],
+              strokePath,
+            );
         });
       })
       .catch((e: any) => {
         console.warn(e);
-      });
+      })];
   }
   getCmpForGridEl(
     target: HTMLElement,
     cmp: ComponentDefinition,
   ): ComponentDefinition | undefined {
-    if (cmp.gridEl == target) return cmp;
+    console.log(cmp.gridEl, target, cmp.gridEl === target)
+    if (cmp.gridEl === target) return cmp;
     for (const subCmp of cmp.components)
       if (subCmp.gridEl === target) return subCmp;
     return undefined;
   }
 
   onClick(e: any) {
+    console.log('!!', e)
     e.stopPropagation();
-    if ("unfolded" in e.target.classList || !e.target.childElementCount) return;
-    this.unfoldList.push(e.target);
-    for (const child of e.target.children) {
-      child.classList.toggle("unfolded", true);
-    }
+    // "unfolded" in e.target.classList
     const cmp = this.getCmpForGridEl(e.target, this._data);
     if (!cmp) return;
-    cmp.opened = true;
+    if ( !cmp.components.length) return;
+    console.log(cmp)
+
+    this.openedList.push(cmp); // TODO Register component instead of gridEl
+
+    this.openComponent(cmp)
+
+    //cmp.gridEl && cmp.gridEl.setAttribute('animating', '')
+    //HACK
+        this.shadowRoot.getElementById("grid").removeAttribute('content-revealed')
     this.runCharacterMorph(cmp).then(() => {
       this.updateGroupTransform(this._data);
+      // HACK
+      setTimeout(() => {
+        cmp.gridEl && cmp.gridEl.removeAttribute('animating')
+
+        this.shadowRoot.getElementById("grid").setAttribute('content-revealed', '')
+        //this.shadowRoot.getElementById("grid").removeAttribute('animating')
+      }, this.animDuration)
     });
+  }
+
+  openComponent(cmp: ComponentDefinition) {
+    if (!cmp.gridEl) {
+      console.warn('No grid element for component')
+      // TODO this should not happen, do better typing
+      return
+    }
+    cmp.opened = true;
+
+    cmp.gridEl.setAttribute('opened', '')
+
+    cmp.components.forEach((subCmp: ComponentDefinition) => {
+      if (!subCmp.character)
+        this.openComponent(subCmp)
+    })
   }
 
   createSubGroupRec(component: ComponentDefinition) {
@@ -260,6 +395,14 @@ export default class CharacterMorph extends Component {
   }
 
   anim() {
+//const animationOptions = {
+//    duration: 1000, // Animation duration in milliseconds
+//    easing: 'ease', // Timing function
+//};
+//const keyframeEffect = new KeyframeEffect(null, null, animationOptions);
+//this.animation = new Animation(keyframeEffect, document.timeline);
+//this.animation.play();
+
     requestAnimationFrame(this._anim.bind(this));
   }
   _anim(time: number) {
@@ -274,6 +417,7 @@ export default class CharacterMorph extends Component {
 
     if (progress < 1) {
       requestAnimationFrame(this._drawAnim.bind(this));
+
     }
   }
 
@@ -287,6 +431,7 @@ export default class CharacterMorph extends Component {
 
   renderGroupedStrokes(target: any, strokes: any) {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("id", "component-svg")
     target.appendChild(svg);
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
     this.mainSvgGroup = group;
@@ -309,92 +454,161 @@ export default class CharacterMorph extends Component {
   }
 
   static css = css`
+
+    :host([debug]) #grid * {
+      background: rgba(255, 255, 0, 0.3);
+      border: 1px solid grey;
+    }
+
+:host([debug]) .character-content {
+background: blue !important;
+}
+
     :host {
       position: relative;
       display: block;
-      aspect-ratio: 1;
     }
 
-    :host > * {
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-    svg {
+    #component-svg {
       pointer-events: none;
       width: 300px;
       height: 300px;
       scale: 1 -1;
       transform-origin: 50% 50%;
-      border: 1px solid #eee;
+    overflow: visible;
+      position: absolute;
+      top: 0;
+      left: 0;
     }
 
-    svg path {
+    #component-svg path {
       fill: #555;
     }
 
-    svg g {
-      transition: transform 0.5s linear;
+    #component-svg g {
+transition: transform ${ANIM_DURATION/1000}s linear; /*HACK*/
     }
 
-    svg g {
-    }
 
-    svg path {
-      /*transition: 1s;*/
-    }
     #grid {
       display: flex;
       width: 300px;
       min-height: 300px;
-      padding-bottom: 100%;
       align-items: center;
     }
-    #grid * {
-      border: 1px solid grey;
+    #grid [cdl], #grid [char] {
       position: relative;
       flex: 1;
       overflow: hidden;
-
       align-items: center;
-      background: rgba(255, 255, 0, 0.3);
       box-sizing: border-box;
-      min-width: 150px;
-      min-height: 150px;
-      display: none;
+
+      display:none;
     }
 
-    #grid .unfolded {
-      display: flex;
-      overflow: visible;
+    [char][opened] > *:not([opened]), [cdl][opened] > *:not([opened]) {
+      display: block !important;
+      overflow: visible !important;
+flex: 0 !important;
     }
 
-    .⿱,
-    .⿳ {
+
+[opened] {
+display: flex !important;
+}
+
+
+    #grid [char]::before {
+content: '';
+     display:block;
+    }
+
+    #grid[horizontal-len="1"] [char]::before {
+      width: 150px;
+      height: 150px;
+    }
+
+    #grid[horizontal-len="2"] [char]::before {
+      width: 150px;
+      height: 150px;
+    }
+
+    #grid[horizontal-len="3"] [char]::before {
+      width: 100px;
+      height: 100px;
+    }
+
+    #grid[horizontal-len="4"] [char]::before {
+      width: 75px;
+      height: 75px;
+    }
+
+
+    [cdl="⿱"],
+    [cdl="⿳"] {
       flex-direction: column !important;
       flex: none;
     }
 
-    .⿰,
-    .⿲,
-    .⿻ {
+    [cdl="⿰"],
+    [cdl="⿲"],
+    [cdl="⿻"] {
       flex-direction: row !important;
 
       flex: none;
     }
-    #grid * {
-      justify-content: center;
-    }
     [char="帀"] {
       height: 150px;
     }
-    #reassemble-btn {
-      position: relative;
-      left: 300px;
-    }
 
-    [char] {
-    }
+.character-content {
+display: block !important;
+width: 100%;
+
+min-height: unset !important;
+min-width: unset !important;
+opacity: 0;
+text-align: center;
+}
+
+[char][opened]::before {
+display: none !important;
+}
+#grid[content-revealed] .character-content {
+opacity: 1;
+transition: opacity 0.3s;
+}
+[char][opened] > .character-content {
+display: none !important;
+}
+
+/*TODO generique*/
+[tone="1"] {
+color: red;
+}
+[tone="2"] {
+color: green;
+}
+[tone="3"] {
+color: blue;
+}
+[tone="4"] {
+color: purple;
+}
+[tone="5"] {
+color: grey;
+}
+.pinyin {
+font-family: roboto;
+}
+
+.description {
+color: grey;
+max-width: 150px;
+font-size: 14px;
+    padding-top: 8px;
+    font-family: 'Roboto';
+}
     /*
  ⿲
  ⿳
@@ -414,21 +628,6 @@ export default class CharacterMorph extends Component {
   `;
 
   static template = html`
-    <md-icon-button id="reassemble-btn" @click="this.reassemble()">
-      <md-icon>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          height="24"
-          viewBox="0 -960 960 960"
-          width="24"
-        >
-          <path
-            fill="currentColor"
-            d="M160-400v-80h640v80H160Zm0-120v-80h640v80H160ZM440-80v-128l-64 64-56-56 160-160 160 160-56 56-64-62v126h-80Zm40-560L320-800l56-56 64 64v-128h80v128l64-64 56 56-160 160Z"
-          />
-        </svg>
-      </md-icon>
-    </md-icon-button>
     <div id="grid"></div>
   `;
 }

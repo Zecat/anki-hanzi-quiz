@@ -57,13 +57,13 @@ flex: 0 0 auto;
 display: flex;
 height: 100%;
   transition: transform 1s ease;
-position: absolute;
 
 }
 #button-layer {
 height: 100%;
 width:100%;
 position: absolute;
+top:0;
  display: flex;
   justify-content: center;
   align-items: center;
@@ -83,14 +83,21 @@ pointer-events: all;
 [hidden] {
 display: none;
 }
+.slide-wrapper {
+width: 100%;
+}
     `;
 
 getShiftWidth(idx:number) {
-   const quizEl = this.shadowRoot?.querySelector(`#slideshow character-quiz:nth-of-type(${idx+1})`)
+   const quizEl = this.shadowRoot?.querySelector(`#slideshow div:nth-of-type(${idx+1})`)
     const shift= quizEl ? (quizEl as HTMLElement).offsetLeft*idx : 0; // TODO
   return `transform: translateX(-${shift}px)`;
 }
 
+  isMorphHidden(index:number, selectedIdx:number, opened:boolean) {
+    console.log(index, selectedIdx, opened)
+    return index !== selectedIdx || !opened
+  }
 	static template = html`
 
     <div id="slideshow"
@@ -98,13 +105,17 @@ getShiftWidth(idx:number) {
         as="hanziComponent"
         index-as="index"
         style="{this.getShiftWidth(selectedIdx)}">
+<div class="slide-wrapper">
           <character-quiz
+hidden="{hanziComponent.opened}"
             backboard
             strokes-visible="{strokesVisible}"
             character="{hanziComponent.character}"
             active="{equal(index,selectedIdx)}"
             .hanziComponent={hanziComponent}
           > </character-quiz>
+<character-morph hidden="{this.isMorphHidden(index, selectedIdx, hanziComponent.opened)}" .data={hanziComponent} ></character-morph>
+</div>
     </div>
 
 

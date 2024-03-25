@@ -25,3 +25,16 @@ TODO add script to build the template and update a deck in anki
 ## Issues
 - no livereload with 'npm run serve'. Quick Fix => in webpack.config.js, comment the line with => new HtmlWebpackInlineSourcePlugin(),
 
+
+## Character morph structure
+
+- retreive character data
+  - strokes
+  - acjk decomposition
+  - other data (pinyin, definition...)
+- compute component object decomposition
+- stroke morphing
+- character grid
+  - interaction
+  - positioning
+- recursive auto opening of component without associated character
