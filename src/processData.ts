@@ -55,13 +55,17 @@
 
   export const cleanDescription = (desc: string | undefined): string => {
     if (!desc) return "";
-    let regex = /Kangxi\s+radical\s+\d+;?/g;
+    let regex = /Kangxi radical\s+\d+;?/g;
 
     // Remove occurrences of the pattern
     let result = desc.replace(regex, "");
 
-    regex = /rad.\s+\s+\d+;?/g;
-    result = desc.replace(regex, "");
+    regex = /rad.\s+\d+;?/g;
+    result = result.replace(regex, "");
+
+    regex = /radical number\s+\d+;?/g;
+    result = result.replace(regex, "");
+
     result = result.replace(/;(\s*)$/, "$1");
     return result;
   }

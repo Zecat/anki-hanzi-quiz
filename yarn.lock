@@ -3745,6 +3745,14 @@ finalhandler@1.2.0:
     statuses "2.0.1"
     unpipe "~1.0.0"
 
+find-hanzi@^1.0.11:
+  version "1.0.11"
+  resolved "https://registry.npmjs.org/find-hanzi/-/find-hanzi-1.0.11.tgz"
+  integrity sha512-LSKx8liEKPpItgO+f5Q5Mgr/Ony/2aozkjRyAF+9mUuIjOqld5JsI/g8mL1FOxW2z/Tg3dIXJo6QsP/0HshIRg==
+  dependencies:
+    lodash "^4.17.4"
+    pinyin-utils "^1.0.4"
+
 find-up@^4.0.0, find-up@^4.1.0:
   version "4.1.0"
   resolved "https://registry.npmjs.org/find-up/-/find-up-4.1.0.tgz"
@@ -5482,7 +5490,7 @@ lodash.uniq@^4.5.0:
   resolved "https://registry.npmjs.org/lodash.uniq/-/lodash.uniq-4.5.0.tgz"
   integrity sha512-xfBaXQd9ryd9dlSDvnvI0lvxfLJlYAZzXomUYzLKtUeOQvOP5piqAWuGtrhWeqaXK9hhoM/iyJc5AV+XfsX3HQ==
 
-lodash@^4.17.10, lodash@^4.17.11, lodash@^4.17.20, lodash@^4.17.21:
+lodash@^4.17.10, lodash@^4.17.11, lodash@^4.17.20, lodash@^4.17.21, lodash@^4.17.4:
   version "4.17.21"
   resolved "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
@@ -6700,6 +6708,11 @@ parent-module@^1.0.0:
   dependencies:
     callsites "^3.0.0"
 
+parse-cc-cedict@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.npmjs.org/parse-cc-cedict/-/parse-cc-cedict-2.1.0.tgz"
+  integrity sha512-ob3V8qXwWpT7iamV7fYjRzwoWWBp8Jc3WtUqyCrQzcDtapoCovMNudiimmTr2CPm1wNgExBMUuH0e3WacKZgtQ==
+
 parse-conflict-json@^2.0.1:
   version "2.0.2"
   resolved "https://registry.npmjs.org/parse-conflict-json/-/parse-conflict-json-2.0.2.tgz"
@@ -6808,6 +6821,11 @@ pify@^4.0.1:
   version "4.0.1"
   resolved "https://registry.npmjs.org/pify/-/pify-4.0.1.tgz"
   integrity sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==
+
+pinyin-utils@^1.0.4:
+  version "1.74.0"
+  resolved "https://registry.npmjs.org/pinyin-utils/-/pinyin-utils-1.74.0.tgz"
+  integrity sha512-U2A58vW7W6n4S/Avcflx3mnNXTG02VTpoDe+bBRWTwwWzNdPv+ALziRXtyI6foHh9Q6vCTh7r+62Kk/J5hyp0g==
 
 pirates@^4.0.4:
   version "4.0.6"

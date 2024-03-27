@@ -121,7 +121,14 @@ export const getNextComponent = (
         );
         if (acjkIdx >= acjk.length) return [acjkIdx, strokeIdx, component];
     } else {
-        component.character = c;
+        if (c.charCodeAt(1))
+            {
+            component.character = '';
+            //component.components = this.getNextComponent(di)
+        }
+
+        else
+            component.character = c;
     }
     const { number: charLen, length: forward } = getNextNumber(acjk, acjkIdx);
     const c2: string = acjk[acjkIdx];

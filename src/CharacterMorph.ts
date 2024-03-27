@@ -64,6 +64,9 @@ export default class CharacterMorph extends Component {
     const horizontalLen = this.getHorizontalCharacterCount(cmp);
     const gridEl = this.shadowRoot.getElementById("grid");
     gridEl.setAttribute("horizontal-len", horizontalLen);
+    const gridWidth = gridEl.getBoundingClientRect().width
+    const charWidth = gridWidth / Math.max(2, horizontalLen)
+    gridEl.style.setProperty('--character-width', `${charWidth}px`);
 
     cmp.components.forEach(this._updateGroupTransformRec.bind(this));
   }
@@ -185,7 +188,6 @@ export default class CharacterMorph extends Component {
     target: HTMLElement,
     cmp: ComponentDefinition,
   ): ComponentDefinition | undefined {
-    console.log(cmp.gridEl, target, cmp.gridEl === target);
     if (cmp.gridEl === target) return cmp;
     for (const subCmp of cmp.components)
       if (subCmp.gridEl === target) return subCmp;
@@ -235,7 +237,7 @@ export default class CharacterMorph extends Component {
     cmp.gridEl.setAttribute("opened", "");
 
     cmp.components.forEach((subCmp: ComponentDefinition) => {
-      if (!subCmp.character) this.openComponent(subCmp);
+      if (!subCmp.character || subCmp.character.charCodeAt(1)) this.openComponent(subCmp);
     });
   }
 
@@ -335,6 +337,7 @@ export default class CharacterMorph extends Component {
       box-sizing: border-box;
 
       display: none;
+    margin-bottom: 20px;
     }
 
     [char][opened] > *:not([opened]),
@@ -353,25 +356,41 @@ export default class CharacterMorph extends Component {
       display: block;
     }
 
-    #grid[horizontal-len="1"] [char]::before {
-      width: 150px;
-      height: 150px;
+
+    #grid [char]::before {
+      width: var(--character-width);
+      height: var(--character-width);
     }
 
-    #grid[horizontal-len="2"] [char]::before {
-      width: 150px;
-      height: 150px;
+  /*TODO remove max-width HACK*/
+    #grid [char] {
+      max-width: var(--character-width);
     }
 
-    #grid[horizontal-len="3"] [char]::before {
-      width: 100px;
-      height: 100px;
-    }
 
-    #grid[horizontal-len="4"] [char]::before {
-      width: 75px;
-      height: 75px;
-    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     [cdl="⿱"],
     [cdl="⿳"] {
@@ -385,9 +404,6 @@ export default class CharacterMorph extends Component {
       flex-direction: row !important;
 
       flex: none;
-    }
-    [char="帀"] {
-      height: 150px;
     }
 
     .character-content {
@@ -433,7 +449,7 @@ export default class CharacterMorph extends Component {
 
     .description {
       color: grey;
-      max-width: 150px;
+      max-width: 100%;
       font-size: 14px;
       padding-top: 8px;
       font-family: "Roboto";
