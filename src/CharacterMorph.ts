@@ -209,7 +209,7 @@ export default class CharacterMorph extends Component {
     //cmp.gridEl && cmp.gridEl.setAttribute('animating', '')
     //HACK
     this.shadowRoot.getElementById("grid").removeAttribute("content-revealed");
-    console.log("==", this.characterInterpolator);
+
     this.characterInterpolator?.run(cmp).then(() => {
       this.updateGroupTransform(this._data);
       // HACK
@@ -256,46 +256,6 @@ export default class CharacterMorph extends Component {
       this.createSubGroupRec(subComponent);
     }
   }
-
-  //progress(time: number) {
-  //  const progressDuration = time - this.animStartTime;
-  //  return progressDuration / this.animDuration;
-  //}
-
-  //  anim() {
-  ////const animationOptions = {
-  ////    duration: 1000, // Animation duration in milliseconds
-  ////    easing: 'ease', // Timing function
-  ////};
-  ////const keyframeEffect = new KeyframeEffect(null, null, animationOptions);
-  ////this.animation = new Animation(keyframeEffect, document.timeline);
-  ////this.animation.play();
-  //
-  //    requestAnimationFrame(this._anim.bind(this));
-  //  }
-  //  _anim(time: number) {
-  //    this.animStartTime = time;
-  //    this._drawAnim(this.animStartTime);
-  //  }
-  //
-  //  _drawAnim(time: number) {
-  //    let progress = this.progress(time);
-  //
-  //    this.strokeUpdate(progress);
-  //
-  //    if (progress < 1) {
-  //      requestAnimationFrame(this._drawAnim.bind(this));
-  //
-  //    }
-  //  }
-  //
-  //  strokeUpdate(progress: number) {
-  //    for (let i = 0; i < this.interpolators.length; i++) {
-  //      if (!this.interpolators[i]) continue;
-  //      const strokePath = this.interpolators[i](progress);
-  //      this.paths[i].setAttribute("d", strokePath);
-  //    }
-  //  }
 
   renderGroupedStrokes(target: any, strokes: any) {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");

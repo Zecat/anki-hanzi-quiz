@@ -158,9 +158,11 @@ export default class HanziQuiz extends Component {
         state.selectedIdx
       ];
     morphEl.reassemble();
-    setTimeout(() => {
-      state.currentComponent.opened = false;
-    }, 1000);
+    if (!morphEl.openedList.length) {
+      setTimeout(() => {
+        state.currentComponent.opened = false;
+      }, 1000);
+    }
   }
 
   decomposeCharacter() {

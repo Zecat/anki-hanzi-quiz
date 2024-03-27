@@ -9,6 +9,8 @@ export default class CharacterInterpolator {
     interpolationBackward: Promise<any> | undefined = undefined;
     interpolationForward: Promise<any> | undefined = undefined;
     animDuration: number;
+    precomputedForward: any = {};
+    precomputedBackward: any = {};
 
     constructor(
         cmp: ComponentDefinition,
@@ -19,32 +21,45 @@ export default class CharacterInterpolator {
         this.initialStrokes = initialStrokes;
         this.animDuration = animDuration;
         this.paths = svgPaths;
-        console.log(cmp, this.paths);
+        this.precompute(cmp);
     }
 
-    resetInterpolators() {
-        this.interpolators = Array(this.initialStrokes.length).fill(undefined);
+    precompute(cmp: ComponentDefinition) {
+        if (cmp.character && cmp.components.length) {
+        this.precomputedForward = {
+            [cmp.character]: this.getInterpolators(cmp, false),
+        };
+        this.precomputedBackward = {
+            [cmp.character]: this.getInterpolators(cmp, true),
+        };
+        }
+        cmp.components.forEach(this.precompute.bind(this))
     }
-    //getInterpolation(cmp: ComponentDefinition, backward: Boolean = false) {
 
-    //}
+    getPrecomputedInterpolators(cmp: ComponentDefinition, backward: Boolean = false) {
+        return backward
+            ? this.precomputedBackward[cmp.character]
+            : this.precomputedForward[cmp.character];
+    }
+
     async run(cmp: ComponentDefinition, backward: Boolean = false) {
-        console.log("run", cmp);
-        this.resetInterpolators();
-        if (backward)
-            return this.interpolationBackward
-                ?.then(this.anim.bind(this))
-                .catch((e: any) => console.warn(e));
-        else
-            return this.interpolationForward
-                ?.then(this.anim.bind(this))
-                .catch((e: any) => console.warn(e));
+        try {
+            this.interpolators = await this.getPrecomputedInterpolators(cmp, backward);
+            if (!this.interpolators) {
+                console.warn("No interpolation found");
+                return;
+            }
+            this.anim();
+        } catch (e) {
+            console.warn(e);
+        }
     }
 
-    async computeInterpolation(
+    async getInterpolators(
         cmp: ComponentDefinition,
         backward: Boolean = false,
     ) {
+        const interpolators = Array(this.initialStrokes.length).fill(undefined);
         let initialStrokes: any;
         if (!cmp.character)
             initialStrokes = this.initialStrokes.slice(cmp.firstIdx);
@@ -60,32 +75,35 @@ export default class CharacterInterpolator {
         }
         const promises = cmp.components
             .map((subCmp: ComponentDefinition) => {
-                return this.computeInterpolations(
+                return this.updateInterpolators(
                     subCmp,
                     0,
                     initialStrokes,
                     backward,
+                    interpolators,
                 );
             })
             .flat();
 
-        return Promise.all(promises);
+        return Promise.all(promises).then(() => interpolators);
     }
 
-    computeInterpolations(
+    updateInterpolators(
         cmp: ComponentDefinition,
         initialStrokesFirstIdx: number,
-        initialStrokes: any,
+        initialStrokes: any[],
         backward: Boolean = false,
+        interpolators: any[],
     ): Promise<any>[] {
         if (!cmp.character) {
             return cmp.components
                 .map((subCmp: ComponentDefinition) =>
-                    this.computeInterpolations(
+                    this.updateInterpolators(
                         subCmp,
                         initialStrokesFirstIdx,
                         initialStrokes,
                         backward,
+                        interpolators,
                     ),
                 )
                 .flat();
@@ -93,7 +111,7 @@ export default class CharacterInterpolator {
 
         if (!cmp.strokesPromise) return []; // TODO recursivly develop character
 
-        //return this.computeInterpolations()
+        //return this.updateInterpolators()
         return [
             cmp.strokesPromise
                 .then((charData: any) => {
@@ -101,26 +119,22 @@ export default class CharacterInterpolator {
                         // edge case, strokes not found
                         return;
                     charData.strokes.forEach((strokePath: any, idx: number) => {
+                        if (!initialStrokes[idx + cmp.firstIdx - initialStrokesFirstIdx])// TODO clarify behavior here
+                            return
                         if (backward)
-                            this.interpolators[idx + cmp.firstIdx] =
-                                interpolate(
-                                    strokePath,
-                                    initialStrokes[
-                                        idx +
-                                            cmp.firstIdx -
-                                            initialStrokesFirstIdx
-                                    ],
-                                );
+                            interpolators[idx + cmp.firstIdx] = interpolate(
+                                strokePath,
+                                initialStrokes[
+                                    idx + cmp.firstIdx - initialStrokesFirstIdx
+                                ],
+                            );
                         else
-                            this.interpolators[idx + cmp.firstIdx] =
-                                interpolate(
-                                    initialStrokes[
-                                        idx +
-                                            cmp.firstIdx -
-                                            initialStrokesFirstIdx
-                                    ],
-                                    strokePath,
-                                );
+                            interpolators[idx + cmp.firstIdx] = interpolate(
+                                initialStrokes[
+                                    idx + cmp.firstIdx - initialStrokesFirstIdx
+                                ],
+                                strokePath,
+                            );
                     });
                 })
                 .catch((e: any) => {
