@@ -2,62 +2,68 @@ import "@material/web/iconbutton/icon-button";
 import "@material/web/icon/icon";
 
 import { Component, register, html, css } from "pouic";
-import { interpolate } from "flubber"; // ES6
 
 import { ComponentDefinition } from "./HanziDesc";
+import CharacterInterpolator from "./interpolation";
 
-import {dict} from './state'
 
-const sum = (array: number[]) : number => array.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+import {cleanDescription, cleanPinyin, getPinyinTone} from './processData'
 
-const ANIM_DURATION = 500
+import { dict } from "./state";
+
+const sum = (array: number[]): number =>
+  array.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+
+const ANIM_DURATION = 500;
 
 export default class CharacterMorph extends Component {
   constructor() {
     super();
-    this.animStartTime = 0;
     this.animDuration = ANIM_DURATION;
-    this.interpolators = [];
-    this.initialStrokes = [];
     this._data = undefined;
     this.mainSvgGroup = undefined;
     this.openedList = [];
     this.animation = undefined;
+    this.characterInterpolator = undefined;
   }
 
   public set data(data: any) {
     if (!data || this._data === data) return;
-    data = data.__target // HACK retreive the proxy target to avoid promise incompatibility
+    data = data.__target; // HACK retreive the proxy target to avoid promise incompatibility
 
     if (!data.strokesPromise) {
-      console.warn('Component has no strokes data')
-      return
+      console.warn("Component has no strokes data");
+      return;
     }
 
     this._data = data;
-    console.log("===", data,this._data)
-    data.strokesPromise.then((charData: any) => {
-      this.initialStrokes = charData.strokes;
-      const target: HTMLElement = this.shadowRoot;
-      this.renderGroupedStrokes(target, charData.strokes);
+    data.strokesPromise
+      .then((charData: any) => {
+        const target: HTMLElement = this.shadowRoot;
+        this.renderGroupedStrokes(target, charData.strokes);
 
-    data.svgGroup = this.mainSvgGroup;
-    const grid = this.shadowRoot.getElementById("grid");
-    data.gridEl = grid;
+        data.svgGroup = this.mainSvgGroup;
+        const grid = this.shadowRoot.getElementById("grid");
+        data.gridEl = grid;
 
-    this.generateGrid(grid, data);
-    this.createSubGroupRec(data);
-    this.updateGroupTransform(data);
-    this.attachGridEventListener(data);
-
-    }).catch((e:any) => console.log(e));
-
+        this.generateGrid(grid, data);
+        this.createSubGroupRec(data);
+        this.updateGroupTransform(data);
+        this.attachGridEventListener(data);
+        this.characterInterpolator = new CharacterInterpolator(
+          data,
+          charData.strokes,
+          this.animDuration,
+          this.paths,
+        );
+      })
+      .catch((e: any) => console.log(e));
   }
 
   updateGroupTransform(cmp: ComponentDefinition) {
-    const horizontalLen = this.getHorizontalCharacterCount(cmp)
-    const gridEl = this.shadowRoot.getElementById('grid')
-    gridEl.setAttribute('horizontal-len', horizontalLen)
+    const horizontalLen = this.getHorizontalCharacterCount(cmp);
+    const gridEl = this.shadowRoot.getElementById("grid");
+    gridEl.setAttribute("horizontal-len", horizontalLen);
 
     cmp.components.forEach(this._updateGroupTransformRec.bind(this));
   }
@@ -110,83 +116,39 @@ export default class CharacterMorph extends Component {
   }
 
   isHorizontalCdl(cdl: string) {
-    return "⿲⿻⿰".includes(cdl)
+    return "⿲⿻⿰".includes(cdl);
   }
 
   getHorizontalCharacterCount(cmp: ComponentDefinition): number {
-    if (!cmp.cdl || !cmp.opened)
-      return 1
+    if (!cmp.cdl || !cmp.opened) return 1;
     if (this.isHorizontalCdl(cmp.cdl))
-      return sum(cmp.components.map(this.getHorizontalCharacterCount.bind(this)))
+      return sum(
+        cmp.components.map(this.getHorizontalCharacterCount.bind(this)),
+      );
     else
-      return Math.max(...cmp.components.map(this.getHorizontalCharacterCount.bind(this)))
+      return Math.max(
+        ...cmp.components.map(this.getHorizontalCharacterCount.bind(this)),
+      );
   }
-
-  // TODO extract
-getPinyinTone(pinyin: string) {
-    // Define a dictionary mapping accents to tone numbers
-    const toneMap:{ [key: string]: number} = {
-        "ā": 1, "á": 2, "ǎ": 3, "à": 4,
-        "ē": 1, "é": 2, "ě": 3, "è": 4,
-        "ī": 1, "í": 2, "ǐ": 3, "ì": 4,
-        "ō": 1, "ó": 2, "ǒ": 3, "ò": 4,
-        "ū": 1, "ú": 2, "ǔ": 3, "ù": 4,
-        "ǖ": 1, "ǘ": 2, "ǚ": 3, "ǜ": 4,
-        "ü": 5 // Neutral tone for ü
-    };
-
-    for (let char of pinyin) {
-        if (char in toneMap) {
-            return toneMap[char];
-        }
-    }
-
-    return 5;
-}
-  cleanPinyin(strArr: string[] | undefined): string {
-    if (!strArr)
-      return 'pinyin unavailable'
-    const str = strArr[0]
-
-    //if (!pinyinData)
-    //  return 5
-    //const pinyin = Array.isArray(pinyinData) ? pinyinData[0] : pinyinData
-
-    if (!str)
-      return ''
-    const match = str.match(/^[^(]+/);
-    return match ? match[0] : "";
-  }
-
-  cleanDescription(desc: string | undefined): string {
-    if (!desc)
-      return ''
-let regex = /Kangxi\s+radical\s+\d+;?/g;
-
-// Remove occurrences of the pattern
-let result = desc.replace(regex, '');
-let result2 = result.replace(/;(\s*)$/, '$1');
-    return result2
-  }
-
 
   generateGrid(el: Element, cmp: ComponentDefinition) {
-    if (cmp.cdl) el.setAttribute('cdl',cmp.cdl);
+    if (cmp.cdl) el.setAttribute("cdl", cmp.cdl);
     for (let subCmp of cmp.components) {
       const subEl = document.createElement("div");
       if (subCmp.character) {
         subEl.setAttribute("char", subCmp.character);
         const content = document.createElement("div");
-        content.classList.toggle('character-content')
-        dict.get(subCmp.character).then(charData => {
-          const cleanPinyin = this.cleanPinyin(charData.pinyin)
-          const tone = String(this.getPinyinTone(cleanPinyin))
+        content.classList.toggle("character-content");
+        dict.get(subCmp.character).then((charData) => {
+          const cleanedPinyin = cleanPinyin(charData.pinyin);
+          const tone = String(getPinyinTone(cleanedPinyin));
+          const description = cleanDescription(charData.definition)
           content.innerHTML = `
           <div class="pinyin" tone="${tone}">
-            ${cleanPinyin}
+            ${cleanedPinyin}
           </div>
-<div class="description">${this.cleanDescription(charData.definition)}</div>`
-        })
+<div class="description">${description}</div>`;
+        });
 
         subEl.appendChild(content);
       }
@@ -202,125 +164,28 @@ let result2 = result.replace(/;(\s*)$/, '$1');
     return group;
   }
 
-  reassemble() {
+  async reassemble() {
     const lastCmp = this.openedList.pop();
     if (!lastCmp) return;
 
-    this.closeComponent(lastCmp)
-    this.runCharacterMorph(lastCmp, true).then(() => {
+    this.closeComponent(lastCmp);
+    this.characterInterpolator?.run(lastCmp, true).then(() => {
       this.updateGroupTransform(this._data);
     });
   }
 
   closeComponent(cmp: ComponentDefinition) {
-    console.log(cmp)
+    console.log(cmp);
     cmp.opened = false;
-    cmp.gridEl && cmp.gridEl.removeAttribute('opened') // TODO closeComponent recursive // TODO gridEl better typing no need to check
-    cmp.components.forEach(this.closeComponent.bind(this))
+    cmp.gridEl && cmp.gridEl.removeAttribute("opened"); // TODO closeComponent recursive // TODO gridEl better typing no need to check
+    cmp.components.forEach(this.closeComponent.bind(this));
   }
 
-  resetInterpolators() {
-    this.interpolators = Array(this.initialStrokes.length).fill(undefined);
-  }
-
-  // TODO make generic the 2 following methods
-  //async runCharacterMorphBackward(cmp: ComponentDefinition) {
-  //  this.resetInterpolators();
-  //  let initialStrokes: any;
-  //  if (!cmp.character)
-  //    initialStrokes = this.initialStrokes.slice(cmp.firstIdx);
-  //  else {
-  //    const cmpData: any = await cmp.strokesPromise;
-  //    initialStrokes = cmpData.strokes;
-  //  }
-  //  const promises = cmp.components
-  //    .filter((subCmp: ComponentDefinition) => subCmp.character)
-  //    .map((subCmp: ComponentDefinition) =>
-  //      subCmp.strokesPromise && subCmp.strokesPromise
-  //        .then((charData: any) => {
-  //          charData.strokes.forEach((strokePath: any, idx: number) => {
-  //            this.interpolators[idx + subCmp.firstIdx] = interpolate(
-  //              strokePath,
-  //              initialStrokes[idx + subCmp.firstIdx - cmp.firstIdx],
-  //            );
-  //          });
-  //        })
-  //        .catch((e: any) => {
-  //          console.warn(e);
-  //        }),
-  //    );
-
-  //  return Promise.all(promises).then(this.anim.bind(this));
-  //}
-
-  async runCharacterMorph(cmp: ComponentDefinition, backward: Boolean = false) {
-    this.resetInterpolators();
-    let initialStrokes: any;
-    let initialStrokesFirstIdx = 0;
-    if (!cmp.character)
-      initialStrokes = this.initialStrokes.slice(cmp.firstIdx);
-    else {
-      try {
-        const cmpData: any = await cmp.strokesPromise;
-
-        initialStrokes = cmpData.strokes;
-
-      } catch (e) {
-        console.log(e);
-        initialStrokes = this.initialStrokes.slice(cmp.firstIdx);
-      }
-    }
-    const promises = cmp.components
-      .map((subCmp: ComponentDefinition) =>
-        {
-        return this.computeInterpolations(subCmp, initialStrokesFirstIdx, initialStrokes, backward)
-        }
-      )
-      .flat();
-
-    return Promise.all(promises).then(this.anim.bind(this)).catch(e => console.warn(e));
-  }
-
-  computeInterpolations(
-    cmp: ComponentDefinition,
-    initialStrokesFirstIdx: number,
-    initialStrokes: any,
-    backward: Boolean = false
-  ): Promise<any>[] {
-    if (!cmp.character)
-      {
-      return cmp.components.map((subCmp: ComponentDefinition) => this.computeInterpolations(subCmp, initialStrokesFirstIdx, initialStrokes, backward)).flat()
-    }
-
-    if (!cmp.strokesPromise) return []; // TODO recursivly develop character
-
-    //return this.computeInterpolations()
-    return [cmp.strokesPromise
-      .then((charData: any) => {
-        if (charData.strokes === undefined) // edge case, strokes not found
-          return
-        charData.strokes.forEach((strokePath: any, idx: number) => {
-          if (backward)
-            this.interpolators[idx + cmp.firstIdx] = interpolate(
-              strokePath,
-              initialStrokes[idx + cmp.firstIdx - initialStrokesFirstIdx],
-            );
-          else
-            this.interpolators[idx + cmp.firstIdx] = interpolate(
-              initialStrokes[idx + cmp.firstIdx - initialStrokesFirstIdx],
-              strokePath,
-            );
-        });
-      })
-      .catch((e: any) => {
-        console.warn(e);
-      })];
-  }
   getCmpForGridEl(
     target: HTMLElement,
     cmp: ComponentDefinition,
   ): ComponentDefinition | undefined {
-    console.log(cmp.gridEl, target, cmp.gridEl === target)
+    console.log(cmp.gridEl, target, cmp.gridEl === target);
     if (cmp.gridEl === target) return cmp;
     for (const subCmp of cmp.components)
       if (subCmp.gridEl === target) return subCmp;
@@ -328,47 +193,50 @@ let result2 = result.replace(/;(\s*)$/, '$1');
   }
 
   onClick(e: any) {
-    console.log('!!', e)
     e.stopPropagation();
     // "unfolded" in e.target.classList
     const cmp = this.getCmpForGridEl(e.target, this._data);
-    if (!cmp) return;
-    if ( !cmp.components.length) return;
-    console.log(cmp)
+    if (cmp) this.open(cmp);
+  }
 
-    this.openedList.push(cmp); // TODO Register component instead of gridEl
+  open(cmp: ComponentDefinition | undefined = this._data) {
+    if (!cmp.components.length) return;
 
-    this.openComponent(cmp)
+    this.openedList.push(cmp);
+
+    this.openComponent(cmp);
 
     //cmp.gridEl && cmp.gridEl.setAttribute('animating', '')
     //HACK
-        this.shadowRoot.getElementById("grid").removeAttribute('content-revealed')
-    this.runCharacterMorph(cmp).then(() => {
+    this.shadowRoot.getElementById("grid").removeAttribute("content-revealed");
+    console.log("==", this.characterInterpolator);
+    this.characterInterpolator?.run(cmp).then(() => {
       this.updateGroupTransform(this._data);
       // HACK
       setTimeout(() => {
-        cmp.gridEl && cmp.gridEl.removeAttribute('animating')
+        cmp.gridEl && cmp.gridEl.removeAttribute("animating");
 
-        this.shadowRoot.getElementById("grid").setAttribute('content-revealed', '')
+        this.shadowRoot
+          .getElementById("grid")
+          .setAttribute("content-revealed", "");
         //this.shadowRoot.getElementById("grid").removeAttribute('animating')
-      }, this.animDuration)
+      }, this.animDuration);
     });
   }
 
   openComponent(cmp: ComponentDefinition) {
     if (!cmp.gridEl) {
-      console.warn('No grid element for component')
+      console.warn("No grid element for component");
       // TODO this should not happen, do better typing
-      return
+      return;
     }
     cmp.opened = true;
 
-    cmp.gridEl.setAttribute('opened', '')
+    cmp.gridEl.setAttribute("opened", "");
 
     cmp.components.forEach((subCmp: ComponentDefinition) => {
-      if (!subCmp.character)
-        this.openComponent(subCmp)
-    })
+      if (!subCmp.character) this.openComponent(subCmp);
+    });
   }
 
   createSubGroupRec(component: ComponentDefinition) {
@@ -389,53 +257,53 @@ let result2 = result.replace(/;(\s*)$/, '$1');
     }
   }
 
-  progress(time: number) {
-    const progressDuration = time - this.animStartTime;
-    return progressDuration / this.animDuration;
-  }
+  //progress(time: number) {
+  //  const progressDuration = time - this.animStartTime;
+  //  return progressDuration / this.animDuration;
+  //}
 
-  anim() {
-//const animationOptions = {
-//    duration: 1000, // Animation duration in milliseconds
-//    easing: 'ease', // Timing function
-//};
-//const keyframeEffect = new KeyframeEffect(null, null, animationOptions);
-//this.animation = new Animation(keyframeEffect, document.timeline);
-//this.animation.play();
-
-    requestAnimationFrame(this._anim.bind(this));
-  }
-  _anim(time: number) {
-    this.animStartTime = time;
-    this._drawAnim(this.animStartTime);
-  }
-
-  _drawAnim(time: number) {
-    let progress = this.progress(time);
-
-    this.strokeUpdate(progress);
-
-    if (progress < 1) {
-      requestAnimationFrame(this._drawAnim.bind(this));
-
-    }
-  }
-
-  strokeUpdate(progress: number) {
-    for (let i = 0; i < this.interpolators.length; i++) {
-      if (!this.interpolators[i]) continue;
-      const strokePath = this.interpolators[i](progress);
-      this.paths[i].setAttribute("d", strokePath);
-    }
-  }
+  //  anim() {
+  ////const animationOptions = {
+  ////    duration: 1000, // Animation duration in milliseconds
+  ////    easing: 'ease', // Timing function
+  ////};
+  ////const keyframeEffect = new KeyframeEffect(null, null, animationOptions);
+  ////this.animation = new Animation(keyframeEffect, document.timeline);
+  ////this.animation.play();
+  //
+  //    requestAnimationFrame(this._anim.bind(this));
+  //  }
+  //  _anim(time: number) {
+  //    this.animStartTime = time;
+  //    this._drawAnim(this.animStartTime);
+  //  }
+  //
+  //  _drawAnim(time: number) {
+  //    let progress = this.progress(time);
+  //
+  //    this.strokeUpdate(progress);
+  //
+  //    if (progress < 1) {
+  //      requestAnimationFrame(this._drawAnim.bind(this));
+  //
+  //    }
+  //  }
+  //
+  //  strokeUpdate(progress: number) {
+  //    for (let i = 0; i < this.interpolators.length; i++) {
+  //      if (!this.interpolators[i]) continue;
+  //      const strokePath = this.interpolators[i](progress);
+  //      this.paths[i].setAttribute("d", strokePath);
+  //    }
+  //  }
 
   renderGroupedStrokes(target: any, strokes: any) {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("id", "component-svg")
+    svg.setAttribute("id", "component-svg");
     target.appendChild(svg);
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
     this.mainSvgGroup = group;
-    svg.setAttributeNS(null, "viewBox", "0 -100 1000 1000"); //"0 0 1080 720");
+    svg.setAttributeNS(null, "viewBox", "0 -124 1024 1024"); //"0 0 1080 720");
     svg.appendChild(group);
 
     const paths: any[] = [];
@@ -454,15 +322,14 @@ let result2 = result.replace(/;(\s*)$/, '$1');
   }
 
   static css = css`
-
     :host([debug]) #grid * {
       background: rgba(255, 255, 0, 0.3);
       border: 1px solid grey;
     }
 
-:host([debug]) .character-content {
-background: blue !important;
-}
+    :host([debug]) .character-content {
+      background: blue !important;
+    }
 
     :host {
       position: relative;
@@ -471,11 +338,10 @@ background: blue !important;
 
     #component-svg {
       pointer-events: none;
-      width: 300px;
-      height: 300px;
+      width: 100%;
       scale: 1 -1;
       transform-origin: 50% 50%;
-    overflow: visible;
+      overflow: visible;
       position: absolute;
       top: 0;
       left: 0;
@@ -486,41 +352,45 @@ background: blue !important;
     }
 
     #component-svg g {
-transition: transform ${ANIM_DURATION/1000}s linear; /*HACK*/
+      transition: transform ${ANIM_DURATION / 1000}s linear; /*HACK*/
     }
-
 
     #grid {
       display: flex;
-      width: 300px;
-      min-height: 300px;
+      width: 100%;
       align-items: center;
+      aspect-ratio: 1;
     }
-    #grid [cdl], #grid [char] {
+
+    #grid[opened] {
+      aspect-ratio: unset;
+      margin-bottom: 20px;
+    }
+    #grid [cdl],
+    #grid [char] {
       position: relative;
       flex: 1;
       overflow: hidden;
       align-items: center;
       box-sizing: border-box;
 
-      display:none;
+      display: none;
     }
 
-    [char][opened] > *:not([opened]), [cdl][opened] > *:not([opened]) {
+    [char][opened] > *:not([opened]),
+    [cdl][opened] > *:not([opened]) {
       display: block !important;
       overflow: visible !important;
-flex: 0 !important;
+      flex: 0 !important;
     }
 
-
-[opened] {
-display: flex !important;
-}
-
+    [opened] {
+      display: flex !important;
+    }
 
     #grid [char]::before {
-content: '';
-     display:block;
+      content: "";
+      display: block;
     }
 
     #grid[horizontal-len="1"] [char]::before {
@@ -543,7 +413,6 @@ content: '';
       height: 75px;
     }
 
-
     [cdl="⿱"],
     [cdl="⿳"] {
       flex-direction: column !important;
@@ -561,54 +430,54 @@ content: '';
       height: 150px;
     }
 
-.character-content {
-display: block !important;
-width: 100%;
+    .character-content {
+      display: block !important;
+      width: 100%;
 
-min-height: unset !important;
-min-width: unset !important;
-opacity: 0;
-text-align: center;
-}
+      min-height: unset !important;
+      min-width: unset !important;
+      opacity: 0;
+      text-align: center;
+    }
 
-[char][opened]::before {
-display: none !important;
-}
-#grid[content-revealed] .character-content {
-opacity: 1;
-transition: opacity 0.3s;
-}
-[char][opened] > .character-content {
-display: none !important;
-}
+    [char][opened]::before {
+      display: none !important;
+    }
+    #grid[content-revealed] .character-content {
+      opacity: 1;
+      transition: opacity 0.3s;
+    }
+    [char][opened] > .character-content {
+      display: none !important;
+    }
 
-/*TODO generique*/
-[tone="1"] {
-color: red;
-}
-[tone="2"] {
-color: green;
-}
-[tone="3"] {
-color: blue;
-}
-[tone="4"] {
-color: purple;
-}
-[tone="5"] {
-color: grey;
-}
-.pinyin {
-font-family: roboto;
-}
+    /*TODO generique*/
+    [tone="1"] {
+      color: red;
+    }
+    [tone="2"] {
+      color: green;
+    }
+    [tone="3"] {
+      color: blue;
+    }
+    [tone="4"] {
+      color: purple;
+    }
+    [tone="5"] {
+      color: grey;
+    }
+    .pinyin {
+      font-family: roboto;
+    }
 
-.description {
-color: grey;
-max-width: 150px;
-font-size: 14px;
-    padding-top: 8px;
-    font-family: 'Roboto';
-}
+    .description {
+      color: grey;
+      max-width: 150px;
+      font-size: 14px;
+      padding-top: 8px;
+      font-family: "Roboto";
+    }
     /*
  ⿲
  ⿳
@@ -627,9 +496,7 @@ font-size: 14px;
 */
   `;
 
-  static template = html`
-    <div id="grid"></div>
-  `;
+  static template = html` <div id="grid"></div> `;
 }
 
 register(CharacterMorph);

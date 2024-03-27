@@ -50,7 +50,6 @@ overflow: hidden;
         border: 1px solid #dfdfdf;
       }
       character-quiz {
-height: 100%;
 flex: 0 0 auto;
 }
 #slideshow {
@@ -85,6 +84,8 @@ display: none;
 }
 .slide-wrapper {
 width: 100%;
+min-height: 100%;
+flex:none;
 }
     `;
 
@@ -94,10 +95,10 @@ getShiftWidth(idx:number) {
   return `transform: translateX(-${shift}px)`;
 }
 
-  isMorphHidden(index:number, selectedIdx:number, opened:boolean) {
-    console.log(index, selectedIdx, opened)
-    return index !== selectedIdx || !opened
+  isMorphHidden(opened:boolean) {
+    return  !opened
   }
+
 	static template = html`
 
     <div id="slideshow"
@@ -114,7 +115,7 @@ hidden="{hanziComponent.opened}"
             active="{equal(index,selectedIdx)}"
             .hanziComponent={hanziComponent}
           > </character-quiz>
-<character-morph hidden="{this.isMorphHidden(index, selectedIdx, hanziComponent.opened)}" .data={hanziComponent} ></character-morph>
+<character-morph hidden="{this.isMorphHidden(hanziComponent.opened)}" .data={hanziComponent} ></character-morph>
 </div>
     </div>
 

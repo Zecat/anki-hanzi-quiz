@@ -24,8 +24,13 @@ const initialState:any = {
    state.selectedIdx = idx;
   },
 
-  prev:() => state.selectedIdx = Math.max(0, state.selectedIdx-1),
-  next:()=> state.selectedIdx = Math.min(state.hanziData.length-1, state.selectedIdx+1),
+  prev:() =>{
+    //document.querySelector('hanzi-quiz')?.reassembleCharacter()
+    state.selectedIdx = Math.max(0, state.selectedIdx-1)},
+  next:()=> {
+    //document.querySelector('hanzi-quiz')?.reassembleCharacter()
+    state.selectedIdx = Math.min(state.hanziData.length-1, state.selectedIdx+1)
+  },
 
   prevBtnVisible: computedProperty(['selectedIdx', 'currentComponent.complete'], function (idx: number, complete: boolean) {
     return idx > 0 && complete

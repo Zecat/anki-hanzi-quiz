@@ -10,5 +10,6 @@ export default class CharactersSlideshowQuiz extends Component {
     sliderWidth: number;
     static css: any;
     getShiftWidth(idx: number): string;
+    isMorphHidden(opened: boolean): boolean;
     static template: any;
 }

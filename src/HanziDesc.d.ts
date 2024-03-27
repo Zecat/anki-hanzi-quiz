@@ -12,6 +12,12 @@ export type ComponentDefinition = {
     mistakeCount: number;
     matches: Matches;
     complete: boolean;
+    svgGroup: Element | undefined;
+    gridEl: HTMLElement | undefined;
+    scaleFactor: number;
+    cumulativeScaleFactor: number;
+    opened: boolean;
+    strokesPromise: Promise<any> | undefined;
 };
 export declare const getNextComponent: (acjk: string[], acjkIdx?: number, strokeIdx?: number) => [number, number, ComponentDefinition];
 export declare const getDecomposition: (charData: CharDataItem) => ComponentDefinition;
