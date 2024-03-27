@@ -30,7 +30,6 @@ export type ComponentDefinition = {
     character: string;
     firstIdx: number;
     lastIdx: number;
-    strokeCount: number;
     parent: ComponentDefinition | null;
     components: ComponentDefinition[];
     cdl: CDLChar | null;
@@ -182,7 +181,6 @@ const getEmptyComponent = (): ComponentDefinition => {
         character: "",
         firstIdx: -1,
         lastIdx: -1,
-        strokeCount: 0,
         parent: null,
         components: [],
         cdl: null,
@@ -235,10 +233,7 @@ export const getDecomposition = (
         return getEmptyComponent();
     }
     const [_, lastStrokeIdx, component] = getNextComponent(acjk_cleaned, 0, 0);
-    //component.character = character;
     component.mistakeCount = 0;
-    component.firstIdx = 0;
-    component.lastIdx = lastStrokeIdx;
     component.matches = Array(lastStrokeIdx + 1).fill(component);
     assignSubMatches(component, component.matches);
     //if (component.character)
