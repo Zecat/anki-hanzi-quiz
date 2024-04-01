@@ -26,10 +26,16 @@ const HtmlMinimizerPlugin = require("html-minimizer-webpack-plugin");
 const stylesHandler = "style-loader";
 
 const config = {
-  entry: "./src/index.ts",
+  entry: {
+    //worker: './src/interpolationWorker.ts',
+    main: "./src/index.ts",
+  },
+  target: 'webworker', // Specify the target as webworker for worker bundle
   output: {
     path: path.resolve(__dirname, "dist"),
     publicPath: '/',
+		//	workerPublicPath: '/workers/',
+
   },
   module: {
     rules: [
@@ -82,10 +88,18 @@ mangle: {
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
   },
+    devtool: "source-map",
+
   devServer: {
     open: true,
     host: "localhost",
-  },
+  }
+    //    // Other dev server options...
+    //    headers: {
+    //        'Access-Control-Allow-Origin': '*',
+    //        'Content-Type': 'application/javascript', // Set the content type for TypeScript files
+    //    },
+    //},
 };
 
 if (isProduction) {

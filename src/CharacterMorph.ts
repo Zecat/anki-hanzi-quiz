@@ -9,8 +9,6 @@ import CharacterInterpolator from "./interpolation";
 
 import {cleanDescription, cleanPinyin, getPinyinTone} from './processData'
 
-import { dict } from "./state";
-
 const sum = (array: number[]): number =>
   array.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
 
@@ -31,16 +29,16 @@ export default class CharacterMorph extends Component {
     if (!data || this._data === data) return;
     data = data.__target; // HACK retreive the proxy target to avoid promise incompatibility
 
-    if (!data.strokesPromise) {
+    if (!data.strokes) {
       console.warn("Component has no strokes data");
       return;
     }
 
     this._data = data;
-    data.strokesPromise
-      .then((charData: any) => {
+    //data.strokesPromise
+      //.then((charData: any) => {
         const target: HTMLElement = this.shadowRoot;
-        this.renderGroupedStrokes(target, charData.strokes);
+        this.renderGroupedStrokes(target, data.strokes);
 
         data.svgGroup = this.mainSvgGroup;
         const grid = this.shadowRoot.getElementById("grid");
@@ -52,12 +50,12 @@ export default class CharacterMorph extends Component {
         this.attachGridEventListener(data);
         this.characterInterpolator = new CharacterInterpolator(
           data,
-          charData.strokes,
+          data.strokes,
           this.animDuration,
           this.paths,
         );
-      })
-      .catch((e: any) => console.log(e));
+      //})
+      //.catch((e: any) => console.log(e));
   }
 
   updateGroupTransform(cmp: ComponentDefinition) {
@@ -119,7 +117,7 @@ export default class CharacterMorph extends Component {
   }
 
   isHorizontalCdl(cdl: string) {
-    return "⿲⿻⿰".includes(cdl);
+    return "⿲⿻⿰⿸".includes(cdl);
   }
 
   getHorizontalCharacterCount(cmp: ComponentDefinition): number {
@@ -138,20 +136,20 @@ export default class CharacterMorph extends Component {
     if (cmp.cdl) el.setAttribute("cdl", cmp.cdl);
     for (let subCmp of cmp.components) {
       const subEl = document.createElement("div");
+
       if (subCmp.character) {
+      //if (subCmp.character) {
         subEl.setAttribute("char", subCmp.character);
         const content = document.createElement("div");
         content.classList.toggle("character-content");
-        dict.get(subCmp.character).then((charData) => {
-          const cleanedPinyin = cleanPinyin(charData.pinyin);
+          const cleanedPinyin = cleanPinyin(subCmp.pinyin);
           const tone = String(getPinyinTone(cleanedPinyin));
-          const description = cleanDescription(charData.definition)
+          const description = cleanDescription(subCmp.definition)
           content.innerHTML = `
           <div class="pinyin" tone="${tone}">
             ${cleanedPinyin}
           </div>
 <div class="description">${description}</div>`;
-        });
 
         subEl.appendChild(content);
       }
@@ -178,7 +176,6 @@ export default class CharacterMorph extends Component {
   }
 
   closeComponent(cmp: ComponentDefinition) {
-    console.log(cmp);
     cmp.opened = false;
     cmp.gridEl && cmp.gridEl.removeAttribute("opened"); // TODO closeComponent recursive // TODO gridEl better typing no need to check
     cmp.components.forEach(this.closeComponent.bind(this));
@@ -227,6 +224,7 @@ export default class CharacterMorph extends Component {
   }
 
   openComponent(cmp: ComponentDefinition) {
+    console.log('OPENING', cmp)
     if (!cmp.gridEl) {
       console.warn("No grid element for component");
       // TODO this should not happen, do better typing
@@ -237,7 +235,8 @@ export default class CharacterMorph extends Component {
     cmp.gridEl.setAttribute("opened", "");
 
     cmp.components.forEach((subCmp: ComponentDefinition) => {
-      if (!subCmp.character || subCmp.character.charCodeAt(1)) this.openComponent(subCmp);
+      if (subCmp.components.length && (!subCmp.pinyin||!subCmp.pinyin[0])  ) this.openComponent(subCmp);
+      //if (subCmp.components.length && (!subCmp.character || subCmp.character.charCodeAt(1))) this.openComponent(subCmp);
     });
   }
 
@@ -328,11 +327,11 @@ export default class CharacterMorph extends Component {
       aspect-ratio: unset;
       margin-bottom: 20px;
     }
-    #grid [cdl],
-    #grid [char] {
+    #grid [cdl]:not([opened]),
+    #grid [char]:not([opened]) {
       position: relative;
       flex: 1;
-      overflow: hidden;
+      /*overflow: hidden;*/
       align-items: center;
       box-sizing: border-box;
 

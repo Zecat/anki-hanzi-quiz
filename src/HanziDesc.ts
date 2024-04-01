@@ -1,8 +1,52 @@
-import { CharDataItem } from "./HanziDictionary";
+import { fetchCharacter } from "./fetchCharacter";
 
-import HanziWriter from "hanzi-writer";
+//import {dict} from './state'
 
 //import HanziWriter from "hanzi-writer";
+
+//import { fetchCharacter } from "./fetchCharacter";
+//const worker = new Worker('worker.js');
+//
+//worker.onmessage = (event) => {
+//    const result = event.data;
+//    console.log('Result:', result);
+//    //const a = document.createElement('div');
+//    //a.style.background = 'red'
+//    //a.style.width = '200px'
+//    //a.style.height = '200px'
+//    //a.style.position = 'absolute'
+//    //a.style.top = '0'
+//    //document.body.appendChild(a)
+//};
+//
+//// Start the expensive computation
+//const data = 10; // Example input data
+//worker.postMessage(data);
+
+//const strokesDict = fetchMedia('graphicsZhHans.json')
+//    .then((response) => {
+//        if (!response.ok) {
+//            throw new Error("Dictionnary fetch request was not ok");
+//        }
+//        //response.text().then(a => state.toto = `data: ${a.substring(0, 100)}`)
+//        return response.json();
+//    })
+//    .catch((err) => {
+//        throw new Error("Dictionary fetch request failed: " + err);
+//    });
+//const characterBaseFolder = '_characters'
+//const getStrokesData = async (char: string) => {
+//    return fetchMedia(`${characterBaseFolder}/${char}.json`)
+//    .then((response) => {
+//        if (!response.ok) {
+//            throw new Error("Dictionnary fetch request was not ok");
+//        }
+//        return response.json();
+//    })
+//    .catch((err) => {
+//        throw new Error("Dictionary fetch request failed: " + err);
+//    });
+//}
 
 type Matches = ComponentDefinition[];
 
@@ -41,8 +85,13 @@ export type ComponentDefinition = {
     scaleFactor: number;
     cumulativeScaleFactor: number;
     opened: boolean;
-    strokesPromise: Promise<any> | undefined;
-    //strokesPromise: Promise<any> | undefined
+    strokes: string[] | undefined;
+    medians: string[] | undefined;
+    radical: string | undefined;
+    pinyin: string[];
+    decomposition: string;
+    definition: string;
+    acjk: string;
 };
 
 const getCDLLen = (c: string): 0 | 2 | 3 => {
@@ -74,21 +123,18 @@ function getNextNumber(
     return { number: nextNumber, length: numberStr.length };
 }
 
-const handleCdl = (
+const handleCdl = async (
     component: ComponentDefinition,
     cdl: CDLChar,
     cdlLen: number,
     acjk: string[],
     acjkIdx: number,
     strokeIdx: number,
-): [number, number] => {
+): Promise<[number, number]> => {
     component.cdl = cdl;
     for (let j = 0; j < cdlLen; j++) {
-        const [nextDecIdx, nextStrokeIdx, subComponent] = getNextComponent(
-            acjk,
-            acjkIdx,
-            strokeIdx,
-        );
+        const [nextDecIdx, nextStrokeIdx, subComponent] =
+            await getNextComponent(acjk, acjkIdx, strokeIdx);
         acjkIdx = nextDecIdx;
         strokeIdx = nextStrokeIdx;
         subComponent.parent = component;
@@ -98,11 +144,11 @@ const handleCdl = (
     }
     return [acjkIdx, strokeIdx];
 };
-export const getNextComponent = (
+export const getNextComponent = async (
     acjk: string[],
     acjkIdx: number = 0,
     strokeIdx: number = 0,
-): [number, number, ComponentDefinition] => {
+): Promise<[number, number, ComponentDefinition]> => {
     const component = getEmptyComponent();
     const c: string = acjk[acjkIdx];
 
@@ -110,7 +156,7 @@ export const getNextComponent = (
     acjkIdx++;
     component.firstIdx = strokeIdx;
     if (cdlLen) {
-        [acjkIdx, strokeIdx] = handleCdl(
+        [acjkIdx, strokeIdx] = await handleCdl(
             component,
             c as CDLChar,
             cdlLen,
@@ -120,14 +166,16 @@ export const getNextComponent = (
         );
         if (acjkIdx >= acjk.length) return [acjkIdx, strokeIdx, component];
     } else {
-        if (c.charCodeAt(1))
-            {
-            component.character = '';
-            //component.components = this.getNextComponent(di)
-        }
-
-        else
-            component.character = c;
+        component.character = c;
+        //dict.get(c).then((data:any)=> {
+        //    const rad = [...data.radical] // convert to array because charatcer might have len of 2
+        //    console.log(data)
+        //    if (rad[0] == c) {
+        //        const alternativeCharacter = rad[3]
+        //        if (alternativeCharacter)
+        //            component.character = alternativeCharacter
+        //    }
+        //})
     }
     const { number: charLen, length: forward } = getNextNumber(acjk, acjkIdx);
     const c2: string = acjk[acjkIdx];
@@ -146,7 +194,7 @@ export const getNextComponent = (
         cdlLen = getCDLLen(c2);
         if (cdlLen) {
             acjkIdx++;
-            [acjkIdx, strokeIdx] = handleCdl(
+            [acjkIdx, strokeIdx] = await handleCdl(
                 component,
                 c2 as CDLChar,
                 cdlLen,
@@ -160,11 +208,40 @@ export const getNextComponent = (
         //}
     }
 
-    if (component.character)
-        component.strokesPromise = HanziWriter.loadCharacterData(component.character).catch(e => {
-            console.warn(e)
-            return e
-        })
+    if (component.character) {
+        try {
+            const data = await fetchCharacter(component.character);
+            component.pinyin = data.pinyin;
+            component.decomposition = data.decomposition;
+            component.definition = data.definition;
+            component.acjk = data.acjk;
+            component.strokes = data.strokes;
+            component.medians = data.medians;
+            if (
+                !component.components.length &&
+                component.decomposition != component.character &&
+                component.acjk
+            ) {
+                const cmp = await _getDecomposition(
+                    component.acjk,
+                    component.firstIdx,
+                );
+                component.components = cmp.components;
+                component.cdl = cmp.cdl;
+                component.components.forEach((sc: any) => {
+                    sc.parent = component;
+                    //sc.firstIdx += component.firstIdx
+                    //sc.lastIdx += component.firstIdx
+                });
+            }
+        } catch (e) {
+            console.warn(e);
+        }
+        //    component.strokes = await fetchCharacter(component.character)/*HanziWriter.loadCharacterData(component.character)*/.catch(e => {
+        //        console.warn(e)
+        //        return e
+        //    })
+    }
     return [acjkIdx, strokeIdx, component];
 };
 
@@ -192,7 +269,13 @@ const getEmptyComponent = (): ComponentDefinition => {
         scaleFactor: 1,
         cumulativeScaleFactor: 1,
         opened: false,
-        strokesPromise: undefined,
+        strokes: undefined,
+        medians: undefined,
+        radical: undefined,
+        pinyin: [],
+        decomposition: "",
+        definition: "",
+        acjk: "",
     };
 };
 
@@ -201,8 +284,7 @@ function isDigit(char: string) {
 }
 
 function removeDots(str: string) {
-    if (!str)
-        return ""
+    if (!str) return "";
     return str.replace(/\./g, "");
 }
 
@@ -215,24 +297,48 @@ function assignSubMatches(cmp: ComponentDefinition, matches: Matches) {
     }
 }
 
-export const getDecomposition = (
-    charData: CharDataItem,
-): ComponentDefinition => {
-    const { character, acjk } = charData;
+const _getDecomposition = async (
+    acjk: string,
+    strokeIdx: number,
+): Promise<ComponentDefinition> => {
     const acjk_cleaned = [...removeDots(acjk)];
-    if (!character) {
-        console.warn(
-            "The character data does not specify the character.",
-            charData,
-        );
+    if (acjk_cleaned.length === 0) {
+        console.warn("acjk is empty.");
         return getEmptyComponent();
     }
+    const ret = await getNextComponent(acjk_cleaned, strokeIdx, 0);
+    return ret[2];
+};
+export const getDecomposition = async (
+    //charData: CharDataItem,
+    acjk: string,
+): Promise<ComponentDefinition> => {
+    const acjk_cleaned = [...removeDots(acjk)];
+    //if (!character) {
+    //    console.warn(
+    //        "The character data does not specify the character.",
+    //        charData,
+    //    );
+    //    return getEmptyComponent();
+    //}
 
     if (acjk_cleaned.length === 0) {
-        console.warn("acjk for character ${character} is empty.");
+        console.warn("acjk is empty.");
         return getEmptyComponent();
     }
-    const [_, lastStrokeIdx, component] = getNextComponent(acjk_cleaned, 0, 0);
+    // TODO To handle alternative radical, the interface should handle interpolation between character with different stroke number
+    //const radDesc = [...charData.radical] // convert to array because charatcer might have len of 2
+    //const rad = radDesc[0]
+    //const alternativeRad = radDesc[3]
+    //if (rad && alternativeRad) {
+    //    acjk_cleaned = acjk_cleaned.map(item => item === rad ? alternativeRad : item);
+    //}
+
+    const [_, lastStrokeIdx, component] = await getNextComponent(
+        acjk_cleaned,
+        0,
+        0,
+    );
     component.mistakeCount = 0;
     component.matches = Array(lastStrokeIdx + 1).fill(component);
     assignSubMatches(component, component.matches);

@@ -10,3 +10,5 @@ coverage
 *.log
 .swo
 .swp
+/static/*
+/scripts/acjk/characters/*

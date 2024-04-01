@@ -1,6 +1,7 @@
 import HanziWriter from "hanzi-writer";
 
 import { Component, register, html, css } from 'pouic'
+import { fetchCharacter } from "./fetchCharacter";
 
 export default class CharacterAnim extends Component {
   options = {};
@@ -26,18 +27,18 @@ export default class CharacterAnim extends Component {
   createHanziWriter(hanzi: string): HanziWriter {
     const target = this.shadowRoot;
 
-    const hanziWriterAnimOptions = {
-      strokeAnimationSpeed: 1.2, // 5x normal speed
-      delayBetweenStrokes: 100, // milliseconds
-      showCharacter: false,
-  showOutline: false,
-      padding: 0,
-    };
-    //state.toto = `yo from ${hanzi}, ${state.hanziData.length}, ${Object.keys(state.hanziData[0])}`
     this.hanziWriter = HanziWriter.create(
       <HTMLElement>(<unknown>target),
       hanzi,
-      hanziWriterAnimOptions
+      {
+      strokeAnimationSpeed: 1.2, // 5x normal speed
+      delayBetweenStrokes: 100, // milliseconds
+      showCharacter: false,
+      showOutline: false,
+      padding: 0,
+      charDataLoader: (char, onComplete) => {fetchCharacter(char).then(onComplete)},
+    }
+
       //{...hanziWriterAnimOptions, renderer: "canvas"}
     );
     return this.hanziWriter;

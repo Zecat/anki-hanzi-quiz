@@ -4,6 +4,7 @@ import { Component, register, html, css } from 'pouic'
 import {state} from "./state"
 
 import { ComponentDefinition } from "./HanziDesc";
+import { fetchCharacter } from "./fetchCharacter";
 
 /*
  * This element
@@ -59,6 +60,7 @@ export default class CharacterQuiz extends Component {
       hanzi,
       {
 //strokeFadeDuration: 0,
+        charDataLoader: (char, onComplete) => {fetchCharacter(char).then(onComplete)},
         showCharacter: false,
         showHintAfterMisses: 1,
         highlightOnComplete: false,

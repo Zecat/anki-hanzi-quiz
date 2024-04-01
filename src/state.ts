@@ -2,12 +2,10 @@ import { setup, observe, computedProperty } from 'pouic'
 import { getDecomposition, ComponentDefinition } from "./HanziDesc";
 
 
-import HanziDictionary, {CharDataItem} from "./HanziDictionary";
-//import {CharDataItem} from "./HanziDesc";
+import { fetchCharacter, CharDataItem } from "./fetchCharacter";
 
-export const dict: HanziDictionary = new HanziDictionary();
+import {cleanPinyin, getPinyinTone} from './processData'
 
-export type ComponentData = CharDataItem & ComponentDefinition
 
 const initialState:any = {
   minusone: (a: any) => a - 1,
@@ -23,6 +21,9 @@ const initialState:any = {
   selectCharacterIdx: (idx: number)  => {
    state.selectedIdx = idx;
   },
+
+  cleanPinyin,
+  getPinyinTone,
 
   prev:() =>{
     //document.querySelector('hanzi-quiz')?.reassembleCharacter()
@@ -41,7 +42,7 @@ const initialState:any = {
   }),
 
   complete: computedProperty(['selectedIdx', 'hanziData.length','currentComponent.complete'], function () {
-    if (state.hanziData.length && state.hanziData.every((cmp: ComponentData) => cmp.complete))
+    if (state.hanziData.length && state.hanziData.every((cmp: ComponentDefinition) => cmp.complete))
       return true
     return false
   }),
@@ -52,7 +53,7 @@ const initialState:any = {
 
   getCurrentHanziWriter: () => state.hanziWriters[state.currentComponent?.character]?.__target,
 
-  resetComponentMistakes: (cmp:ComponentData = state.currentComponent)=>{
+  resetComponentMistakes: (cmp:ComponentDefinition = state.currentComponent)=>{
     cmp.mistakeCount = 0;
     cmp.components.forEach(state.resetComponentMistakes)
   },
@@ -81,8 +82,9 @@ export const state = setup(initialState)
 observe('hanzi', (newValue: string) => {
   const hanziData: CharDataItem[] = []
   const promisesArray = Array.from(newValue).map((char:string, i:number) => {
-    return dict.get(char).then((charData: CharDataItem ) => {
-      const cmpDef: ComponentDefinition = getDecomposition(charData)
+    return fetchCharacter(char).then(async (charData: CharDataItem ) => {
+      const cmpDef: ComponentDefinition = await getDecomposition(charData.acjk)
+      console.log(cmpDef)
       hanziData[i] = Object.assign(cmpDef, charData) ; // TODO better typing
     })
   })

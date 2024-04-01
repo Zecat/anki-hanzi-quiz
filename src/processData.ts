@@ -41,7 +41,7 @@
   }
 
   export const cleanPinyin = (strArr: string[] | undefined): string => {
-    if (!strArr) return "pinyin unavailable";
+    if (!strArr || !strArr.length) return "pinyin unavailable";
     const str = strArr[0];
 
     //if (!pinyinData)
