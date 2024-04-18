@@ -1,4 +1,4 @@
-import { ComponentDefinition } from "./HanziDesc";
+import { InteractiveCharacter } from "./InteractiveCharacter";
 export default class CharacterInterpolator {
     animStartTime: number;
     interpolators: any[];
@@ -9,12 +9,10 @@ export default class CharacterInterpolator {
     animDuration: number;
     precomputedForward: any;
     precomputedBackward: any;
-    constructor(cmp: ComponentDefinition, initialStrokes: any[], animDuration: number, svgPaths: any[]);
-    precompute(cmp: ComponentDefinition): void;
-    getPrecomputedInterpolators(cmp: ComponentDefinition, backward?: Boolean): any;
-    run(cmp: ComponentDefinition, backward?: Boolean): Promise<void>;
-    getInterpolators(cmp: ComponentDefinition, backward?: Boolean): Promise<any[]>;
-    updateInterpolators(cmp: ComponentDefinition, initialStrokesFirstIdx: number, initialStrokes: any[], backward: Boolean | undefined, interpolators: any[]): Promise<any>[];
+    constructor(cmp: InteractiveCharacter, initialStrokes: any[], animDuration: number, svgPaths: any[]);
+    precompute(cmp: InteractiveCharacter): void;
+    getPrecomputedInterpolators(cmp: InteractiveCharacter, backward?: Boolean): any;
+    run(cmp: InteractiveCharacter, backward?: Boolean): Promise<void>;
     anim(): void;
     _anim(time: number): void;
     _drawAnim(time: number): void;

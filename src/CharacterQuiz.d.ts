@@ -1,22 +1,26 @@
 /// <reference path="pouic.d.ts" />
 import HanziWriter from "hanzi-writer";
 import { Component } from 'pouic';
-import { ComponentDefinition } from "./HanziDesc";
+import { InteractiveCharacter } from "./InteractiveCharacter";
 export default class CharacterQuiz extends Component {
     backboard: boolean;
     active: boolean;
     options: {};
-    hanzicomponent?: ComponentDefinition;
+    hanzicomponent?: InteractiveCharacter;
     cmpMistakeThreshold: number;
+    lastMistakeStrokeNum: number;
+    ignoreMistake: boolean;
     hanziWriter: HanziWriter | undefined;
     quizStarted: boolean;
     static get observedAttributes(): string[];
     attributeChangedCallback(name: string, _: string, newValue: string | null): void;
     createHanziWriter(hanzi: string): HanziWriter;
-    strokeIdxToCmp(strokeIdx: number): ComponentDefinition;
     startQuiz(quizStartStrokeNum?: number): void;
     checkCompleteRec(cmp: any): void;
+    mistakeCheck(cmp: InteractiveCharacter): boolean;
+    onCorrectStrokeForCmpRec(strokeIdx: number, cmp: InteractiveCharacter): boolean;
     onCorrectStroke(strokeData: any): void;
+    incrementMistakeRec(cmp: InteractiveCharacter): void;
     onMistake(strokeData: any): void;
     static css: any;
     static template: any;

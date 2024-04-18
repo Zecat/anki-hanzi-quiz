@@ -1,5 +1,4 @@
-import { ComponentDefinition } from "./HanziDesc";
-
+import { InteractiveCharacter, getComponentAbsoluteFirstIndex } from "./InteractiveCharacter";
 import { interpolate } from "flubber"; // ES6
 //import {ComponentWorkerDefinition} from './interpolationWorker'
 
@@ -43,7 +42,7 @@ import { interpolate } from "flubber"; // ES6
 
 
 const getInterpolators = (
-    cmp: ComponentDefinition,
+    cmp: InteractiveCharacter,
     backward: Boolean = false,
     initialStrokes: any, // TODO typing
 ) => {
@@ -51,16 +50,17 @@ const getInterpolators = (
     let usedInitialStrokes: any;
     //if (cmp.character)//TODO update this
     //    usedInitialStrokes = initialStrokes.slice(cmp.firstIdx);
-    if (cmp.strokes)
-        usedInitialStrokes = cmp.strokes;
+    const firstIdx = getComponentAbsoluteFirstIndex(cmp)
+    if (cmp.data.strokes)
+        usedInitialStrokes = cmp.data.strokes;
     else
-        usedInitialStrokes = initialStrokes.slice(cmp.firstIdx);
+        usedInitialStrokes = initialStrokes.slice(firstIdx);
 
     cmp.components
-        .forEach((subCmp: ComponentDefinition) => {
+        .forEach((subCmp: InteractiveCharacter) => {
             return updateInterpolators(
                 subCmp,
-                cmp.firstIdx,
+                firstIdx,
                 usedInitialStrokes,
                 backward,
                 interpolators,
@@ -72,7 +72,7 @@ const getInterpolators = (
 }
 
 const updateInterpolators = (
-    cmp: ComponentDefinition,
+    cmp: InteractiveCharacter,
     initialStrokesFirstIdx: number,
     initialStrokes: any[],
     backward: Boolean = false,
@@ -83,38 +83,39 @@ const updateInterpolators = (
         return
     }
     console.log("update interpol", cmp)
-    //if (cmp.cdl && (!cmp.pinyin || !cmp.pinyin[0])) {
-    //    console.log('====== recusr', cmp.character)
-    //    cmp.components
-    //        .forEach((subCmp: ComponentDefinition) =>
-    //            updateInterpolators(
-    //                subCmp,
-    //                initialStrokesFirstIdx,
-    //                initialStrokes,
-    //                backward,
-    //                interpolators,
-    //            ),
-    //        )
-    //    return
-    //}
+    if (!cmp.data.strokes) {
+        cmp.components
+            .forEach((subCmp: InteractiveCharacter) =>
+                updateInterpolators(
+                    subCmp,
+                    initialStrokesFirstIdx,
+                    initialStrokes,
+                    backward,
+                    interpolators,
+                ),
+            )
+        return
+    }
 
-    if (cmp.strokes === undefined)
-        return;
+    //if (cmp.data.strokes === undefined)
+    //    return;
+
+    const firstIdx = getComponentAbsoluteFirstIndex(cmp)
     // edge case, strokes not found
-    cmp.strokes.forEach((strokePath: any, idx: number) => {
-        if (!initialStrokes[idx + cmp.firstIdx - initialStrokesFirstIdx])// TODO clarify behavior here
+    cmp.data.strokes?.forEach((strokePath: any, idx: number) => {
+        if (!initialStrokes[idx + firstIdx - initialStrokesFirstIdx])// TODO clarify behavior here
             return
         if (backward)
-            interpolators[idx + cmp.firstIdx] = interpolate(
+            interpolators[idx + firstIdx] = interpolate(
                 strokePath,
                 initialStrokes[
-                idx + cmp.firstIdx - initialStrokesFirstIdx
+                idx + firstIdx - initialStrokesFirstIdx
                 ],
             );
         else
-            interpolators[idx + cmp.firstIdx] = interpolate(
+            interpolators[idx + firstIdx] = interpolate(
                 initialStrokes[
-                idx + cmp.firstIdx - initialStrokesFirstIdx
+                idx + firstIdx - initialStrokesFirstIdx
                 ],
                 strokePath,
             );
@@ -135,7 +136,7 @@ export default class CharacterInterpolator {
 
 
     constructor(
-        cmp: ComponentDefinition,
+        cmp: InteractiveCharacter,
         initialStrokes: any[],
         animDuration: number,
         svgPaths: any[],
@@ -146,8 +147,8 @@ export default class CharacterInterpolator {
         this.precompute(cmp);
     }
 
-    precompute(cmp: ComponentDefinition) {
-        if (cmp.character && cmp.components.length) {
+    precompute(cmp: InteractiveCharacter) {
+        if (cmp.data.character && cmp.components.length) {
             //fromToAsync(this.paths[0], this.paths[0], this.paths[1], {})
             //            worker.postMessage({cmp: getWorkerDef(cmp), backward: false, initialStrokes: this.initialStrokes})
             //
@@ -163,19 +164,21 @@ export default class CharacterInterpolator {
             //        //    [cmp.character]: fns
             //        //};
             //};
-            this.precomputedForward[cmp.character] = getInterpolators(cmp, false, this.initialStrokes);
-            this.precomputedBackward[cmp.character] = getInterpolators(cmp, true, this.initialStrokes);
+            this.precomputedForward[cmp.data.character] = getInterpolators(cmp, false, this.initialStrokes);
+            this.precomputedBackward[cmp.data.character] = getInterpolators(cmp, true, this.initialStrokes);
         }
-        //cmp.components.forEach(this.precompute.bind(this))
+        cmp.components.forEach(this.precompute.bind(this))
     }
 
-    getPrecomputedInterpolators(cmp: ComponentDefinition, backward: Boolean = false) {
+    getPrecomputedInterpolators(cmp: InteractiveCharacter, backward: Boolean = false) {
+        if (!cmp.data.character)
+            return
         return backward
-            ? this.precomputedBackward[cmp.character]
-            : this.precomputedForward[cmp.character];
+            ? this.precomputedBackward[cmp.data.character]
+            : this.precomputedForward[cmp.data.character];
     }
 
-    async run(cmp: ComponentDefinition, backward: Boolean = false) {
+    async run(cmp: InteractiveCharacter, backward: Boolean = false) {
         try {
             this.interpolators = await this.getPrecomputedInterpolators(cmp, backward);
             if (!this.interpolators) {

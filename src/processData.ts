@@ -2,6 +2,8 @@
 
   // TODO extract
   export const getPinyinTone = (pinyin: string) => {
+    if (!pinyin)
+      return 5
     // Define a dictionary mapping accents to tone numbers
     const toneMap: { [key: string]: number } = {
       ā: 1,
@@ -41,16 +43,16 @@
   }
 
   export const cleanPinyin = (strArr: string[] | undefined): string => {
-    if (!strArr || !strArr.length) return "pinyin unavailable";
+    if (!strArr || !strArr.length) return "no pinyin";
     const str = strArr[0];
 
     //if (!pinyinData)
     //  return 5
     //const pinyin = Array.isArray(pinyinData) ? pinyinData[0] : pinyinData
 
-    if (!str) return "";
+    if (!str) return "no pinyin";
     const match = str.match(/^[^(]+/);
-    return match ? match[0] : "";
+    return match ? match[0] : "no pinyin";
   }
 
   export const cleanDescription = (desc: string | undefined): string => {

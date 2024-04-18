@@ -1,9 +1,12 @@
 import {fetchMedia} from './anki_api'
+import { computeRepartition, rotateStartPathToMedianBottom, StrokeAnalysis } from './uniformPath';
+
 
 const _cachedChar: any = {} // TODO typing
 export const fetchCharacter = async (char: string) => {
     if (char in _cachedChar)
         return _cachedChar[char]
+
     return fetchMedia(`_${char}.json`)
     .then((response) => {
         if (!response.ok) {
@@ -12,11 +15,23 @@ export const fetchCharacter = async (char: string) => {
         return response.json();
     }).then((data) => {
         data.character = char
+        if (data.strokes && data.strokes.length && data.medians) {
+            if (data.strokes.length != data.medians.length){
+                console.warn('strokes and medians length do not match for ', data.character)
+            } else {
+                data.strokes = data.strokes.map((stroke: string, i: number) =>
+                rotateStartPathToMedianBottom(stroke, data.medians[i])
+                )
+                data.repartition = data.strokes.map((_:any, i: number) => {
+                    return computeRepartition(data.strokes[i],data.medians[i])
+                })
+            }
+        }
         _cachedChar[char] = data
         return data
     })
     .catch((err) => {
-        throw new Error("Dictionary fetch request failed: " + err);
+        throw new Error(char + "Dictionary fetch request failed: " + err);
     });
 }
 
@@ -26,6 +41,7 @@ export type CharDataItem = {
     definition: string;
     pinyin: string[];
     decomposition: string;
+    len: number;
     //etymology: {
     //    type: string;
     //    semantic: string;
@@ -35,4 +51,5 @@ export type CharDataItem = {
     acjk: string;
     strokes: string[];
     medians: string[];
+    repartition: StrokeAnalysis[]
 };

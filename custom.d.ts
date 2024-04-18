@@ -4,3 +4,5 @@ declare module '*.svg' {
 }
 
 declare module 'flubber';
+declare module 'bezier-js';
+declare module 'bezier-intersect';

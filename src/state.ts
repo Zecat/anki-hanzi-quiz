@@ -1,15 +1,18 @@
 import { setup, observe, computedProperty } from 'pouic'
-import { getDecomposition, ComponentDefinition } from "./HanziDesc";
+//import { getDecomposition, ComponentDefinition } from "./HanziDesc";
 
 
-import { fetchCharacter, CharDataItem } from "./fetchCharacter";
+//import { fetchCharacter, CharDataItem } from "./fetchCharacter";
+import { getCharacterData } from './decompose'
 
-import {cleanPinyin, getPinyinTone} from './processData'
+import { cleanPinyin, getPinyinTone } from './processData'
+import { InteractiveCharacter, generateInteractiveCharacter } from './InteractiveCharacter'
 
 
-const initialState:any = {
+
+const initialState: any = {
   minusone: (a: any) => a - 1,
-  equal: (a:any, b:any) => a === b,
+  equal: (a: any, b: any) => a === b,
   hanzi: '',
   toto: false,
   hanziData: [],
@@ -18,31 +21,33 @@ const initialState:any = {
   rating: 4,
   hanziWriters: {},
 
-  selectCharacterIdx: (idx: number)  => {
-   state.selectedIdx = idx;
+  selectCharacterIdx: (idx: number) => {
+    state.selectedIdx = idx;
   },
 
   cleanPinyin,
   getPinyinTone,
 
-  prev:() =>{
+  prev: () => {
     //document.querySelector('hanzi-quiz')?.reassembleCharacter()
-    state.selectedIdx = Math.max(0, state.selectedIdx-1)},
-  next:()=> {
+    state.selectedIdx = Math.max(0, state.selectedIdx - 1)
+  },
+  next: () => {
     //document.querySelector('hanzi-quiz')?.reassembleCharacter()
-    state.selectedIdx = Math.min(state.hanziData.length-1, state.selectedIdx+1)
+
+    state.selectedIdx = Math.min(state.hanziData.length - 1, state.selectedIdx + 1)
   },
 
   prevBtnVisible: computedProperty(['selectedIdx', 'currentComponent.complete'], function (idx: number, complete: boolean) {
     return idx > 0 && complete
   }),
 
-  nextBtnVisible: computedProperty(['selectedIdx', 'hanziData.length','currentComponent.complete'], function (idx: number, len: number, complete: boolean) {
+  nextBtnVisible: computedProperty(['selectedIdx', 'hanziData.length', 'currentComponent.complete'], function (idx: number, len: number, complete: boolean) {
     return idx < len - 1 && complete
   }),
 
-  complete: computedProperty(['selectedIdx', 'hanziData.length','currentComponent.complete'], function () {
-    if (state.hanziData.length && state.hanziData.every((cmp: ComponentDefinition) => cmp.complete))
+  complete: computedProperty(['selectedIdx', 'hanziData.length', 'currentComponent.complete'], function () {
+    if (state.hanziData.length && state.hanziData.every((cmp: InteractiveCharacter) => cmp.complete))
       return true
     return false
   }),
@@ -51,16 +56,17 @@ const initialState:any = {
     return state.hanziData && state.hanziData[idx]
   }),
 
-  getCurrentHanziWriter: () => state.hanziWriters[state.currentComponent?.character]?.__target,
+  getCurrentHanziWriter: () => state.hanziWriters[state.currentComponent?.data?.character]?.__target,
 
-  resetComponentMistakes: (cmp:ComponentDefinition = state.currentComponent)=>{
+  resetComponentMistakes: (cmp: InteractiveCharacter = state.currentComponent) => {
     cmp.mistakeCount = 0;
     cmp.components.forEach(state.resetComponentMistakes)
   },
 
   restartCurrentQuiz: () => {
     state.resetComponentMistakes()
-    state.getCurrentHanziWriter()?.quiz({quizStartStrokeNum:0})
+    console.log('restart')
+    state.getCurrentHanziWriter()?.quiz({ quizStartStrokeNum: 0 })
   },
 
   breiflyShowAndRestartQuiz: () => {
@@ -80,15 +86,7 @@ const initialState:any = {
 export const state = setup(initialState)
 
 observe('hanzi', (newValue: string) => {
-  const hanziData: CharDataItem[] = []
-  const promisesArray = Array.from(newValue).map((char:string, i:number) => {
-    return fetchCharacter(char).then(async (charData: CharDataItem ) => {
-      const cmpDef: ComponentDefinition = await getDecomposition(charData.acjk)
-      console.log(cmpDef)
-      hanziData[i] = Object.assign(cmpDef, charData) ; // TODO better typing
-    })
-  })
-  Promise.all(promisesArray).then(() => {
-hanziData.forEach(hd => state.hanziData.push(hd))
-                   })
+
+  const promises = Array.from(newValue).map(getCharacterData)
+  Promise.all(promises).then((data) => state.hanziData =  data.map(d => generateInteractiveCharacter(d)))
 })

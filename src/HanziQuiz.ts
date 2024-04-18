@@ -17,6 +17,7 @@ import HanziWriter from "hanzi-writer";
 
 import { Component, register, html, css } from "pouic";
 import { state } from "./state";
+import { InteractiveCharacter } from "./InteractiveCharacter";
 
 export default class HanziQuiz extends Component {
   strokesVisible = false;
@@ -35,6 +36,21 @@ export default class HanziQuiz extends Component {
     return ["hanzi"];
   }
 
+  connectedCallback() {
+    // HACK Fix md-outline-button style
+    const buttons = this.shadowRoot.querySelectorAll('md-outlined-button')
+    setTimeout(() => {
+    for(const button of [...buttons]) {
+      const backgroundEl = button.shadowRoot.querySelector('.background');
+      const outlineEl = button.shadowRoot.querySelector('.outline');
+      if (!backgroundEl || !outlineEl)
+        continue
+       backgroundEl.style.background = "white";
+       outlineEl.style.zIndex = "1";
+    }
+    }, 0)
+  }
+
   attributeChangedCallback(name: string, _: string, newValue: string) {
     if (name === "hanzi") {
       state.hanzi = newValue;
@@ -51,8 +67,8 @@ export default class HanziQuiz extends Component {
 
   updateOcclusedDescription(): void {
     const uncompleteHanzi = state.hanziData
-      .filter((data: any) => !data.complete)
-      .map((data: any) => data.character);
+      .filter((charObj: InteractiveCharacter) => !charObj.complete)
+      .map((charObj: InteractiveCharacter) => charObj.data.character);
     this.shadowRoot.getElementById("description").innerHTML =
       this.getOcclusedDescription(this.description, uncompleteHanzi);
   }
@@ -63,7 +79,7 @@ export default class HanziQuiz extends Component {
     return this.hanzi[i];
   }
 
-  setData(data: any) {
+  setData(data: any) { // TODO better typing
     this.shadowRoot.getElementById("pinyin").innerHTML = data.pinyin;
     this.description = data.description;
     this.updateOcclusedDescription();
@@ -117,7 +133,7 @@ export default class HanziQuiz extends Component {
     if (!morphEl.openedList.length) {
       setTimeout(() => {
         state.currentComponent.opened = false;
-      }, 1000);
+      }, 500);
     }
   }
 
@@ -237,12 +253,12 @@ export default class HanziQuiz extends Component {
           >Practice</md-outlined-button
         >
         <md-outlined-button
-          disabled="{currentComponent.components.length}"
+          disabled="{!currentComponent.components.length}"
           reveal="{currentComponent.complete}"
           @click="this.toggleDecomposition()"
           >{this.getDecompsitionText(currentComponent.opened)}</md-outlined-button
         >
-        <div style="flex: 1"></div>
+        <!--<div style="flex: 1"></div>-->
         <md-filled-button reveal="{complete}" @click="this.next()"
           >Next</md-filled-button
         >
@@ -258,7 +274,7 @@ export default class HanziQuiz extends Component {
         {currentComponent.etymology.hint}
       </div>
 
-      <div id="revealed-hanzi-wrapper">
+     <!-- <div id="revealed-hanzi-wrapper">
         <div
           id="revealed-hanzi"
           repeat="hanziData"
@@ -280,6 +296,7 @@ export default class HanziQuiz extends Component {
           </div>
         </div>
       </div>
+-->
     </div>
 
     <md-tabs
@@ -310,12 +327,14 @@ export default class HanziQuiz extends Component {
       flex-direction: column;
       --mdc-tab-horizontal-padding: 0px;
       background: var(--quiz-background);
+--md-sys-color-surface: white;
     }
 
     #top-bar {
       display: flex;
       justify-content: flex-end;
       align-items: center;
+      overflow: hidden;
     }
 
     #button-easy {
@@ -338,9 +357,7 @@ export default class HanziQuiz extends Component {
     }
 
     #hanzi-slideshow {
-      margin: 12px 8px;
       max-width: 500px;
-      background: white;
     }
 
     #hanzi-slideshow::before {
@@ -406,6 +423,10 @@ export default class HanziQuiz extends Component {
     }
 
     #after-buttons {
+
+      position: sticky;
+bottom: 50px;
+
       display: flex;
       justify-content: space-around;
       margin: 8px;
@@ -422,7 +443,6 @@ export default class HanziQuiz extends Component {
     #after-buttons > [reveal] {
       pointer-events: initial;
       opacity: 1;
-      margin: 8px;
     }
 
     #character-hint {

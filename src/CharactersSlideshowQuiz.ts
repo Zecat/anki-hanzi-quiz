@@ -47,7 +47,6 @@ export default class CharactersSlideshowQuiz extends Component {
 display: block;
         position: relative;
 overflow: hidden;
-        border: 1px solid #dfdfdf;
       }
       character-quiz {
 flex: 0 0 auto;
@@ -58,6 +57,11 @@ height: 100%;
   transition: transform 1s ease;
 
 }
+
+#slideshow:not(:has(div)) {
+aspect-ratio: 1;
+}
+
 #button-layer {
 height: 100%;
 width:100%;
@@ -86,6 +90,14 @@ display: none;
 width: 100%;
 min-height: 100%;
 flex:none;
+box-sizing: border-box;
+      padding: 8px;
+}
+
+.slide-wrapper-2 {
+        border: 1px solid #dfdfdf;
+      background: white;
+overflow: hidden;
 }
     `;
 
@@ -107,15 +119,17 @@ getShiftWidth(idx:number) {
         index-as="index"
         style="{this.getShiftWidth(selectedIdx)}">
 <div class="slide-wrapper">
+<div class="slide-wrapper-2">
           <character-quiz
 hidden="{hanziComponent.opened}"
             backboard
             strokes-visible="{strokesVisible}"
-            character="{hanziComponent.character}"
+            character="{hanziComponent.data.character}"
             active="{equal(index,selectedIdx)}"
             .hanziComponent={hanziComponent}
           > </character-quiz>
 <character-morph hidden="{this.isMorphHidden(hanziComponent.opened)}" .data={hanziComponent} ></character-morph>
+</div>
 </div>
     </div>
 

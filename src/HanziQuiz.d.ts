@@ -18,6 +18,7 @@ export default class HanziQuiz extends Component {
     nextCharIdx: number;
     description: string;
     static get observedAttributes(): string[];
+    connectedCallback(): void;
     attributeChangedCallback(name: string, _: string, newValue: string): void;
     getOcclusedDescription(description: string, uncompleteHanzi: string): string;
     updateOcclusedDescription(): void;
@@ -27,8 +28,6 @@ export default class HanziQuiz extends Component {
     next(): void;
     ratingButtonChange(e: CustomEvent): void;
     isHintHidden(complete: boolean, strokesVisible: boolean): boolean;
-    cleanPinyin(str: string): string | undefined;
-    getPinyinTone(pinyin: any): number;
     toggleDecomposition(): void;
     reassembleCharacter(): void;
     decomposeCharacter(): void;

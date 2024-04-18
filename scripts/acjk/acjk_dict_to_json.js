@@ -6,9 +6,6 @@ const makemeahanziGraphics = require('./makemeahanzigraphics.json');
 const makemeahanziDictionnary = require('./makemeahanzidictionnary.json');
 const path = require('path');
 
-
-// const cccedict = require('parse-cc-cedict');
-
 // Path to your CEDICT file
 //const cedictFilePath = './cedict_ts.u8';
 
@@ -77,12 +74,29 @@ const run = async () => {
     return decompWithNum
   }
 
+  const alternativeChar = {
+    "𥫗":"竹",
+    "⺈":"刀",
+    "𠃋": "乙"
+  }
+
+  //HACK
+  const getEquivalent = (char)=> {
+    if (char === '𥫗') return '竹'
+    if (char === '⺈') return '刀'
+    return char
+  }
+
   const populateItem = async (char, item) => {
+
     if (!item.pinyin || !item.definition) {
       try {
-        const found = (await findHanzi(char))[0];
+        const c = alternativeChar[char] ||char
+
+        const found = (await findHanzi(c))[0];
         if (!item.pinyin) item.pinyin = found.pinyinList;
         if (!item.definition) item.definition = found.definition;
+
         console.warn(
           `fixed char: ${char} => pinyin: ${item.pinyin}, definition: ${item.definition}`,
         );
@@ -98,20 +112,48 @@ const run = async () => {
     } else {
       console.warn(`Strokes not found for ${char}`)
     }
-    if (!item.decomposition) {
-      let decomposition = ids[char]
-      if (decomposition) {
+    if (item.strokes)
+      item.len = item.strokes.length
+    else {
+      try {
+      item.len = await getStrokeLen(char)
+      } catch(e) {
+      console.warn('!!!!!!!!!!!!!! NO STROKE LEN FOR ', char)
+      }
+    }
+
+
+    //if(!item.decomposition) {
+    let decomposition = ids[char]
+    if (decomposition) {
         let decompositionCleaned = decomposition.replace(/\[.*?\]/, '');
+
+      for (const c of [...decompositionCleaned]) {
+        if ("①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑲".includes(c))
+          {
+
+          decompositionCleaned = char
+            break;
+          }
+      }
+    if (char == "赛")
+      console.log("def", decompositionCleaned)
         item.decomposition = decompositionCleaned
-      }
     }
-    if (!item.acjk) {
-      let decomposition = item.decomposition
-      if (decomposition) {
-        let acjk = await decompositionToAcjk(decomposition)
-        item.acjk = acjk
+    //}
+    if(!item.decomposition) {
+        item.decomposition = char
       }
-    }
+    item.decomposition = [...item.decomposition].map(char => alternativeChar[char] || char).join('')
+
+    // TODO USE ACJK
+    //if (!item.acjk) {
+    //  let decomposition = item.decomposition
+    //  if (decomposition) {
+    //    let acjk = await decompositionToAcjk(decomposition)
+    //    item.acjk = acjk
+    //  }
+    //}
 
     //if (!transformedData[char])
     //  notfound.add(char)
@@ -159,7 +201,7 @@ const run = async () => {
     const notfound = new Set()
     for (const item of Object.values(transformedData)) {
 
-      let missingChars = Array.from(item.acjk.slice(1)).filter(char => !transformedData[char])//char.charCodeAt(1))
+      let missingChars = Array.from(item.decomposition.slice(1)).filter(char => !transformedData[char])//char.charCodeAt(1))
       missingChars = [...new Set(missingChars)] // remove duplicates
 
       for (const missingChar of missingChars) {

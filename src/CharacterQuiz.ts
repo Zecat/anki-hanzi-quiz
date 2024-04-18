@@ -3,8 +3,10 @@ import HanziWriter from "hanzi-writer";
 import { Component, register, html, css } from 'pouic'
 import {state} from "./state"
 
-import { ComponentDefinition } from "./HanziDesc";
+//import { ComponentDefinition } from "./HanziDesc";
+
 import { fetchCharacter } from "./fetchCharacter";
+import { getComponentAbsoluteFirstIndex, getComponentAbsoluteIndexes, InteractiveCharacter, strokeIdxToCmp } from "./InteractiveCharacter";
 
 /*
  * This element
@@ -21,10 +23,11 @@ export default class CharacterQuiz extends Component {
 
   options = {};
 
-  hanzicomponent?: ComponentDefinition;
+  hanzicomponent?: InteractiveCharacter;
 
   cmpMistakeThreshold = 2;
-
+lastMistakeStrokeNum = -1
+  ignoreMistake = false
   hanziWriter: HanziWriter | undefined;
 
   quizStarted= false
@@ -100,17 +103,6 @@ state.hanziWriters[hanzi] = this.hanziWriter
     return this.hanziWriter;
   }
 
-  strokeIdxToCmp(strokeIdx: number) {
-    if (!this.hanzicomponent) throw new Error("No component specified");
-    return this.hanzicomponent.matches[strokeIdx]
-    //const cmp = getComponentAtStrokeIdx(
-    //  strokeIdx,
-    //  this.hanzicomponent.matches,
-    //  this.hanzicomponent,
-    //);
-    //return cmp;
-  }
-
   startQuiz(quizStartStrokeNum: number = 0) {
     if (!this.hanziWriter) return;
     const c = state.getCurrentHanziWriter()
@@ -144,33 +136,68 @@ let tmpDuration:number
     this.checkCompleteRec(parent)
   }
 
-  onCorrectStroke(strokeData: any): void {
-    if (!this.hanziWriter)
-      return
-    const strokeIdx = strokeData.strokeNum;
-    const cmp = this.strokeIdxToCmp(strokeIdx);
-    if (cmp && strokeIdx == cmp.lastIdx) {
-
+  mistakeCheck(cmp: InteractiveCharacter): boolean {
     if (cmp.mistakeCount >= 3) {
-      cmp.mistakeCount = 0;
+      state.resetComponentMistakes(cmp)
+      this.ignoreMistake = true
       // Wait a bit so the final stroke can be seen before requizing
       setTimeout(()=> {
-        this.startQuiz(cmp.firstIdx);
+        const firstIdx = getComponentAbsoluteFirstIndex(cmp)
+        this.startQuiz(firstIdx);
+        this.ignoreMistake = false
       }, 600)
-    }else
+      return false
+    }
+    return true
+  }
+
+  onCorrectStrokeForCmpRec(strokeIdx:number, cmp:InteractiveCharacter) {
+
+    const cmpNoProxy = (cmp as any).__target as InteractiveCharacter // HACK
+    const [_, lastIdx] = getComponentAbsoluteIndexes(cmpNoProxy)
+    const isCmpComplete = strokeIdx == lastIdx
+
+    if (isCmpComplete) {
+      if (this.mistakeCheck(cmpNoProxy) &&
+        (!cmp.parent || this.onCorrectStrokeForCmpRec(strokeIdx, cmp.parent) )){
+
       cmp.complete = true // TODO this is weird
-      this.checkCompleteRec(cmp)
+      //this.checkCompleteRec(cmp)
       // HACK trigger proxy update
       if (state.currentComponent.complete)
         state.currentComponent.complete = true
+      return true
+      }
     }
+    return false
+  }
+
+  onCorrectStroke(strokeData: any): void {
+    if (!this.hanziWriter || !this.hanzicomponent)
+      return
+    const strokeIdx = strokeData.strokeNum;
+    const cmp = strokeIdxToCmp(this.hanzicomponent,strokeIdx);
+    this.onCorrectStrokeForCmpRec(strokeIdx, cmp)
+
+  }
+
+incrementMistakeRec(cmp: InteractiveCharacter) {
+    cmp.mistakeCount++;
+    if (cmp.parent)
+      this.incrementMistakeRec(cmp.parent)
   }
 
   onMistake(strokeData: any): void {
+    if (!this.hanzicomponent)
+      return
+    if (this.ignoreMistake || strokeData.strokeNum === this.lastMistakeStrokeNum) // prevents counting twice the same mistake
+      return
+    this.lastMistakeStrokeNum = strokeData.strokeNum
+
     // TODO typing
-    const cmp = this.strokeIdxToCmp(strokeData.strokeNum);
+    const cmp = strokeIdxToCmp(this.hanzicomponent,strokeData.strokeNum);
     state.rating = Math.max(1, state.rating-1);
-    cmp.mistakeCount++;
+    this.incrementMistakeRec(cmp)
   }
 
 	static css = css`
