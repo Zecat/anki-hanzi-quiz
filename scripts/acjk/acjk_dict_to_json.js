@@ -2,6 +2,7 @@ const fs = require("fs");
 const findHanzi = require("find-hanzi");
 const ids = require('./ids.json');
 const graphics = require('./graphicsZhHans.json');
+const graphicsKana = require('./graphicsKana.json');
 const makemeahanziGraphics = require('./makemeahanzigraphics.json');
 const makemeahanziDictionnary = require('./makemeahanzidictionnary.json');
 const path = require('path');
@@ -11,6 +12,7 @@ const path = require('path');
 
 // Create a new instance of CEDICTParser
 
+    const transformedData = {};
 const isCDLChar = (c) => {
   return c >= "⿰" && c <= "⿿";
 };
@@ -105,7 +107,8 @@ const run = async () => {
       }
     }
 
-    const graphic = graphics[char]
+    // Note fallback to Kana for 轻
+    const graphic = graphics[char] || makemeahanziGraphics[char] || graphicsKana[char]
     if (graphic) {
       item.strokes = graphic.strokes
       item.medians = graphic.medians
@@ -136,8 +139,6 @@ const run = async () => {
             break;
           }
       }
-    if (char == "赛")
-      console.log("def", decompositionCleaned)
         item.decomposition = decompositionCleaned
     }
     //}
@@ -145,6 +146,28 @@ const run = async () => {
         item.decomposition = char
       }
     item.decomposition = [...item.decomposition].map(char => alternativeChar[char] || char).join('')
+
+      let missingChars = Array.from(item.decomposition.slice(1)).filter(char => !transformedData[char])//char.charCodeAt(1))
+      missingChars = [...new Set(missingChars)] // remove duplicates
+
+      for (const missingChar of missingChars) {
+        const item = {}
+        await populateItem(missingChar, item)
+        transformedData[missingChar] = item
+        //if (!transformedData[char])
+        //  notfound.add(char)
+        //let decomposition = ids[char];
+        //if (!decomposition) continue
+        //decomposition = decomposition.replace(/\[.*?\]/, '');
+        //if (decomposition == char)continue
+        //try {
+        //  let regex = new RegExp(char + '\\d*', 'g');
+        //  let developed = await decompositionToAcjk(decomposition)
+        //  item.acjk = item.acjk.replace(regex, developed)
+        //} catch (e) {
+        //  console.warn("====>! missing data for ", char);
+        //}
+      }
 
     // TODO USE ACJK
     //if (!item.acjk) {
@@ -172,7 +195,6 @@ const run = async () => {
 
   async function transformFile(inputFilePath, outputFilePath) {
     const inputData = fs.readFileSync(inputFilePath, "utf8").trim().split("\n");
-    const transformedData = {};
 
     for (const line of inputData) {
       const item = JSON.parse(line);
@@ -205,7 +227,6 @@ const run = async () => {
       missingChars = [...new Set(missingChars)] // remove duplicates
 
       for (const missingChar of missingChars) {
-        console.log("========", missingChar)
         const item = {}
         await populateItem(missingChar, item)
         transformedData[missingChar] = item
