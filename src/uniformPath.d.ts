@@ -1,4 +1,3 @@
-export declare const makeUniformOld: (pStr1: string, pStr2: string) => string[];
 import { Segment } from 'path-data-parser/src/parser';
 export declare const makeUniform: (pStr1: string, rep1: StrokeAnalysis, pStr2: string, rep2: StrokeAnalysis) => string[];
 export declare const _makeUniform: (pStr1: string, rep1: StrokeAnalysis, pStr2: string, rep2: StrokeAnalysis) => string;

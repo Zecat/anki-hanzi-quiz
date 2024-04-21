@@ -13,6 +13,7 @@ import "./CharactersSlideshowQuiz";
 import "./CharacterAnim";
 import "./CharacterMorph";
 import "./HanziWriter";
+import "./HanziPinyinSelector";
 import HanziWriter from "hanzi-writer";
 
 import { Component, register, html, css } from "pouic";
@@ -80,7 +81,7 @@ export default class HanziQuiz extends Component {
   }
 
   setData(data: any) { // TODO better typing
-    this.shadowRoot.getElementById("pinyin").innerHTML = data.pinyin;
+    //this.shadowRoot.getElementById("pinyin").setAttribute data.pinyin;
     this.description = data.description;
     this.updateOcclusedDescription();
   }
@@ -160,7 +161,8 @@ export default class HanziQuiz extends Component {
   static template = html`
     <div id="quiz-area">
       <div id="top-bar">
-        <h2 id="pinyin"></h2>
+        <hanzi-pinyin-selector id="char-title"></hanzi-pinyin-selector>
+        <div style="flex: 1"></div>
 
         <md-icon-button href="{this.getPlecoLink(hanzi)}">
           <md-icon>
@@ -350,9 +352,8 @@ export default class HanziQuiz extends Component {
       background: white;
     }
 
-    #pinyin {
+    #char-title {
       padding-left: 12px;
-      flex: 1;
       margin: 0;
     }
 

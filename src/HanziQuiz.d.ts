@@ -9,6 +9,7 @@ import "./CharactersSlideshowQuiz";
 import "./CharacterAnim";
 import "./CharacterMorph";
 import "./HanziWriter";
+import "./HanziPinyinSelector";
 import HanziWriter from "hanzi-writer";
 import { Component } from "pouic";
 export default class HanziQuiz extends Component {

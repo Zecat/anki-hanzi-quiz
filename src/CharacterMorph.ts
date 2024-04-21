@@ -90,7 +90,7 @@ export default class CharacterMorph extends Component {
     gridEl.style.setProperty('--horizontal-len', `${horizontalLen}`);
     const gridWidth = gridEl.getBoundingClientRect().width
 
-    const charWidth = gridWidth / Math.max(2, horizontalLen)
+    const charWidth = (gridWidth- (horizontalLen-1)*20) / Math.max(2, horizontalLen)
     gridEl.style.setProperty('--character-width', `${charWidth}px`);
 
 
@@ -185,6 +185,16 @@ export default class CharacterMorph extends Component {
 
       if (subData.character) { // TODO change charatcer here ?
         subEl.setAttribute("char", subData.character);
+    //    const svg = document.createElement("svg");
+    //const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    //    svg.setAttribute("viewBox","0 -124 1024 1024")
+
+    //const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+    //    svg.appendChild(group);
+        //ubEl.appendChild(svg);
+
+
         const content = document.createElement("div");
         content.classList.toggle("character-content");
         const cleanedPinyin = cleanPinyin(subData.pinyin);
@@ -427,6 +437,7 @@ export default class CharacterMorph extends Component {
     :host {
       position: relative;
       display: block;
+      margin: 20px;
     }
 
     #component-svg {
@@ -501,6 +512,8 @@ export default class CharacterMorph extends Component {
     [cdl] {
       flex-direction: row !important;
       flex: none;
+
+gap: 20px;
     }
 
     [cdl="⿱"],

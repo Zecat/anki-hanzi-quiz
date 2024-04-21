@@ -86,6 +86,7 @@ const run = async () => {
   const getEquivalent = (char)=> {
     if (char === '𥫗') return '竹'
     if (char === '⺈') return '刀'
+    //if (char === 'ス') return '又'
     return char
   }
 

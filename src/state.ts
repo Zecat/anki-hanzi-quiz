@@ -5,7 +5,7 @@ import { setup, observe, computedProperty } from 'pouic'
 //import { fetchCharacter, CharDataItem } from "./fetchCharacter";
 import { getCharacterData } from './decompose'
 
-import { cleanPinyin, getPinyinTone } from './processData'
+import { cleanPinyin, getPinyinTone, cleanAndGetPinyinTone } from './processData'
 import { InteractiveCharacter, generateInteractiveCharacter } from './InteractiveCharacter'
 
 
@@ -27,6 +27,7 @@ const initialState: any = {
 
   cleanPinyin,
   getPinyinTone,
+  cleanAndGetPinyinTone,
 
   prev: () => {
     //document.querySelector('hanzi-quiz')?.reassembleCharacter()

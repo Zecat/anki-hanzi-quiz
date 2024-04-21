@@ -42,6 +42,10 @@
     return 5;
   }
 
+  export const cleanAndGetPinyinTone = (strArr: string[] | undefined): number => {
+    return getPinyinTone(cleanPinyin(strArr))
+  }
+
   export const cleanPinyin = (strArr: string[] | undefined): string => {
     if (!strArr || !strArr.length) return "no pinyin";
     const str = strArr[0];

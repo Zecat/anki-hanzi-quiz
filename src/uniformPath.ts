@@ -18,65 +18,67 @@ const sum = (array: number[]): number =>
   array.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
 import {Bezier}  from 'bezier-js'
 
-  const printCubic = (p: any) => {
-    return `C${p[0].x},${p[0].y} ${p[1].x},${p[1].y} ${p[2].x},${p[2].y}`
-  }
+//  const printCubic = (p: any) => {
+//    return `C${p[0].x},${p[0].y} ${p[1].x},${p[1].y} ${p[2].x},${p[2].y}`
+//  }
 
 
-const splitPath = (p:string, n: number) => {
-    if (p[0]!="C")
-      throw new Error("Path should be cubic")
-    p = p.substring(1);
-    const sArr = p.split(/[ ,]/).filter(p => p!="")
-    const pArr = sArr.map(str => Number(str))
-const q = 1/n
-const b = new Bezier(...pArr);
-    const res = []
-    for (let i = 0; i < n; i++) {
-      const np = b.split(i*q, (i+1)*q)
-      res.push(np)
-    }
-    const resPrint = res.map((bezier: any) => printCubic(bezier.points))
-    return resPrint
-//const b = Bezier.cubicFromPoints({x: pArr[0], y: pArr[1]}, {x: pArr[2], y: pArr[3]}, {x: pArr[4], y: pArr[5]});
-//const {left, right} = b.split(0.5); // Divide at t = 0.5
-//const l = left.points
-//const r = right.points
-//    const leftPath = this.printCubic(l)
-//const rightPath = this.printCubic(r)
-//return [leftPath, rightPath]
-  }
+//const splitPath = (p:string, n: number) => {
+//    if (p[0]!="C")
+//      throw new Error("Path should be cubic")
+//    p = p.substring(1);
+//    const sArr = p.split(/[ ,]/).filter(p => p!="")
+//    const pArr = sArr.map(str => Number(str))
+//const q = 1/n
+//
+//const b = new Bezier(...pArr);
+//
+//    const res = []
+//    for (let i = 0; i < n; i++) {
+//      const np = b.split(i*q, (i+1)*q)
+//      res.push(np)
+//    }
+//    const resPrint = res.map((bezier: any) => printCubic(bezier.points))
+//    return resPrint
+////const b = Bezier.cubicFromPoints({x: pArr[0], y: pArr[1]}, {x: pArr[2], y: pArr[3]}, {x: pArr[4], y: pArr[5]});
+////const {left, right} = b.split(0.5); // Divide at t = 0.5
+////const l = left.points
+////const r = right.points
+////    const leftPath = this.printCubic(l)
+////const rightPath = this.printCubic(r)
+////return [leftPath, rightPath]
+//  }
 
-class DPath {
-    moveTo: string
-    cubic: any[]
-
-    constructor (p: string) {
-    const startI = p.indexOf('C')
-    this.moveTo = p.slice(0, startI)
-    const p2 = p.slice(startI, -1)
-    const splitPaths = p2.split("C").filter((part: string) => part !== "");
-    this.cubic = splitPaths.map((part:string) => "C" + part);
-    }
-    add(n: number) {
-        this.cubic[0] = splitPath(this.cubic[0], n+1)
-        this.cubic = this.cubic.flat()
-    }
-    toString() : string{
-      return `${this.moveTo}${this.cubic.join('')}Z`
-    }
-
-}
+//class DPath {
+//    moveTo: string
+//    cubic: any[]
+//
+//    constructor (p: string) {
+//    const startI = p.indexOf('C')
+//    this.moveTo = p.slice(0, startI)
+//    const p2 = p.slice(startI, -1)
+//    const splitPaths = p2.split("C").filter((part: string) => part !== "");
+//    this.cubic = splitPaths.map((part:string) => "C" + part);
+//    }
+//    add(n: number) {
+//        this.cubic[0] = splitPath(this.cubic[0], n+1)
+//        this.cubic = this.cubic.flat()
+//    }
+//    toString() : string{
+//      return `${this.moveTo}${this.cubic.join('')}Z`
+//    }
+//
+//}
 
 const bezierToPtArr=(b: any)=> { // TODO typing
     const p = b.points
     return [p[0].x,p[0].y,p[1].x,p[1].y,p[2].x,p[2].y]
 }
 
-const splitSegment = (seg: Segment, t: number) => {
+const splitSegment = (start: [number, number],seg: Segment, t: number) => {
     if (seg.key != 'C')
         throw new Error('Invalid segment, should be cubic')
-    const bez = new Bezier(...seg.data);
+    const bez = new Bezier(...start,...seg.data);
     const {left, right} = bez.split(t)
 
     const leftSeg = {key: 'C', data: bezierToPtArr(left)}
@@ -84,23 +86,23 @@ const splitSegment = (seg: Segment, t: number) => {
     return [leftSeg, rightSeg]
 }
 
-export const makeUniformOld = (pStr1: string, pStr2:string) => {
-    const p1 = new DPath(pStr1)
-    const p2 = new DPath(pStr2)
-    let l1 = p1.cubic.length
-    let l2 = p2.cubic.length
-    const diff = l1 - l2
-    if (diff > 0) {
-        p2.add(diff)
-        pStr2 = p2.toString()
-    }
-    else if (diff < 0){
-        p1.add(-diff)
-        pStr1 = p1.toString()
-    }
-
-    return [pStr1, pStr2]
-}
+//export const makeUniformOld = (pStr1: string, pStr2:string) => {
+//    const p1 = new DPath(pStr1)
+//    const p2 = new DPath(pStr2)
+//    let l1 = p1.cubic.length
+//    let l2 = p2.cubic.length
+//    const diff = l1 - l2
+//    if (diff > 0) {
+//        p2.add(diff)
+//        pStr2 = p2.toString()
+//    }
+//    else if (diff < 0){
+//        p1.add(-diff)
+//        pStr1 = p1.toString()
+//    }
+//
+//    return [pStr1, pStr2]
+//}
 
 import { parsePath, serialize, normalize} from 'path-data-parser';
 import {  Segment} from 'path-data-parser/src/parser';
@@ -144,6 +146,7 @@ export const _makeUniform = (pStr1: string, rep1:StrokeAnalysis, pStr2: string, 
         i2--;
     }
 
+     //const yo = rep1R[rep1.right.length - 2].seg.data.slice(-2) as [number, number]
     const tipIdx = i2;
 
    for (;i2 >= 0; i2--) {
@@ -159,7 +162,10 @@ export const _makeUniform = (pStr1: string, rep1:StrokeAnalysis, pStr2: string, 
        //r?   r
        //l1Seg l1Tot
        //l1Seg * r / l1Tot = l1Seg/l1tot * (r/1) = rep1R[i1].ratio * pathProgress
-       const segs = splitSegment(rep1R[i1].seg, t)
+
+       const start = (i1===0 ? rep1.left[rep1.left.length-2]:rep1R[i1-1]).seg.data.slice(-2) as [number, number]
+     //const start = rep1R[i1==0 ? rep1.right.length-1:i1-1].seg.data.slice(-2) as [number, number]
+       const segs = splitSegment(start, rep1R[i1].seg, t)
        p1.splice(i1+rep1.left.length, 1, ...segs)
        rep1R[i1].len *= t // update len for next iteration
        rep1R[i1].seg = segs[0]
@@ -187,7 +193,9 @@ export const _makeUniform = (pStr1: string, rep1:StrokeAnalysis, pStr2: string, 
        //if (t<0.01 || t > 0.99)
        //    continue
 
-       const segs = splitSegment(rep1L[i1].seg, t)
+       const start = (i1===0 ? p1[0]:rep1L[i1-1].seg).data.slice(-2) as [number, number]
+     //const start = rep1L[i1==0 ? rep1.left.length-1:i1-1].seg.data.slice(-2) as [number, number]
+       const segs = splitSegment(start, rep1L[i1].seg, t)
 
        p1.splice(i1+1, 1, ...segs)
        rep1L[i1].len *= t // update len for next iteration
@@ -204,7 +212,10 @@ export const _makeUniform = (pStr1: string, rep1:StrokeAnalysis, pStr2: string, 
        let t = pathProgress *rep1.rLen/ rep1RLast.len
        //if (t<0.01 || t > 0.99)
        //    continue
-       const segs = splitSegment(rep1RLast.seg, t)
+
+       //const start = (i1===0 ? rep1.left[rep1.left.length-2]:rep1R[i1-1]).seg.data.slice(-2) as [number, number]
+       // console.log(p1)
+       const segs = splitSegment(p1[0].data as [number, number], rep1RLast.seg, t)
        p1.splice(1, 1, ...segs)
        rep1RLast.seg = segs[0]
        rep1RLast.len *= t
@@ -212,8 +223,8 @@ export const _makeUniform = (pStr1: string, rep1:StrokeAnalysis, pStr2: string, 
             newStartSeg = segs[1]
     }
 
-    //if (newStartSeg)
-    //    changeStartSeg(p1, newStartSeg)
+    if (newStartSeg)
+        changeStartSeg(p1, newStartSeg)
 
     return serialize(p1)
 }
@@ -230,8 +241,8 @@ const getProlongatedMedianTop = (medians: any) => {
         throw new Error("Incorrect median")
     lastMedian[0][0] = (lastMedian[1][0] + lastMedian[0][0])/2
     lastMedian[0][1] = (lastMedian[1][1] + lastMedian[0][1])/2
-    lastMedian[1][0] = lastMedian[0][0] + (lastMedian[1][0] - lastMedian[0][0])*4 // prolongate the segment, *2 was too short for 就
-    lastMedian[1][1] = lastMedian[0][1] + (lastMedian[1][1] - lastMedian[0][1])*4
+    lastMedian[1][0] = lastMedian[0][0] + (lastMedian[1][0] - lastMedian[0][0])*3 // prolongate the segment, *2 was too short for 就
+    lastMedian[1][1] = lastMedian[0][1] + (lastMedian[1][1] - lastMedian[0][1])*3
     return lastMedian
 }
 
@@ -248,11 +259,31 @@ const getProlongatedMedianBottom = (medians: any) => {
     return lastMedian
 }
 
+const convertLtoC= (p0: [number, number], p1:[number, number]): [number, number, number, number, number, number] => {
+    return [
+                p0[0] + (p0[0] - p1[0])/3,
+                p0[1] + (p0[1] - p1[1])/3,
+                p0[0] + 2*(p0[0] - p1[0])/3,
+                p0[1] + 2*(p0[1] - p1[1])/3,
+p1[0],
+p1[1],
+            ]
+
+}
 
 export const rotateStartPathToMedianBottom=(p: string, median: any) => {
     //median tip seg
     const mts = getProlongatedMedianBottom(median)
+
     const path = normalize(parsePath(p))
+    // Some "L" are inserted because of convertion from "Q" as found in character 纟, we convert "L" to "C"
+    path.forEach((p,i) => {
+        if (p.key == "L") {
+           p.key = "C"
+            const p0 = path[i].data.slice(-2) as [number, number]
+            p.data = convertLtoC(p0, p.data as [number, number])
+        }
+    })
 
     const res: Number[] = []
     for (let i = 0; i <  path.length; i++) {
@@ -364,7 +395,13 @@ export const computeRepartition=(p: string, median: any): StrokeAnalysis => {
     changeStartSeg(path, botSegProg.seg)
 
     const segs : Segment[] = path.slice(1, -2)
-    const segsLen : number[]= segs.map(seg => (new Bezier(...seg.data)).length())
+let segsLen: number[]
+    try {
+     segsLen = segs.map(seg => (new Bezier(...seg.data)).length())
+    } catch(e) {
+       console.log(p, segs, e)
+        throw new Error('yo')
+    }
 
     const topIdx:number = segs.indexOf(topSegProg.seg)
     const botIdx:number = segs.indexOf(botSegProg.seg)

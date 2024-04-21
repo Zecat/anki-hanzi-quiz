@@ -114,6 +114,7 @@ let tmpDuration:number
 
     this.hanziWriter.quiz({
       quizStartStrokeNum,
+leniency: 1.4
     });
 
     setTimeout(() => {

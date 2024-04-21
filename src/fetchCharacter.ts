@@ -22,9 +22,15 @@ export const fetchCharacter = async (char: string) => {
                 data.strokes = data.strokes.map((stroke: string, i: number) =>
                 rotateStartPathToMedianBottom(stroke, data.medians[i])
                 )
+
                 data.repartition = data.strokes.map((_:any, i: number) => {
+                    try {
                     return computeRepartition(data.strokes[i],data.medians[i])
+                    } catch(err) {
+                        throw new Error(`char ${char} stroke ${i}: ${err}`);
+                    }
                 })
+
             }
         }
         _cachedChar[char] = data

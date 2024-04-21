@@ -18,6 +18,7 @@ export default class CharacterAnim extends Component {
     }
    if (name == "reveal")  {
      if (newValue != null && oldValue==null) {
+        this.hanziWriter?.updateDimensions({ width: 48, height: 48 });
          this.hanziWriter?.animateCharacter();
      }
       // this.hanziWriter?.showOutline() : this.hanziWriter?.hideOutline()
@@ -41,20 +42,10 @@ export default class CharacterAnim extends Component {
 
       //{...hanziWriterAnimOptions, renderer: "canvas"}
     );
+
     return this.hanziWriter;
   }
 	static css = css`
-      :host {
-        position: relative;
-        display: block;
-        aspect-ratio: 1;
-      }
-
-      :host > * {
-        position: absolute;
-        top: 0;
-        left: 0;
-      }
     `;
 
 	static template = html`

@@ -92,6 +92,7 @@ min-height: 100%;
 flex:none;
 box-sizing: border-box;
       padding: 8px;
+padding-top: 0;
 }
 
 .slide-wrapper-2 {
