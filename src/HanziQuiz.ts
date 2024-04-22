@@ -134,11 +134,12 @@ export default class HanziQuiz extends Component {
     if (!morphEl.openedList.length) {
       setTimeout(() => {
         state.currentComponent.opened = false;
-      }, 500);
+      }, 600);
     }
   }
 
   decomposeCharacter() {
+    state.lastFirstOrderCmp = undefined // hide last visible hint
     state.currentComponent.opened = true;
     const slideshow = this.shadowRoot.getElementById("hanzi-slideshow");
     const morphEl =
@@ -299,6 +300,19 @@ export default class HanziQuiz extends Component {
         </div>
       </div>
 -->
+    <div class="first-order-wrapper" hidden="{!lastFirstOrderCmp}">
+      <div class="first-order-character">
+        <span class="first-order-hanzi">
+          {lastFirstOrderCmp.data.character}
+        </span>
+        <span class="first-order-pinyin"
+              tone="{cleanAndGetPinyinTone(lastFirstOrderCmp.data.pinyin)}">
+              {cleanPinyin(lastFirstOrderCmp.data.pinyin)}
+        </span>
+      </div>
+        <div class="first-order-definition">
+          {cleanDescription(lastFirstOrderCmp.data.definition)}
+        </div>
     </div>
 
     <md-tabs
@@ -312,10 +326,37 @@ export default class HanziQuiz extends Component {
       <md-primary-tab selected>Easy</md-primary-tab>
     </md-tabs>
 
+   </div>
+
     <span id="description"></span>
   `;
 
   static css = css`
+[hidden] {
+display: none !important;
+}
+.first-order-wrapper {
+  display: flex;
+  padding: 12px;
+}
+    .first-order-character {
+display: flex;
+flex-direction: column;
+padding-right: 12px;
+}
+    .first-order-hanzi {
+      font-size: 30px;
+}
+    .first-order-pinyin {
+      font-size: 14px;
+color: red;
+text-align: center;
+}
+
+    .first-order-definition {
+      color: grey;
+align-self: center;
+}
     #quiz-area {
       display: flex;
       flex-direction: column;

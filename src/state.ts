@@ -5,7 +5,7 @@ import { setup, observe, computedProperty } from 'pouic'
 //import { fetchCharacter, CharDataItem } from "./fetchCharacter";
 import { getCharacterData } from './decompose'
 
-import { cleanPinyin, getPinyinTone, cleanAndGetPinyinTone } from './processData'
+import { cleanDescription, cleanPinyin, getPinyinTone, cleanAndGetPinyinTone } from './processData'
 import { InteractiveCharacter, generateInteractiveCharacter } from './InteractiveCharacter'
 
 
@@ -20,12 +20,14 @@ const initialState: any = {
   strokesVisible: false,
   rating: 4,
   hanziWriters: {},
+  lastFirstOrderCmp : undefined,
 
   selectCharacterIdx: (idx: number) => {
     state.selectedIdx = idx;
   },
 
   cleanPinyin,
+  cleanDescription,
   getPinyinTone,
   cleanAndGetPinyinTone,
 
@@ -66,8 +68,8 @@ const initialState: any = {
 
   restartCurrentQuiz: () => {
     state.resetComponentMistakes()
-    console.log('restart')
     state.getCurrentHanziWriter()?.quiz({ quizStartStrokeNum: 0 })
+    state.lastFirstOrderCmp = undefined
   },
 
   breiflyShowAndRestartQuiz: () => {
@@ -85,6 +87,10 @@ const initialState: any = {
 }
 
 export const state = setup(initialState)
+
+observe('selectedIdx', () => {
+    state.lastFirstOrderCmp = undefined
+})
 
 observe('hanzi', (newValue: string) => {
 

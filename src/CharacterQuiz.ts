@@ -70,7 +70,7 @@ lastMistakeStrokeNum = -1
         showOutline: false,
       onMistake: this.onMistake.bind(this),
       onCorrectStroke: this.onCorrectStroke.bind(this),
-padding: 0,
+padding: 10,
         //renderer: "canvas",
         ...this.options,
       },
@@ -114,7 +114,7 @@ let tmpDuration:number
 
     this.hanziWriter.quiz({
       quizStartStrokeNum,
-leniency: 1.4
+leniency: 1.45
     });
 
     setTimeout(() => {
@@ -146,10 +146,29 @@ leniency: 1.4
         const firstIdx = getComponentAbsoluteFirstIndex(cmp)
         this.startQuiz(firstIdx);
         this.ignoreMistake = false
+
+    state.lastFirstOrderCmp = undefined
       }, 600)
       return false
     }
     return true
+  }
+
+  hasIntermediateCmpParent(cmp: InteractiveCharacter):boolean {
+    if (!cmp.parent)
+      return false
+    if (!cmp.parent.data.pinyin || !cmp.parent.data.definition){
+      return this.hasIntermediateCmpParent(cmp.parent)
+    }
+    return true
+  }
+
+  isFirstOrderCmp(cmp: InteractiveCharacter):boolean {
+    if (!cmp.data.pinyin || !cmp.data.definition)
+      return false
+    if (cmp.parent && !cmp.parent.parent)
+      return true
+    return this.hasIntermediateCmpParent(cmp)
   }
 
   onCorrectStrokeForCmpRec(strokeIdx:number, cmp:InteractiveCharacter) {
@@ -159,9 +178,13 @@ leniency: 1.4
     const isCmpComplete = strokeIdx == lastIdx
 
     if (isCmpComplete) {
-      if (this.mistakeCheck(cmpNoProxy) &&
-        (!cmp.parent || this.onCorrectStrokeForCmpRec(strokeIdx, cmp.parent) )){
+      if (!this.mistakeCheck(cmpNoProxy))
+        return false
 
+      if (this.isFirstOrderCmp(cmp)) {
+        state.lastFirstOrderCmp = cmp;
+      }
+        if (!cmp.parent || this.onCorrectStrokeForCmpRec(strokeIdx, cmp.parent) ){
       cmp.complete = true // TODO this is weird
       //this.checkCompleteRec(cmp)
       // HACK trigger proxy update

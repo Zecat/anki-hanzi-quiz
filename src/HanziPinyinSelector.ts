@@ -57,7 +57,7 @@ id="tabs"
   static css = css`
 .pinyin[big] {
   font-size: 28px;
-transform: translate(0,-20px);
+transform: translate(0,-24px);
 }
 .pinyin {
 transition: font-size 0.5s, transform 0.5s;

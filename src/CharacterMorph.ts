@@ -88,9 +88,9 @@ export default class CharacterMorph extends Component {
     const gridEl = this.shadowRoot.getElementById("grid");
     //gridEl.setAttribute("horizontal-len", horizontalLen);
     gridEl.style.setProperty('--horizontal-len', `${horizontalLen}`);
-    const gridWidth = gridEl.getBoundingClientRect().width
+    const gridWidth = gridEl.getBoundingClientRect().width - 20 // (margin =>10)*2
 
-    const charWidth = (gridWidth- (horizontalLen-1)*20) / Math.max(2, horizontalLen)
+    const charWidth = (gridWidth- (horizontalLen-1)*20) / Math.max(3, horizontalLen)
     gridEl.style.setProperty('--character-width', `${charWidth}px`);
 
 
@@ -437,7 +437,7 @@ export default class CharacterMorph extends Component {
     :host {
       position: relative;
       display: block;
-      margin: 20px;
+      margin: 10px;
     }
 
     #component-svg {
@@ -512,13 +512,14 @@ export default class CharacterMorph extends Component {
     [cdl] {
       flex-direction: row !important;
       flex: none;
-
-gap: 20px;
+      justify-content: center;
+      gap: 20px;
     }
 
     [cdl="⿱"],
     [cdl="⿳"] {
       flex-direction: column !important;
+gap: 0;
     }
 
     .character-content {

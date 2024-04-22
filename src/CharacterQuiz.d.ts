@@ -18,6 +18,8 @@ export default class CharacterQuiz extends Component {
     startQuiz(quizStartStrokeNum?: number): void;
     checkCompleteRec(cmp: any): void;
     mistakeCheck(cmp: InteractiveCharacter): boolean;
+    hasIntermediateCmpParent(cmp: InteractiveCharacter): boolean;
+    isFirstOrderCmp(cmp: InteractiveCharacter): boolean;
     onCorrectStrokeForCmpRec(strokeIdx: number, cmp: InteractiveCharacter): boolean;
     onCorrectStroke(strokeData: any): void;
     incrementMistakeRec(cmp: InteractiveCharacter): void;

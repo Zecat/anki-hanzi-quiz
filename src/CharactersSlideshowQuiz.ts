@@ -104,7 +104,7 @@ overflow: hidden;
 
 getShiftWidth(idx:number) {
    const quizEl = this.shadowRoot?.querySelector(`#slideshow div:nth-of-type(${idx+1})`)
-    const shift= quizEl ? (quizEl as HTMLElement).offsetLeft*idx : 0; // TODO
+    const shift= quizEl ? (quizEl as HTMLElement).offsetLeft : 0; // TODO
   return `transform: translateX(-${shift}px)`;
 }
 
