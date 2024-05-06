@@ -13,6 +13,7 @@ export type InteractiveCharacter = {
     data: CharacterData;
     parent: InteractiveCharacter|undefined;
     components: InteractiveCharacter[];
+    decompositionVisible: boolean;// TODO move this
 }
 
   export const getCmpForGridEl = (
@@ -41,7 +42,8 @@ export const _getEmptyInteractiveCharacter = (data: CharacterData, parent: Inter
     opened: false,
     data,
        parent,
-    components: []
+    components: [],
+    decompositionVisible: false,// TODO move this
    }
 }
 

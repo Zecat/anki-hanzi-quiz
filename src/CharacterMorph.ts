@@ -71,7 +71,7 @@ export default class CharacterMorph extends Component {
     charObj.gridEl = grid
     charObj.svgGroup = svgGroup;
 
-    this.generateGridRec(grid, charObj);
+    this.generateGridRec(grid, charObj, undefined);
     this.createSubGroupRec(charObj);
     this.updateGroupTransform(charObj);
     this.attachGridEventListener(charObj);
@@ -84,14 +84,34 @@ export default class CharacterMorph extends Component {
   }
 
   updateGroupTransform(cmp: InteractiveCharacter) {
+    let main = false
+    console.log(cmp)
+    if (!cmp.parent && cmp.opened == false)
+      main = true
+
     const horizontalLen = this.getHorizontalCharacterCount(cmp);
     const gridEl = this.shadowRoot.getElementById("grid");
     //gridEl.setAttribute("horizontal-len", horizontalLen);
     gridEl.style.setProperty('--horizontal-len', `${horizontalLen}`);
     const gridWidth = gridEl.getBoundingClientRect().width - 20 // (margin =>10)*2
 
-    const charWidth = (gridWidth- (horizontalLen-1)*20) / Math.max(3, horizontalLen)
+    let  charWidth
+    if (main) {
+      if (!cmp.gridEl)
+        throw new Error('ERROR')
+      const charContent = cmp.gridEl.querySelector(".character-content")
+      if (!charContent)
+        throw new Error('ERROR')
+      charWidth = gridWidth - charContent.clientHeight
+    }else {
+
+    charWidth = (gridWidth- (horizontalLen-1)*20) / Math.max(3, horizontalLen)
+    }
     gridEl.style.setProperty('--character-width', `${charWidth}px`);
+
+    const a = (gridWidth- (horizontalLen-1)*20) / Math.max(3, horizontalLen)
+    gridEl.style.setProperty('--character-final-width', `${a}px`);
+
 
 
     cmp.components.forEach(this._updateGroupTransformRec.bind(this));
@@ -103,6 +123,13 @@ export default class CharacterMorph extends Component {
     if (!cmp.parent.gridEl) throw "No parent component gridEl";
     if (!cmp.svgGroup) throw "No component svgGroup";
 
+    //console.log(cmp.gridEl, cmp.gridEl?.getBoundingClientRect().height)
+    //if (cmp.gridEl?.getBoundingClientRect().height) {
+    //  const h = sum(cmp.components.map((e:InteractiveCharacter) => e.gridEl ? e.gridEl.getBoundingClientRect().height: 0))
+    //  if (h)
+    //    cmp.gridEl.style.maxHeight = h+'px'
+    //}
+      //cmp.gridEl.style.maxHeight = sum(cmp.components.map((e:InteractiveCharacter) => e.gridEl ? e.gridEl.getBoundingClientRect().height: 0)+'px'
     const horizontalLen = this.getHorizontalCharacterCount(cmp);
     cmp.gridEl.style.setProperty('--horizontal-len', `${horizontalLen}`);
     // HACK settimeout for --horizontal-len to apply, todo inline style width instead ?
@@ -123,6 +150,7 @@ export default class CharacterMorph extends Component {
       }
       return;
     }
+
     const clientRects = cmp.gridEl.getBoundingClientRect();
     const { x, y, width } = clientRects;
     const {
@@ -146,6 +174,7 @@ export default class CharacterMorph extends Component {
     for (let subCmp of cmp.components) {
       this._updateGroupTransformRec(subCmp);
     }
+
 
     }, 0)
   }
@@ -175,16 +204,70 @@ export default class CharacterMorph extends Component {
       );
   }
 
-  generateGridRec(el: Element, cmp: InteractiveCharacter) {
+//   a() {
+//      const subData = data.components[i]
+//      const subCmp = cmp.components[i]
+//      const subEl = document.createElement("div");
+//
+//      if (subData.character) { // TODO change charatcer here ?
+//        subEl.setAttribute("char", subData.character);
+//    //    const svg = document.createElement("svg");
+//    //const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+//    //    svg.setAttribute("viewBox","0 -124 1024 1024")
+//
+//    //const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+//
+//    //    svg.appendChild(group);
+//        //ubEl.appendChild(svg);
+//
+//
+//        const content = document.createElement("div");
+//        content.classList.toggle("character-content");
+//
+//        const cleanedPinyin = cleanPinyin(subData.pinyin);
+//        const tone = String(getPinyinTone(cleanedPinyin));
+//        const description = subData.definition ? cleanDescription(subData.definition) : ''
+//        content.innerHTML = `
+//          <div class="char-area"></div>
+//          <div class="pinyin" tone="${tone}">
+//            ${cleanedPinyin}
+//          </div>
+//<div class="description">${description}</div>`;
+//
+//        subEl.appendChild(content);
+//      }
+//
+//      //const subElWrapper = document.createElement("div");
+//
+//      //  subElWrapper.classList.toggle("wrap");
+//      //subElWrapper.appendChild(subEl)
+//      //el.appendChild(subElWrapper);
+//      el.appendChild(subEl);
+//      //const ro  = new ResizeObserver((entries) => {
+//      //  console.log(subElWrapper, entries)
+//      //  for (const entry of entries) {
+//      //    let h = entry.contentRect.height
+//      //    let w = entry.contentRect.width
+//      //    if (h && w) {
+//      //      subElWrapper.style.height = h + "px"
+//      //      subElWrapper.style.width = w + "px"
+//
+//      //    }
+//      //    //else subElWrapper.style.height = "0px"
+//      //  }
+//      //})
+//
+//      //ro.observe(subEl);
+//      subCmp.gridEl = subEl
+//      this.generateGridRec(subEl, subCmp);
+//    }
+
+  generateGridRec(el: Element, cmp: InteractiveCharacter, ghostWrapper: Element | undefined) {
     const data: CharacterData = cmp.data
     if (data.cdl) el.setAttribute("cdl", data.cdl);
-    for (let i in data.components) {
-      const subData = data.components[i]
-      const subCmp = cmp.components[i]
-      const subEl = document.createElement("div");
 
-      if (subData.character) { // TODO change charatcer here ?
-        subEl.setAttribute("char", subData.character);
+      if (data.character) { // TODO change charatcer here ?
+        el.setAttribute("char", data.character);
     //    const svg = document.createElement("svg");
     //const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     //    svg.setAttribute("viewBox","0 -124 1024 1024")
@@ -197,21 +280,56 @@ export default class CharacterMorph extends Component {
 
         const content = document.createElement("div");
         content.classList.toggle("character-content");
-        const cleanedPinyin = cleanPinyin(subData.pinyin);
+
+        const cleanedPinyin = cleanPinyin(data.pinyin);
         const tone = String(getPinyinTone(cleanedPinyin));
-        const description = subData.definition ? cleanDescription(subData.definition) : ''
+        const description = data.definition ? cleanDescription(data.definition) : ''
         content.innerHTML = `
+          <div class="char-area"></div>
           <div class="pinyin" tone="${tone}">
             ${cleanedPinyin}
           </div>
 <div class="description">${description}</div>`;
 
-        subEl.appendChild(content);
+        el.appendChild(content);
+    if (ghostWrapper)
+      ghostWrapper.appendChild(content.cloneNode(true))
       }
-      el.appendChild(subEl);
+
+      const nextGhostWrapper = document.createElement("div");
+        nextGhostWrapper.classList.toggle("ghost-wrapper");
+
+      const subElWrapper = document.createElement("div");
+
+        subElWrapper.classList.toggle("wrap");
+    for (let i in data.components) {
+      //const subData = data.components[i]
+      const subCmp = cmp.components[i]
+      const subEl = document.createElement("div");
+      subElWrapper.appendChild(subEl)
+
+
+      //el.appendChild(subEl);
+      //const ro  = new ResizeObserver((entries) => {
+      //  console.log(subElWrapper, entries)
+      //  for (const entry of entries) {
+      //    let h = entry.contentRect.height
+      //    let w = entry.contentRect.width
+      //    if (h && w) {
+      //      subElWrapper.style.height = h + "px"
+      //      subElWrapper.style.width = w + "px"
+
+      //    }
+      //    //else subElWrapper.style.height = "0px"
+      //  }
+      //})
+
+      //ro.observe(subEl);
       subCmp.gridEl = subEl
-      this.generateGridRec(subEl, subCmp);
+      this.generateGridRec(subEl, subCmp, nextGhostWrapper);
     }
+      el.appendChild(subElWrapper);
+      el.appendChild(nextGhostWrapper);
   }
 
   createSubGroup(parentGroup: Element): Element {
@@ -234,8 +352,19 @@ export default class CharacterMorph extends Component {
   }
 
   closeComponent(cmp: InteractiveCharacter) {
+if (!cmp.gridEl || cmp.gridEl.getAttribute("opened")===null)
+  return
+
+    const charContent = cmp.gridEl.querySelector(".character-content")
+    if (charContent)
+       cmp.gridEl.style.maxHeight = charContent.clientHeight+"px"
     cmp.opened = false;
+    cmp.gridEl && cmp.gridEl.toggleAttribute("closing", true); // TODO closeComponent recursive // TODO gridEl better typing no need to check
+    setTimeout(() => {
     cmp.gridEl && cmp.gridEl.removeAttribute("opened"); // TODO closeComponent recursive // TODO gridEl better typing no need to check
+
+    cmp.gridEl && cmp.gridEl.removeAttribute("closing");
+    }, 5000)
     cmp.components.forEach(this.closeComponent.bind(this));
   }
 
@@ -340,7 +469,7 @@ export default class CharacterMorph extends Component {
 
 
       this.updateGroupTransform(this._charObj);
-      this.updateGroupTransform(this._charObj); // HACK call it twice to ensure grid width is applied to css before svg snap to it
+      //this.updateGroupTransform(this._charObj); // HACK call it twice to ensure grid width is applied to css before svg snap to it
       // HACK
       setTimeout(() => {
         cmp.gridEl && cmp.gridEl.removeAttribute("animating");
@@ -370,14 +499,40 @@ export default class CharacterMorph extends Component {
       // TODO this should not happen, do better typing
       return;
     }
+    const charContent = cmp.gridEl.querySelector(".character-content")
+    if (charContent)
+       cmp.gridEl.style.maxHeight = charContent.clientHeight+"px"
+    //const sh = sum(cmp.components.map((cmp: InteractiveCharacter):number => cmp.gridEl? cmp.gridEl.clientHeight:0))
+    //if (sh>0)
+    //  cmp.gridEl.style.maxHeight = sh+"px"
+    console.log('==', cmp.data.character, cmp.gridEl.style.maxHeight)
+    const gw = cmp.gridEl.querySelector('.ghost-wrapper')
+    if (!gw) {
+      throw new Error ('Err')
+    }
+    const gwh = getComputedStyle(gw).height
+    cmp.gridEl.style.maxHeight = gwh + 'px'
+    console.log(gwh, '--')
+    //  sum(cmp.components.map((cmp: InteractiveCharacter):number => {
+    //  if (!cmp.gridEl) return 0
+    //  const a= getComputedStyle(cmp.gridEl)
+    //  console.log(a.width, a.height, cmp.gridEl.clientHeight)
+    //  return cmp.gridEl.clientHeight
+    //}))+"px"
     cmp.opened = true;
 
     cmp.gridEl.setAttribute("opened", "");
 
     cmp.components.forEach((subCmp: InteractiveCharacter) => {
+      //if (!cmp.gridEl || !subCmp.gridEl)
+      //  return
+      //subCmp.gridEl.style.width = cmp.gridEl.style.width
       if (subCmp.components.length && (!subCmp.data.pinyin || !subCmp.data.pinyin[0])) this.openComponent(subCmp);
       //if (subCmp.components.length && (!subCmp.character || subCmp.character.charCodeAt(1))) this.openComponent(subCmp);
     });
+
+
+    console.log('==', cmp.data.character, cmp.gridEl.style.maxHeight)
   }
 
   createSubGroupRec(component: InteractiveCharacter) {
@@ -425,6 +580,87 @@ export default class CharacterMorph extends Component {
   }
 
   static css = css`
+
+.ghost-wrapper {
+position: absolute;
+background: rgba(255, 0, 0, 0.1);
+}
+
+ [char], [cdl]{
+    transition: max-height var(--char-transition-duration),height var(--char-transition-duration), width var(--char-transition-duration), left var(--char-transition-duration),  top var(--char-transition-duration);
+
+}
+/*
+[opened] > [char]:nth-of-type(2) {
+position: relative;
+    left: 0%;
+@starting-style {
+    left: 50%;
+  }
+}
+
+ [opened] > [char]:nth-last-of-type(1) {
+position: relative;
+    left: 0%;
+@starting-style {
+    left: -50%;
+  }
+}
+*/
+[cdl="⿱"][opened] > .wrap> [char]:nth-of-type(1) {
+position: relative;
+    top: 0%;
+@starting-style {
+    top: 50%;
+  }
+}
+
+ [cdl="⿱"][opened] > .wrap >[char]:nth-last-of-type(1) {
+position: relative;
+    top: 0%;
+@starting-style {
+    top: -50%;
+  }
+}
+
+
+ [closing] > [char]:nth-of-type(2) {
+    left: 50%;
+}
+ [closing] > [char]:nth-last-of-type(1) {
+    left: -50%;
+}
+
+ [cdl="⿱"][closing] > [char]:nth-of-type(2) {
+    top: 50%;
+}
+ [cdl="⿱"][closing] > [char]:nth-last-of-type(1) {
+    top: -50%;
+}
+
+
+[char] {
+width: max-content;
+position: relative;
+}
+
+
+    [char][closing] > [char],
+    [cdl][closing] >[char] ,
+    [char][opened] > [char],
+    [cdl][opened] >[char] {
+      display: flex !important;
+      overflow: visible !important;
+      flex: 0 !important;
+    }
+
+[opened] > .wrap {
+position: relative !important;
+opacity: 1 !important;
+pointer-events: all;
+}
+
+
     :host([debug]) #grid * {
       background: rgba(255, 255, 0, 0.3);
       border: 1px solid grey;
@@ -435,6 +671,7 @@ export default class CharacterMorph extends Component {
     }
 
     :host {
+      --char-transition-duration: 5s;
       position: relative;
       display: block;
       margin: 10px;
@@ -462,85 +699,95 @@ export default class CharacterMorph extends Component {
     #grid {
       display: flex;
       width: 100%;
-      align-items: center;
+      align-items: flex-start;
       aspect-ratio: 1;
     }
 
     #grid[opened] {
       aspect-ratio: unset;
-      margin-bottom: 20px;
+      /*margin-bottom: 20px;*/
     }
-    #grid [cdl]:not([opened]),
-    #grid [char]:not([opened]) {
-      position: relative;
+
+#grid .wrap {
+position: absolute;
+pointer-events: none;
+opacity: 0;
+}
+
+#grid [cdl],#grid [char] {
+    /*display: none;*/
       flex: 1;
-      /*overflow: hidden;*/
-      align-items: center;
+      align-items: flex-start;
       box-sizing: border-box;
-
-      display: none;
-    margin-bottom: 20px;
+}
+    #grid [cdl][opened],
+    #grid [cdl][closing],
+    #grid [char][opened],
+    #grid [char][closing]{
+   /*margin-bottom: 20px;*/
     }
 
-    [char][opened] > *:not([opened]),
-    [cdl][opened] > *:not([opened]) {
+    /*[char][opened] > div>*:not([opened]),
+    [cdl][opened] >div> *:not([opened]) {
       display: block !important;
       overflow: visible !important;
       flex: 0 !important;
-    }
-
-    [opened] {
-      display: flex !important;
-    }
-
-    #grid [char]::before {
-      content: "";
-      display: block;
-    }
+    }*/
 
 
-    #grid [char]::before {
-      width: var(--character-width);
-      height: var(--character-width);
-    }
 
   /*TODO remove max-width HACK*/
     #grid [char] {
-      max-width: calc(var(--character-width) * var(--horizontal-len));
+      width: calc(var(--character-width) * var(--horizontal-len))
     }
 
     [cdl] {
+      display: flex;
       flex-direction: row !important;
       flex: none;
       justify-content: center;
-      gap: 20px;
+      /*gap: 20px;*/
     }
 
     [cdl="⿱"],
     [cdl="⿳"] {
+      align-items: center !important;
       flex-direction: column !important;
 gap: 0;
     }
 
+.character-content > .char-area {
+      background: green;opacity:0.2;
+      width: var(--character-width);
+      height: var(--character-width);
+      transition: height var(--char-transition-duration), width var(--char-transition-duration);
+margin: auto;
+}
+
+.ghost-wrapper > .character-content > .char-area {
+      width: var(--character-final-width);
+      height: var(--character-final-width);
+}
     .character-content {
+pointer-events: none;
       display: block !important;
       width: 100%;
 
       min-height: unset !important;
       min-width: unset !important;
-      opacity: 0;
+      /*opacity: 0;*/
       text-align: center;
     }
 
-    [char][opened]::before {
-      display: none !important;
-    }
     #grid[content-revealed] .character-content {
       opacity: 1;
       transition: opacity 0.3s;
     }
-    [char][opened] > .character-content {
-      display: none !important;
+    [char][opened] > .character-content,
+    [char][closing] > .character-content{
+      /*display: none !important;*/
+      opacity: 0 !important;
+      position: absolute;
     }
 
     /*TODO generique*/
@@ -572,6 +819,7 @@ gap: 0;
     }
 path {
 transition: 0.5s;
+opacity: 0;
 }
     /*
  ⿲

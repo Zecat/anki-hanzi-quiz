@@ -116,7 +116,7 @@ export default class HanziQuiz extends Component {
   }
 
   toggleDecomposition() {
-    if (!state.currentComponent.opened) {
+    if (!state.currentComponent.decompositionVisible) {
       this.decomposeCharacter();
     } else {
       this.reassembleCharacter();
@@ -139,14 +139,16 @@ export default class HanziQuiz extends Component {
   }
 
   decomposeCharacter() {
+    state.currentComponent.decompositionVisible = true;
     state.lastFirstOrderCmp = undefined // hide last visible hint
-    state.currentComponent.opened = true;
+    //state.currentComponent.opened = true;
     const slideshow = this.shadowRoot.getElementById("hanzi-slideshow");
     const morphEl =
       slideshow.shadowRoot.querySelectorAll("character-morph")[
         state.selectedIdx
       ];
-    morphEl.open();
+    morphEl.updateGroupTransform(state.currentComponent)
+    //morphEl.open();
   }
 
   getDecompsitionText(opened: boolean) {

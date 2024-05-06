@@ -108,9 +108,9 @@ getShiftWidth(idx:number) {
   return `transform: translateX(-${shift}px)`;
 }
 
-  isMorphHidden(opened:boolean) {
-    return  !opened
-  }
+  //isMorphHidden(opened:boolean) {
+  //  return  !opened
+  //}
 
 	static template = html`
 
@@ -122,14 +122,14 @@ getShiftWidth(idx:number) {
 <div class="slide-wrapper">
 <div class="slide-wrapper-2">
           <character-quiz
-hidden="{hanziComponent.opened}"
+hidden="{hanziComponent.decompositionVisible}"
             backboard
             strokes-visible="{strokesVisible}"
             character="{hanziComponent.data.character}"
             active="{equal(index,selectedIdx)}"
             .hanziComponent={hanziComponent}
           > </character-quiz>
-<character-morph hidden="{this.isMorphHidden(hanziComponent.opened)}" .data={hanziComponent} ></character-morph>
+<character-morph hidden="{!hanziComponent.decompositionVisible}" .data={hanziComponent} ></character-morph>
 </div>
 </div>
     </div>
