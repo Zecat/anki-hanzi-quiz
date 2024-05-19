@@ -118,9 +118,10 @@ export default class HanziQuiz extends Component {
   toggleDecomposition() {
     if (!state.currentComponent.decompositionVisible) {
       this.decomposeCharacter();
-    } else {
+    } else if (!state.currentComponent.opened)
+        state.currentComponent.decompositionVisible = false
+      else
       this.reassembleCharacter();
-    }
   }
 
   reassembleCharacter() {
@@ -147,7 +148,9 @@ export default class HanziQuiz extends Component {
       slideshow.shadowRoot.querySelectorAll("character-morph")[
         state.selectedIdx
       ];
-    morphEl.updateGroupTransform(state.currentComponent)
+    //morphEl.updateGroupTransform(state.currentComponent)
+    morphEl.updateHorizontalLen()
+
     //morphEl.open();
   }
 
@@ -159,6 +162,14 @@ export default class HanziQuiz extends Component {
   // TODO this only work on smartphone, on desktop and web, link to extranal dict
   getPlecoLink(hanzi: string): string {
     return `plecoapi://x-callback-url/df?hw=${hanzi}`;
+  }
+
+  openFilePicker() {
+
+if ('showOpenFilePicker' in window) {
+    // The File System Access API is supported
+  (window.showOpenFilePicker as any)()
+}
   }
 
   static template = html`
@@ -258,10 +269,9 @@ export default class HanziQuiz extends Component {
           >Practice</md-outlined-button
         >
         <md-outlined-button
-          disabled="{!currentComponent.components.length}"
           reveal="{currentComponent.complete}"
           @click="this.toggleDecomposition()"
-          >{this.getDecompsitionText(currentComponent.opened)}</md-outlined-button
+          >{this.getDecompsitionText(currentComponent.decompositionVisible)}</md-outlined-button
         >
         <!--<div style="flex: 1"></div>-->
         <md-filled-button reveal="{complete}" @click="this.next()"

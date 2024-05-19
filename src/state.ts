@@ -11,6 +11,7 @@ import { InteractiveCharacter, generateInteractiveCharacter } from './Interactiv
 
 
 const initialState: any = {
+  vaar: 'initial',
   minusone: (a: any) => a - 1,
   equal: (a: any, b: any) => a === b,
   hanzi: '',
@@ -67,6 +68,7 @@ const initialState: any = {
   },
 
   restartCurrentQuiz: () => {
+    state.currentComponent.decompositionVisible = false
     state.resetComponentMistakes()
     state.getCurrentHanziWriter()?.quiz({ quizStartStrokeNum: 0 })
     state.lastFirstOrderCmp = undefined

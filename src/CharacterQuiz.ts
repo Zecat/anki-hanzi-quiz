@@ -246,6 +246,12 @@ incrementMistakeRec(cmp: InteractiveCharacter) {
       #grid-background-target > line {
         stroke: #f0f0f0;
       }
+
+      svg > g > path {
+        stroke: #00000020 !important;
+        stroke-width: 40px !important;
+stroke-linejoin:round;/*TODO probably useless*/
+}
     `;
 
 	static template = html`

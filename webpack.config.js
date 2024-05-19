@@ -27,15 +27,15 @@ const stylesHandler = "style-loader";
 
 const config = {
   entry: {
-    //worker: './src/interpolationWorker.ts',
+    _morphWorker: './src/worker.ts',
     main: "./src/index.ts",
   },
-  target: 'webworker', // Specify the target as webworker for worker bundle
+  //target: 'webworker', // Specify the target as webworker for worker bundle
   output: {
+    filename: '[name].js',
+//chunkFilename: '[id].js',
     path: path.resolve(__dirname, "dist"),
     publicPath: '/',
-		//	workerPublicPath: '/workers/',
-
   },
   module: {
     rules: [
@@ -52,7 +52,6 @@ const config = {
         test: /\.(eot|ttf|woff|woff2|svg|png|jpg|gif)$/i,
         type: "asset/inline",
       },
-
       // Add your rules for custom modules here
       // Learn more about loaders from https://webpack.js.org/loaders/
     ],
@@ -73,6 +72,8 @@ const config = {
     // Learn more about plugins from https://webpack.js.org/configuration/plugins/
   ],
   optimization: {
+ //   chunkIds: 'named', // Prevents minification of chunk names
+ //   moduleIds: 'named', // Prevents minification of module names
     minimize: true, // Minimize JavaScript
     minimizer: [
       new TerserPlugin({

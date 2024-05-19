@@ -8,6 +8,8 @@ export type InteractiveCharacter = {
     data: CharacterData;
     parent: InteractiveCharacter | undefined;
     components: InteractiveCharacter[];
+    decompositionVisible: boolean;
+    prevRect: any;
 };
 export declare const getCmpForGridEl: (target: HTMLElement, cmp: InteractiveCharacter) => InteractiveCharacter | undefined;
 export declare const _getEmptyInteractiveCharacter: (data: CharacterData, parent: InteractiveCharacter | undefined) => InteractiveCharacter;
@@ -15,8 +17,7 @@ export declare const generateInteractiveCharacter: (data: CharacterData, parent?
 export declare const getComponentAbsoluteIndexes: (cmp: InteractiveCharacter) => [number, number];
 export declare const getComponentAbsoluteFirstIndex: (cmp: InteractiveCharacter) => number;
 export declare const strokeIdxToCmp: (cmp: InteractiveCharacter, i: number) => InteractiveCharacter;
-export declare const getCmpStrokeData: (cmp: InteractiveCharacter, i: number) => {
+export declare const getCmpStrokeData: (cmp: CharacterData, i: number) => {
     data: CharacterData;
     idx: number;
 } | undefined;
-export declare const getCmpStroke: (cmp: InteractiveCharacter, i: number) => string | undefined;

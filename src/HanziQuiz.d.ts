@@ -34,6 +34,7 @@ export default class HanziQuiz extends Component {
     decomposeCharacter(): void;
     getDecompsitionText(opened: boolean): "Recompose" | "Decompose";
     getPlecoLink(hanzi: string): string;
+    openFilePicker(): void;
     static template: any;
     static css: any;
 }

@@ -1,11 +1,25 @@
 import {fetchMedia} from './anki_api'
 import { computeRepartition, rotateStartPathToMedianBottom, StrokeAnalysis } from './uniformPath';
 
+import storage from "localforage";
+
+storage.config({
+    driver: storage.INDEXEDDB, // Force IndexedDB; same as using setDriver()
+    name: 'hanziApp',
+    version: 1.0,
+    storeName: 'hanzi_data', // Should be alphanumeric, with underscores.
+    description: 'hanzi data, strokes and components'
+});
+
 
 const _cachedChar: any = {} // TODO typing
 export const fetchCharacter = async (char: string) => {
     if (char in _cachedChar)
         return _cachedChar[char]
+    // TODO _cachedChar now useless ?
+    const storageValue = await storage.getItem(char).catch(() => {})
+    if (storageValue)
+        return storageValue
 
     return fetchMedia(`_${char}.json`)
     .then((response) => {
@@ -33,12 +47,14 @@ export const fetchCharacter = async (char: string) => {
 
             }
         }
+        storage.setItem(char, data);
         _cachedChar[char] = data
         return data
     })
     .catch((err) => {
         throw new Error(char + "Dictionary fetch request failed: " + err);
     });
+
 }
 
 

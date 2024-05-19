@@ -21,5 +21,9 @@ const getAnkiPrefix = () => {
         "" :
         "."
 }
+console.log(getAnkiPrefix)
 
-export const fetchMedia = (filename:string) => fetch(`${getAnkiPrefix()}/${filename}`)
+export const fetchMedia = (filename:string) =>{
+//return fetch(`${getAnkiPrefix()}/${filename}`)
+  return fetch(`http://192.168.1.18:3000/${filename}`)
+}
