@@ -55,6 +55,7 @@ export const getCharacterData = async (char: string):Promise<CharacterData> => {
     cachedCharacterData[char] = data
 
     insertMissingStrokes(data)
+
     return data
 }
 

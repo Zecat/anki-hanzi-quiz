@@ -4,6 +4,8 @@ export type InteractiveCharacter = {
     complete: boolean;
     svgGroup: Element | undefined;
     gridEl: HTMLElement | undefined;
+    charContentEl: HTMLElement | undefined;
+    charAreaEl: HTMLElement | undefined;
     opened: boolean;
     data: CharacterData;
     parent: InteractiveCharacter | undefined;

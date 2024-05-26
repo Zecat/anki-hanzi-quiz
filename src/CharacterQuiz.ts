@@ -190,6 +190,10 @@ leniency: 1.45
       // HACK trigger proxy update
       if (state.currentComponent.complete)
         state.currentComponent.complete = true
+
+      // HACK show definition on caracter finished
+      const a : any= document.querySelector('#hanziquiz')
+        a.decomposeCharacter()
       return true
       }
     }

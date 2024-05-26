@@ -7,6 +7,7 @@ import { InteractiveCharacter } from "./InteractiveCharacter";
 export default class CharacterMorph extends Component {
     constructor();
     connectedCallback(): void;
+    createSubGroup(parentGroup: Element): Element;
     getMorphs(cmpData: CharacterData): string[][];
     runMorph(cmp: InteractiveCharacter, backward?: boolean): void;
     createSubGroupRec(cmp: InteractiveCharacter): void;
@@ -17,25 +18,25 @@ export default class CharacterMorph extends Component {
     attachGridEventListener(cmp: InteractiveCharacter): void;
     isHorizontalCdl(cdl: string): boolean;
     generateGridRec(el: Element, cmp: InteractiveCharacter): void;
-    setClosedRec(cmp: InteractiveCharacter): void;
+    runMorphClose(cmp: InteractiveCharacter): void;
     reassemble(): Promise<void>;
-    closeComponent(cmp: InteractiveCharacter): void;
     onClick(e: any): void;
     updateHorizontalLen(): void;
-    getCharContentHeight(cmp: InteractiveCharacter): {
-        h: number;
-        w: number;
-    };
-    getWrapHeight(cmp: InteractiveCharacter): {
-        h: number;
-        w: number;
-    };
     cmpShouldAutoOpen(cmp: InteractiveCharacter): boolean | 0;
     saveRectRec(cmp: InteractiveCharacter): void;
-    setOpenRec(cmp: InteractiveCharacter): void;
-    wUpdateRec(cmp: InteractiveCharacter): void;
+    toggleCmpOpenedState(cmp: InteractiveCharacter, toggle: boolean, newComponents?: InteractiveCharacter[]): InteractiveCharacter[];
+    transfertTransform(cmp: InteractiveCharacter, newComponents: InteractiveCharacter[]): void;
+    getComponentAnimationParams(cmp: InteractiveCharacter): {
+        cmpSvgGroup: HTMLElement;
+        prevTransform: string;
+        toTransform: string;
+        prevTransformOrigin: string;
+        toTransformOrigin: string;
+    };
+    getLeafComponents(cmp: InteractiveCharacter, leafComponents?: InteractiveCharacter[]): InteractiveCharacter[];
+    runOpenAnimation(cmp: InteractiveCharacter): void;
+    animateGridHeight(fromHeight: number, toHeight: number): void;
     open(cmp?: InteractiveCharacter): void;
-    openComponent(cmp: InteractiveCharacter): void;
     static css: any;
     static template: any;
 }

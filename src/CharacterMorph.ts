@@ -6,25 +6,10 @@ import { CharacterData } from './decompose'
 
 import { cleanDescription, cleanPinyin, getPinyinTone } from './processData'
 
-//import { InteractiveCharacter, getCmpForGridEl } from "./InteractiveCharacter";
 import { InteractiveCharacter, getCmpForGridEl, getCmpStrokeData, getComponentAbsoluteFirstIndex } from "./InteractiveCharacter";
-//import { InteractiveCharacter, getCmpForGridEl,  getComponentAbsoluteFirstIndex} from "./InteractiveCharacter";
 
 import { makeUniform } from "./uniformPath";
 
-//import './worker'
-
-//import MyWorker from 'worker-loader!./_morphWorker'
-//const worker = new MyWorker();
-
-//const worker = new Worker('_morphWorker.js');
-//const a= document.getElementById('worker')
-//const worker = new Worker(
-//        // @ts-ignore
-//        URL.createObjectURL(new Blob(["("+worker_function.toString()+")()"], { type: 'module' }))
-//    );
-//
-//console.log(worker)
 
 const sum = (array: number[]): number =>
   array.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
@@ -41,14 +26,20 @@ export default class CharacterMorph extends Component {
     this.openedList = [];
     this.animation = undefined;
     this.characterInterpolator = undefined;
+    this.svgEl = this.shadowRoot.getElementById('svg')
   }
 
   connectedCallback() {
     this.style.setProperty('--char-transition-duration', this.animDuration / 1000 + 's');
   }
 
-  getMorphs(cmpData: CharacterData) {
+  createSubGroup(parentGroup: Element): Element {
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    parentGroup.appendChild(group)
+    return group
+  }
 
+  getMorphs(cmpData: CharacterData) {
     const len = cmpData.len || 0
     const morphs = []
     for (let i = 0; i < len; i++) {
@@ -90,7 +81,7 @@ export default class CharacterMorph extends Component {
         throw new Error('ERR')
       }
 
-        const morph = makeUniform(
+      const morph = makeUniform(
         cmpData.strokes[i],
         cmpData.repartition[i],
         data.strokes[idx],
@@ -106,43 +97,21 @@ export default class CharacterMorph extends Component {
     const firstIdx = getComponentAbsoluteFirstIndex(cmp)
     const morphs = this.getMorphs(cmp.data)
 
-    requestAnimationFrame(() => {
-    morphs.forEach((m :any, i: number) => {
+    morphs.forEach((m: any, i: number) => {
       this.paths[firstIdx + i].setAttribute("d", m[backward ? 1 : 0]);
     })
 
     requestAnimationFrame(() => {
-      morphs.forEach((m :any, i: number) => {
+      morphs.forEach((m: any, i: number) => {
         this.paths[firstIdx + i].setAttribute("d", m[backward ? 0 : 1]);
       })
     })
-    })
 
-    //worker.onmessage = (event) => {
-    //  const morphs = event.data as string[][]
-    //  console.log(morphs, backward, firstIdx)
-    //morphs.forEach((m, i) => {
-    //  this.paths[firstIdx + i].setAttribute("d", m[backward ? 1 : 0]);
-    //})
-    //requestAnimationFrame(() => {
-
-    //  morphs.forEach((m, i) => {
-    //    this.paths[firstIdx + i].setAttribute("d", m[backward ? 0 : 1]);
-    //  })
-    //})
-    //};
-
-    //worker.postMessage(cmp.data)
-
-
-    //setTimeout(() => {
-    //}, 0);
   }
 
 
   createSubGroupRec(cmp: InteractiveCharacter) {
-    //throw new Error("subCmp is missing svgGroup")
-    if (cmp.svgGroup && !cmp.components.length) {
+    if (!cmp.components.length) {
       const firstIdx = getComponentAbsoluteFirstIndex(cmp)
       const relatedPaths = this.paths.slice(
         firstIdx,
@@ -152,6 +121,8 @@ export default class CharacterMorph extends Component {
       return;
     }
     for (const subCmp of cmp.components) {
+      if (!cmp.svgGroup) throw new Error('err')
+      subCmp.svgGroup = this.createSubGroup(cmp.svgGroup)
       this.createSubGroupRec(subCmp);
     }
   }
@@ -171,6 +142,7 @@ export default class CharacterMorph extends Component {
   }
 
   public set data(charObj: any) {
+
     if (!charObj || this._charObj === charObj) return;
     charObj = charObj.__target; // HACK retreive the proxy target to avoid promise incompatibility
     const strokes = charObj.data.strokes
@@ -180,14 +152,15 @@ export default class CharacterMorph extends Component {
     }
 
     this._charObj = charObj;
+    charObj.svgGroup = this.createSubGroup(this.svgEl)
 
     this.paths = this.renderPaths(strokes);
 
-    const grid = this.shadowRoot.getElementById("grid");
+    const gridEl = this.shadowRoot.getElementById("grid");
 
-    charObj.gridEl = grid
+    charObj.gridEl = gridEl
 
-    this.generateGridRec(grid, charObj);
+    this.generateGridRec(gridEl, charObj);
     this.createSubGroupRec(charObj);
     this.attachGridEventListener(charObj);
   }
@@ -203,6 +176,7 @@ export default class CharacterMorph extends Component {
         ...cmp.components.map(this.getVerticalCharacterCount.bind(this)),
       );
   }
+
   getHorizontalCharacterCount(cmp: InteractiveCharacter): number {
     if (!cmp.data.cdl || !cmp.opened) return 1;
     if (this.isHorizontalCdl(cmp.data.cdl))
@@ -241,7 +215,6 @@ export default class CharacterMorph extends Component {
       const description = data.definition ? cleanDescription(data.definition) : ''
       content.innerHTML = `
           <div class="char-area">
-<svg class="component-svg" viewBox="0 -124 1024 1024"></svg>
           </div>
           <div class="pinyin" tone="${tone}">
             ${cleanedPinyin}
@@ -249,11 +222,11 @@ export default class CharacterMorph extends Component {
 <div class="description">${description}</div>`;
 
       content.classList.toggle("character-content");
+      cmp.charContentEl = content
+      const charAreaEl = content.querySelector('.char-area')
+      if (charAreaEl) // TODO better typing?
+        cmp.charAreaEl = charAreaEl as HTMLElement
       el.appendChild(content);
-      const svg = content.querySelector('svg')
-      if (!svg)
-        return
-      cmp.svgGroup = svg
     }
 
     const subElWrapper = document.createElement("div");
@@ -269,91 +242,59 @@ export default class CharacterMorph extends Component {
     el.appendChild(subElWrapper);
   }
 
-
-  setClosedRec(cmp: InteractiveCharacter) {
-    cmp.opened = false;
-
-    cmp.components.forEach((subCmp: InteractiveCharacter) => {
-      if (this.cmpShouldAutoOpen(subCmp)) this.setClosedRec(subCmp);
-    });
+  runMorphClose(cmp: InteractiveCharacter) {
+    // TODO try use animate to synchronize animation and avoid relying on css
+    this.svgEl.toggleAttribute("closing", true);
+    this.runMorph(cmp, true)
+    setTimeout(() => {
+      this.svgEl.toggleAttribute("closing", false);
+    }, this.animDuration)
   }
 
   async reassemble() {
-
+    const gridFromHeight = this._charObj.gridEl.clientHeight
     const cmp = this.openedList.pop();
     if (!cmp) return;
 
-    const h = cmp.gridEl.clientHeight
-    //const a = this.setWrapHeight(cmp)
-
     this.saveRectRec(this._charObj);
-    this.setClosedRec(cmp)
+    const leafComponents = this.getLeafComponents(this._charObj)
+    const closedComponents = this.toggleCmpOpenedState(cmp, false)
     this.updateHorizontalLen()
 
-    const b = this.getCharContentHeight(cmp)
-    //if(!cmp.gridEl) return
-    //cmp.gridEl.style.width = b.w + "px"
-    cmp.gridEl.style.height = b.h + "px"
-
-    this.closeComponent(cmp);
-
-    this.setOpenRec(cmp)
-    this._charObj.components.forEach(this.wUpdateRec.bind(this))
-    this.setClosedRec(cmp)
-
-    // TODO jump with previously set height ?
-    if(!cmp.gridEl) return
-    console.log(h, b.h)
-      cmp.gridEl.animate([{
-        //width: a.w + 'px',
-        height: h + 'px'
-      }, {
-        //width: b.w + 'px',
-        height: b.h + 'px',
-      }], {
-        duration: this.animDuration
+    let targetTransformOrigin: string, targetTransform: string
+    const animPromises = leafComponents.map((leafCmp: InteractiveCharacter) => {
+      const { cmpSvgGroup, prevTransform, toTransform, prevTransformOrigin, toTransformOrigin } = this.getComponentAnimationParams(leafCmp)
+      const anim = cmpSvgGroup.animate({
+        transform: [prevTransform, toTransform],
+        transformOrigin: [prevTransformOrigin, toTransformOrigin]
+      },
+        this.animDuration
+      )
+      anim.finished.then(() => {
+        if (closedComponents.includes(leafCmp)) {
+          targetTransform = toTransform
+          targetTransformOrigin = toTransformOrigin
+          cmpSvgGroup.style.transform = ''
+          cmpSvgGroup.style.transformOrigin = ''
+        } else {
+          cmpSvgGroup.style.transform = toTransform
+          cmpSvgGroup.style.transformOrigin = toTransformOrigin
+        }
       })
-    //cmp.components.forEach(this.wUpdateRec.bind(this))
-    //
 
-    //if(!cmp.gridEl) return
-    //  cmp.gridEl.animate([{
-    //    width: a.w + 'px',
-    //    height: a.h + 'px'
-    //  }, {
-    //    width: b.w + 'px',
-    //    height: b.h + 'px',
-    //  }], {
-    //    duration: this.animDuration
-    //  })
+      return anim.finished
+    })
+    Promise.all(animPromises).then(() => {
+      const cmpSvgGr = cmp.svgGroup as HTMLElement
+      if (!cmpSvgGr) throw new Error('err')
+      cmpSvgGr.style.transform = targetTransform
+      cmpSvgGr.style.transformOrigin = targetTransformOrigin
+    })
 
-    this.runMorph(cmp, true)
-  }
+    this.animateGridHeight(gridFromHeight, this._charObj.gridEl.clientHeight)
 
-  closeComponent(cmp: InteractiveCharacter) {
-    if (!cmp.gridEl || cmp.gridEl.getAttribute("opened") === null)
-      return
-    const timeoutId = this.openingTimeoutIds.get(cmp)
-    if (timeoutId) {
-      clearTimeout(this.openingTimeoutId)
-      cmp.gridEl.removeAttribute("opening");
-    }
-    cmp.gridEl && cmp.gridEl.toggleAttribute("closing", true); // TODO closeComponent recursive // TODO gridEl better typing no need to check
+    this.runMorphClose(cmp)
 
-    setTimeout(() => {
-      if (!cmp.gridEl) return
-      cmp.gridEl && cmp.gridEl.removeAttribute("opened"); // TODO closeComponent recursive // TODO gridEl better typing no need to check
-
-      cmp.gridEl && cmp.gridEl.removeAttribute("closing");
-
-      cmp.gridEl.style.height = ''
-      cmp.gridEl.style.width = ''
-
-    }, this.animDuration)
-
-    cmp.components.forEach(this.closeComponent.bind(this));
-
-    //this.setCharContentHeight(cmp)
   }
 
   onClick(e: any) {
@@ -365,6 +306,7 @@ export default class CharacterMorph extends Component {
 
   updateHorizontalLen() {
     let horizontalLen = this.getHorizontalCharacterCount(this._charObj);
+    // TODO add vertical constrains ?
     //let vertLen = this.getVerticalCharacterCount(this._charObj);
     if (!this._charObj)
       throw new Error('err')
@@ -372,35 +314,8 @@ export default class CharacterMorph extends Component {
       horizontalLen = Math.max(3, horizontalLen)
     //if (vertLen > 3)
     //  horizontalLen = Math.max(6, horizontalLen)
-    const w = this.shadowRoot.host.clientWidth - 20;//this._charObj.gridEl.clientWidth
+    const w = this.svgEl.clientWidth;
     this._charObj.gridEl.style.setProperty('--sub-character-w', `${w / horizontalLen}px`);
-  }
-
-  getCharContentHeight(cmp: InteractiveCharacter) {
-    if (!cmp.gridEl) throw new Error('err')
-    const charContent = cmp.gridEl.querySelector(".character-content")
-    if (!charContent)
-      throw new Error('err')
-    return {
-  h: charContent.clientHeight,
-      w: charContent.clientWidth
-    }
-    //cmp.gridEl.style.height = charContent.clientHeight + "px"
-    //cmp.gridEl.style.width = charContent.clientWidth + "px"
-  }
-
-  getWrapHeight(cmp: InteractiveCharacter) {
-    if (!cmp.gridEl) throw new Error('err')
-    const wrap = cmp.gridEl.querySelector(".wrap")
-    if (!wrap)
-      throw new Error('err')
-
-    return {
-  h: wrap.clientHeight,
-      w: wrap.clientWidth
-    }
-    //cmp.gridEl.style.height = wrap.clientHeight + "px"
-    //cmp.gridEl.style.width = wrap.clientWidth + "px"
   }
 
   cmpShouldAutoOpen(cmp: InteractiveCharacter) {
@@ -408,134 +323,178 @@ export default class CharacterMorph extends Component {
   }
 
   saveRectRec(cmp: InteractiveCharacter) {
-    cmp.components.forEach((subCmp: InteractiveCharacter) => {
-      if (!subCmp.gridEl) return
-      const yo = subCmp.gridEl.querySelector('.character-content > .char-area')
-      if (!yo) return
-      const rect = yo.getBoundingClientRect();
-      subCmp.prevRect = rect
-        this.saveRectRec(subCmp);
-    });
+    if (cmp.charAreaEl)
+      cmp.prevRect = cmp.charAreaEl.getBoundingClientRect();
+    cmp.components.forEach(this.saveRectRec.bind(this))
   }
 
-  setOpenRec(cmp: InteractiveCharacter) {
-    cmp.opened = true;
+  toggleCmpOpenedState(cmp: InteractiveCharacter, toggle: boolean, newComponents: InteractiveCharacter[] = []): InteractiveCharacter[] {
+    cmp.opened = toggle;
+
+    if (!cmp.gridEl) throw new Error('err')
+    if (toggle) {
+
+      cmp.gridEl.setAttribute("opened", "");
+      cmp.gridEl.setAttribute("opening", "");
+
+      setTimeout(() => {
+        if (!cmp.gridEl)
+          throw new Error("err")
+        cmp.gridEl.removeAttribute("opening");
+      }, this.animDuration)
+    } else {
+
+      cmp.gridEl.toggleAttribute("closing", true); // TODO gridEl better typing no need to check
+
+      setTimeout(() => {
+        if (!cmp.gridEl)
+          throw new Error("err")
+        cmp.gridEl.removeAttribute("opened");  // TODO gridEl better typing no need to check
+        cmp.gridEl.removeAttribute("closing");
+      }, this.animDuration)
+    }
     cmp.components.forEach((subCmp: InteractiveCharacter) => {
-    if (this.cmpShouldAutoOpen(subCmp))
-        this.setOpenRec(subCmp);
+      if (this.cmpShouldAutoOpen(subCmp))
+        this.toggleCmpOpenedState(subCmp, toggle, newComponents);
+      else
+        newComponents.push(subCmp)
     });
+    return newComponents
   }
 
-  wUpdateRec(cmp: InteractiveCharacter) {
+  transfertTransform(cmp: InteractiveCharacter, newComponents: InteractiveCharacter[]) {
+    const cmpSvgGr = cmp.svgGroup as HTMLElement
+    if (!cmpSvgGr)
+      throw new Error('no Svg group for ' + cmp.data.character)
+
+    const cmpT = cmpSvgGr.style.transform
+    const cmpTo = cmpSvgGr.style.transformOrigin
+
+    cmpSvgGr.style.transform = ''
+    cmpSvgGr.style.transformOrigin = ''
+
+    for (let newCmp of newComponents) {
+      const newCmpSvgGr = newCmp.svgGroup as HTMLElement
+      if (!newCmpSvgGr)
+        throw new Error('no Svg group for ' + newCmp.data.character)
+
+      newCmpSvgGr.style.transform = cmpT
+      newCmpSvgGr.style.transformOrigin = cmpTo
+    }
+  }
+
+  getComponentAnimationParams(cmp: InteractiveCharacter) {
     if (!cmp.gridEl || !cmp.parent || !cmp.parent.gridEl)
       throw new Error('err')
 
-    if (!cmp.opened) {
-      const ge = cmp.gridEl
+    const ge = cmp.gridEl
 
-      if (!ge)
-        return
-      const cc = ge.querySelector('.character-content')
-      if (!cc)
-        throw new Error('err')
-      const a = cc.querySelector('.char-area')
-      let rect = cmp.prevRect
-      if (!rect)
-        throw new Error('err')
-      if (!a)
-        throw new Error('err')
-      const r = rect.width / a.clientWidth
-      if (!r)
-        throw new Error('err')
+    if (!ge || !cmp.charAreaEl || !cmp.charContentEl || !cmp.prevRect)
+      throw new Error('err')
 
-      const { top: geT, left: geL, width: geW } = cc.getBoundingClientRect()
-      //const { top: geT, left: geL, height: geH, width: geW } = cc.getBoundingClientRect()
-      const { top: pgeT, left: pgeL } = rect
-      //const toY = -(geT - pgeT)/2
-      //const toX = (geL - pgeL) /2
-      //const shiftY = -(geT - pgeT + geH / 2 - geH * r / 2) / r
-      const shiftX = -(geL - pgeL + geW / 2 - geW * r / 2) / r
+    const { top: geT, left: geL } = cmp.charContentEl.getBoundingClientRect()
+    const { height: geH, width: geW } = cmp.charAreaEl.getBoundingClientRect()
+    const { top: pgeT, left: pgeL, width: pgeW } = cmp.prevRect
 
-      ge.animate({
-        transform: [`scale(${String(r)}) translate(${shiftX}px, ${-(geT - pgeT) / r}px)`, `scale(1) translate(0px, 0px)`],
-      },
-        this.animDuration
-                )
-      //ge.animate([{
-      //  transform: `scale(${String(r)}) translate(${shiftX}px, ${-(geT - pgeT) / r}px)`,
-      //}, {
-      //  transform: `scale(1) translate(0px, 0px)`,
-      //}], {
-      //  duration: this.animDuration
-      //})
-      return
+    const r = pgeW / geW
+
+    if (!r)
+      throw new Error('err')
+
+    const shiftX = -(geL - pgeL + geW / 2 - geW * r / 2) / r
+    const cmpSvgGroup = cmp.svgGroup as HTMLElement
+    if (!cmpSvgGroup)
+      throw new Error('err')
+
+    const prevTransform = cmpSvgGroup.style.transform || 'scale(1)'
+    const prevTransformOrigin = cmpSvgGroup.style.transformOrigin || 'center 900px'
+    const svgWidth = this.svgEl.clientWidth
+    const r2 = geW / svgWidth
+
+    const { top: svgT, left: svgL, width: svgW } = this.svgEl.getBoundingClientRect()
+
+    const d = (svgW - geW) === 0 ? 'center' : (geL - svgL) / (svgW - geW) * 1024 + 'px'
+    const toY = (-(geT - svgT) / (svgW - geH) * 1024 || 0) + 900
+
+    const toTransform = `scale(${String(r2)})`
+    const toTransformOrigin = `${d} ${toY}px`
+
+    ge.animate({
+      transform: [`scale(${String(r)}) translate(${shiftX}px, ${-(geT - pgeT) / r}px)`, `scale(1) translate(0px, 0px)`],
+    },
+      this.animDuration
+    )
+
+    const animParam = {
+      cmpSvgGroup,
+      prevTransform, toTransform,
+      prevTransformOrigin, toTransformOrigin
     }
 
-    //if (this.cmpShouldAutoOpen(cmp) )
-      cmp.components.forEach(this.wUpdateRec.bind(this))
+    return animParam
+  }
+
+  getLeafComponents(cmp: InteractiveCharacter, leafComponents: InteractiveCharacter[] = []) {
+    if (!cmp.opened) {
+      leafComponents.push(cmp)
+    } else
+      cmp.components.forEach((subCmp: InteractiveCharacter) => {
+        this.getLeafComponents(subCmp, leafComponents)
+      })
+    return leafComponents
 
   }
 
+  runOpenAnimation(cmp: InteractiveCharacter) {
+
+    const { cmpSvgGroup, prevTransform, toTransform, prevTransformOrigin, toTransformOrigin } = this.getComponentAnimationParams(cmp)
+    const anim = cmpSvgGroup.animate({
+      transform: [prevTransform, toTransform],
+      transformOrigin: [prevTransformOrigin, toTransformOrigin]
+    },
+      this.animDuration
+    )
+
+    anim.finished.then(() => {
+      cmpSvgGroup.style.transform = toTransform
+      cmpSvgGroup.style.transformOrigin = toTransformOrigin
+    })
+  }
+
+  animateGridHeight(fromHeight: number, toHeight: number) {
+
+    if (!this._charObj.gridEl)
+      return
+
+    if (!this._charObj.gridEl) return
+    this._charObj.gridEl.animate({
+      height: [fromHeight + 'px', toHeight + 'px']
+    },
+      this.animDuration)
+  }
+
   open(cmp: InteractiveCharacter = this._charObj) {
-    const a = this.getCharContentHeight(cmp)
+
+    const gridFromHeight = this._charObj.gridEl.clientHeight
     if (!cmp.components.length) return;
 
     this.openedList.push(cmp);
 
     this.saveRectRec(this._charObj);
-    this.setOpenRec(cmp);
+    const openedComponents = this.toggleCmpOpenedState(cmp, true);
     this.updateHorizontalLen()
-    this.openComponent(cmp);
 
-    this._charObj.components.forEach(this.wUpdateRec.bind(this))
-    const b = this.getWrapHeight(cmp)
-
-    if(!cmp.gridEl) return
-      cmp.gridEl.animate([{
-        //width: a.w + 'px',
-        height: a.h + 'px'
-      }, {
-        //width: b.w + 'px',
-        height: b.h + 'px',
-      }], {
-        duration: this.animDuration
-      })
+    this.transfertTransform(cmp, openedComponents)
+    const leafComponents = this.getLeafComponents(this._charObj)
+    leafComponents.forEach(this.runOpenAnimation.bind(this))
+    this.animateGridHeight(gridFromHeight, this._charObj.gridEl.clientHeight)
     this.runMorph(cmp)
-
-  }
-
-  openComponent(cmp: InteractiveCharacter) {
-    if (!cmp.gridEl) {
-      console.warn("No grid element for component");
-      // TODO this should not happen, do better typing
-      return;
-    }
-
-    cmp.components.forEach((subCmp: InteractiveCharacter) => {
-      if (this.cmpShouldAutoOpen(subCmp)) {
-        this.openComponent(subCmp);
-      }
-    });
-
-    cmp.gridEl.setAttribute("opened", "");
-    cmp.gridEl.setAttribute("opening", "");
-    const timeoutId = setTimeout(() => {
-      if (!cmp.gridEl)
-        throw new Error("err")
-      cmp.gridEl.removeAttribute("opening");
-      //cmp.gridEl.style.height = ''
-      //cmp.gridEl.style.width = ''
-    }, this.animDuration)
-
-    this.openingTimeoutIds.set(cmp, timeoutId)
-
   }
 
   static css = css`
 
 #grid {
 position: relative;
-    margin: 10px;
     margin-bottom: 20px;
 width: 100%;
 }
@@ -623,29 +582,9 @@ pointer-events: all;
     :host {
 transition-timing-function: linear;
       position: relative;
-      /*margin: 10px;*/
+      margin: 10px;
 
     display: flex;
-    }
-
-    .component-svg {
-      pointer-events: none;
-      scale: 1 -1;
-      transform-origin: 50% 50%;
-      overflow: visible;
-      position: absolute;
-top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    }
-
-    .component-svg path {
-      fill: #555;
-    }
-
-    .component-svg g {
-      /*transition: transform ${ANIM_DURATION / 1000}s linear; */
     }
 
     #grid {
@@ -705,8 +644,7 @@ pointer-events: none;
       text-align: center;
     }
 
-    [char][opened] > .character-content,
-    [char][closing] > .character-content{
+    [char][opened]:not([closing]) > .character-content{
       opacity: 0 !important;
       position: absolute;
     }
@@ -740,7 +678,24 @@ pointer-events: none;
     }
 
 path {
+transition: var(--char-transition-duration) ease-in;
+}
+
+#svg[closing] path {
 transition: var(--char-transition-duration) ease-out;
+}
+
+#svg {
+position: absolute;
+pointer-events:none;
+scale: 1 -1;
+  transform-origin: center center;
+overflow: visible;
+      fill: #555;
+}
+
+#svg g {
+  transform-origin: center 900px;
 }
     /*
  ⿲
@@ -760,7 +715,9 @@ transition: var(--char-transition-duration) ease-out;
 */
   `;
 
-  static template = html` <div id="grid"></div> `;
+  static template = html` <div id="grid"></div>
+<svg id="svg" viewBox="0 -124 1024 1024"></svg>
+`;
 }
 
 register(CharacterMorph);

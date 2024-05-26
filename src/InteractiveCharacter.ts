@@ -11,6 +11,8 @@ export type InteractiveCharacter = {
     complete: boolean;
     svgGroup: Element | undefined;
     gridEl: HTMLElement | undefined;
+    charContentEl: HTMLElement | undefined;
+    charAreaEl: HTMLElement | undefined;
     opened: boolean;
     data: CharacterData;
     parent: InteractiveCharacter|undefined;
@@ -49,6 +51,8 @@ export const _getEmptyInteractiveCharacter = (data: CharacterData, parent: Inter
     components: [],
     decompositionVisible: false,// TODO move this
        prevRect: undefined,
+     charContentEl: undefined,
+     charAreaEl: undefined,
     //morph: undefined
    }
 }
