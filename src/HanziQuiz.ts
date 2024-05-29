@@ -290,29 +290,6 @@ if ('showOpenFilePicker' in window) {
         {currentComponent.etymology.hint}
       </div>
 
-     <!-- <div id="revealed-hanzi-wrapper">
-        <div
-          id="revealed-hanzi"
-          repeat="hanziData"
-          as="hanziComponent"
-          index-as="index"
-        >
-          <div class="revealed-char" @click="selectCharacterIdx(index)">
-            <character-anim
-              character="{hanziComponent.character}"
-              reveal="{hanziComponent.complete}"
-            >
-            </character-anim>
-            <div
-              class="pinyin"
-              tone="{getPinyinTone(hanziComponent.pinyin)}"
-            >
-              {cleanPinyin(hanziComponent.pinyin)}
-            </div>
-          </div>
-        </div>
-      </div>
--->
     <div class="first-order-wrapper" hidden="{!lastFirstOrderCmp}">
       <div class="first-order-character">
         <span class="first-order-hanzi">
@@ -429,43 +406,6 @@ align-self: center;
       box-sizing: border-box;
       font-size: 40px;
       text-align: center;
-    }
-
-    .revealed-char {
-      display: flex;
-      flex-direction: column;
-      pointer-events: all;
-    }
-
-    #revealed-hanzi-wrapper {
-      display: flex;
-      flex: 1;
-      position: sticky;
-      bottom: 48px;
-      padding-bottom: 16px;
-      pointer-events: none;
-    }
-    #revealed-hanzi {
-      display: flex;
-      align-self: end;
-      background: rgb(255, 255, 255);
-      background: linear-gradient(
-        180deg,
-        rgba(251, 251, 251, 0) 0%,
-        rgba(251, 251, 251, 1) 50%
-      );
-
-      justify-content: center;
-      flex: 1;
-    }
-
-    #revealed-hanzi .pinyin {
-      text-align: center;
-    }
-
-    #revealed-hanzi > .revealed-char > character-anim {
-      width: 60px;
-      height: 60px;
     }
 
     #description {
