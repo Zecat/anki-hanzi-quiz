@@ -50,6 +50,10 @@ const initialState: any = {
     return idx < len - 1 && complete
   }),
 
+  recomposeDisabled: computedProperty(['currentComponent.decompositionVisible', 'currentComponent.opened'], function (visible: boolean, opened: boolean) {
+    return visible && !opened
+  }),
+
   complete: computedProperty(['selectedIdx', 'hanziData.length', 'currentComponent.complete'], function () {
     if (state.hanziData.length && state.hanziData.every((cmp: InteractiveCharacter) => cmp.complete))
       return true

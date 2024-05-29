@@ -9,6 +9,8 @@ import { cleanDescription, cleanPinyin, getPinyinTone } from './processData'
 import { InteractiveCharacter, getCmpForGridEl, getComponentAbsoluteFirstIndex, getHorizontalCharacterCount } from "./InteractiveCharacter";
 import { runMorph } from "./morph/runMorph";
 
+import { state } from "./state";
+
 
 const ANIM_DURATION = 1000;
 
@@ -222,6 +224,10 @@ export default class CharacterMorph extends Component {
   }
 
   toggleCmpOpenedState(cmp: InteractiveCharacter, toggle: boolean, newComponents: InteractiveCharacter[] = []): InteractiveCharacter[] {
+    // HACK to be able to be notified when the main component is opened/closed
+    if (cmp === state.currentComponent.__target)
+      state.currentComponent.opened = toggle
+
     cmp.opened = toggle;
 
     if (!cmp.gridEl) throw new Error('err')

@@ -270,6 +270,7 @@ if ('showOpenFilePicker' in window) {
         >
         <md-outlined-button
           reveal="{currentComponent.complete}"
+          disabled="{recomposeDisabled}"
           @click="this.toggleDecomposition()"
           >{this.getDecompsitionText(currentComponent.decompositionVisible)}</md-outlined-button
         >
