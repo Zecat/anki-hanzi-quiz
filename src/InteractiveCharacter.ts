@@ -227,3 +227,32 @@ export const getCmpStrokeData = (cmp: CharacterData, i: number) : {data: Charact
 //   }
 //    return undefined
 //}
+
+
+  const isHorizontalCdl = (cdl: string) =>{
+    return cdl != '⿱' && cdl != '⿳'
+  }
+
+  export const getVerticalCharacterCount = (cmp: InteractiveCharacter): number => {
+    if (!cmp.data.cdl || !cmp.opened) return 1;
+    if (!isHorizontalCdl(cmp.data.cdl))
+      return sum(
+        cmp.components.map(getVerticalCharacterCount.bind(this)),
+      );
+    else
+      return Math.max(
+        ...cmp.components.map(getVerticalCharacterCount.bind(this)),
+      );
+  }
+
+  export const getHorizontalCharacterCount = (cmp: InteractiveCharacter): number => {
+    if (!cmp.data.cdl || !cmp.opened) return 1;
+    if (isHorizontalCdl(cmp.data.cdl))
+      return sum(
+        cmp.components.map(getHorizontalCharacterCount.bind(this)),
+      );
+    else
+      return Math.max(
+        ...cmp.components.map(getHorizontalCharacterCount.bind(this)),
+      );
+  }

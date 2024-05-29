@@ -6,12 +6,9 @@ import { CharacterData } from './decompose'
 
 import { cleanDescription, cleanPinyin, getPinyinTone } from './processData'
 
-import { InteractiveCharacter, getCmpForGridEl, getComponentAbsoluteFirstIndex } from "./InteractiveCharacter";
+import { InteractiveCharacter, getCmpForGridEl, getComponentAbsoluteFirstIndex, getHorizontalCharacterCount } from "./InteractiveCharacter";
 import { runMorph } from "./morph/runMorph";
 
-
-const sum = (array: number[]): number =>
-  array.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
 
 const ANIM_DURATION = 1000;
 
@@ -37,7 +34,6 @@ export default class CharacterMorph extends Component {
     parentGroup.appendChild(group)
     return group
   }
-
 
   createSubGroupRec(cmp: InteractiveCharacter) {
     if (!cmp.components.length) {
@@ -94,40 +90,12 @@ export default class CharacterMorph extends Component {
     this.attachGridEventListener(charObj);
   }
 
-  getVerticalCharacterCount(cmp: InteractiveCharacter): number {
-    if (!cmp.data.cdl || !cmp.opened) return 1;
-    if (!this.isHorizontalCdl(cmp.data.cdl))
-      return sum(
-        cmp.components.map(this.getVerticalCharacterCount.bind(this)),
-      );
-    else
-      return Math.max(
-        ...cmp.components.map(this.getVerticalCharacterCount.bind(this)),
-      );
-  }
-
-  getHorizontalCharacterCount(cmp: InteractiveCharacter): number {
-    if (!cmp.data.cdl || !cmp.opened) return 1;
-    if (this.isHorizontalCdl(cmp.data.cdl))
-      return sum(
-        cmp.components.map(this.getHorizontalCharacterCount.bind(this)),
-      );
-    else
-      return Math.max(
-        ...cmp.components.map(this.getHorizontalCharacterCount.bind(this)),
-      );
-  }
-
   attachGridEventListener(cmp: InteractiveCharacter) {
     if (cmp.gridEl)
       cmp.gridEl.addEventListener("click", this.onClick.bind(this));
     for (let subCmp of cmp.components) {
       this.attachGridEventListener(subCmp);
     }
-  }
-
-  isHorizontalCdl(cdl: string) {
-    return cdl != '⿱' && cdl != '⿳'
   }
 
   generateGridRec(el: Element, cmp: InteractiveCharacter) {
@@ -230,9 +198,9 @@ export default class CharacterMorph extends Component {
   }
 
   updateHorizontalLen() {
-    let horizontalLen = this.getHorizontalCharacterCount(this._charObj);
+    let horizontalLen = getHorizontalCharacterCount(this._charObj);
     // TODO add vertical constrains ?
-    //let vertLen = this.getVerticalCharacterCount(this._charObj);
+    //let vertLen = getVerticalCharacterCount(this._charObj);
     if (!this._charObj)
       throw new Error('err')
     if (this._charObj.opened)
