@@ -50,6 +50,8 @@ export default class CharacterMorph extends Component {
     for (const subCmp of cmp.components) {
       if (!cmp.svgGroup) throw new Error('err')
       subCmp.svgGroup = this.createSubGroup(cmp.svgGroup)
+      if (!subCmp.components.length)
+        subCmp.svgGroup.classList.toggle('leaf')
       this.createSubGroupRec(subCmp);
     }
   }
@@ -252,6 +254,8 @@ export default class CharacterMorph extends Component {
         cmp.gridEl.removeAttribute("closing");
       }, this.animDuration)
     }
+
+    cmp.svgGroup?.toggleAttribute("opened", toggle);
     cmp.components.forEach((subCmp: InteractiveCharacter) => {
       if (this.cmpShouldAutoOpen(subCmp))
         this.toggleCmpOpenedState(subCmp, toggle, newComponents);
@@ -591,11 +595,16 @@ pointer-events:none;
 scale: 1 -1;
   transform-origin: center center;
 overflow: visible;
-      fill: #555;
+      fill: #444;
 }
 
 #svg g {
   transform-origin: center 900px;
+}
+
+#svg > g[opened].leaf path,
+g[opened] > g.leaf path {
+      fill: #888;
 }
     /*
  ⿲
