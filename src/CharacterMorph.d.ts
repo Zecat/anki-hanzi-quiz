@@ -2,14 +2,11 @@
 import "@material/web/iconbutton/icon-button";
 import "@material/web/icon/icon";
 import { Component } from "pouic";
-import { CharacterData } from './decompose';
 import { InteractiveCharacter } from "./InteractiveCharacter";
 export default class CharacterMorph extends Component {
     constructor();
     connectedCallback(): void;
     createSubGroup(parentGroup: Element): Element;
-    getMorphs(cmpData: CharacterData): string[][];
-    runMorph(cmp: InteractiveCharacter, backward?: boolean): Promise<unknown>;
     createSubGroupRec(cmp: InteractiveCharacter): void;
     renderPaths(strokes: any): any[];
     set data(charObj: any);
@@ -18,7 +15,6 @@ export default class CharacterMorph extends Component {
     attachGridEventListener(cmp: InteractiveCharacter): void;
     isHorizontalCdl(cdl: string): boolean;
     generateGridRec(el: Element, cmp: InteractiveCharacter): void;
-    runMorphClose(cmp: InteractiveCharacter): Promise<unknown>;
     reassemble(): Promise<void>;
     onClick(e: any): void;
     updateHorizontalLen(): void;

@@ -6,12 +6,9 @@ import { CharacterData } from './decompose'
 
 import { cleanDescription, cleanPinyin, getPinyinTone } from './processData'
 
-import { InteractiveCharacter, getCmpForGridEl, getCmpStrokeData, getComponentAbsoluteFirstIndex } from "./InteractiveCharacter";
+import { InteractiveCharacter, getCmpForGridEl, getComponentAbsoluteFirstIndex } from "./InteractiveCharacter";
+import { runMorph } from "./morph/runMorph";
 
-import { makeUniform } from "./uniformPath";
-
-
-const worker = new Worker('/_morphWorker.js');
 
 const sum = (array: number[]): number =>
   array.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
@@ -39,97 +36,6 @@ export default class CharacterMorph extends Component {
     const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     parentGroup.appendChild(group)
     return group
-  }
-
-  getMorphs(cmpData: CharacterData) {
-    const len = cmpData.len || 0
-    const morphs = []
-    for (let i = 0; i < len; i++) {
-      const ret = getCmpStrokeData(cmpData, i)
-
-      if (!ret)
-        continue
-
-      const { data, idx } = ret
-
-      if (!data.strokes || !data.medians) // HACK
-        continue
-      if (!data.repartition) {
-        console.warn('No repartition', data.character)
-        throw new Error('ERR')
-      }
-
-      let initialPath = cmpData.strokes ? cmpData.strokes[i] : undefined; //this.paths[firstIdx + i].getAttribute('d')
-      // TODO change fallback to the deepest stroke found in in the main cmp instead of this.paths[fi+i] ?
-      //const initialPath = this.paths[firstIdx + i].getAttribute('d')
-      //if (!initialPath) {
-      //  const a = getCmpStrokeData(cmp.parent, i)
-      //  if (!a)
-      //    throw new Error('ERR')
-      //  const { data:data2, idx:idx2 } = ret
-      //  initialPath = data2.strokes[idx2]
-      //}
-      if (!initialPath) {
-        console.warn('No initial path', cmpData.character, i)
-        throw new Error('ERR')
-      }
-      if (!cmpData.strokes) {
-
-        console.warn('No strokes', cmpData.character, i)
-        throw new Error('ERR')
-      }
-      if (!cmpData.repartition) {
-        console.warn('No repartition', cmpData.character, i)
-        throw new Error('ERR')
-      }
-
-      const morph = makeUniform(
-        cmpData.strokes[i],
-        cmpData.repartition[i],
-        data.strokes[idx],
-        data.repartition[idx])
-
-      morphs.push(morph)
-    }
-    return morphs
-  }
-
-  runMorph(cmp: InteractiveCharacter, backward: boolean = false) {
-    //const morphs = this.getMorphs(cmp.data)
-
-    //morphs.forEach((m: any, i: number) => {
-    //  this.paths[firstIdx + i].setAttribute("d", m[backward ? 1 : 0]);
-    //})
-
-    //requestAnimationFrame(() => {
-    //  morphs.forEach((m: any, i: number) => {
-    //    this.paths[firstIdx + i].setAttribute("d", m[backward ? 0 : 1]);
-    //  })
-    //})
-    const { promise, resolve } = Promise.withResolvers();
-
-    const firstIdx = getComponentAbsoluteFirstIndex(cmp)
-
-    worker.onmessage = (event) => {
-
-    requestAnimationFrame(() => {
-      const morphs = event.data as string[][]
-    morphs.forEach((m, i) => {
-      this.paths[firstIdx + i].setAttribute("d", m[backward ? 1 : 0]);
-    })
-    requestAnimationFrame(() => {
-
-      morphs.forEach((m, i) => {
-        this.paths[firstIdx + i].setAttribute("d", m[backward ? 0 : 1]);
-      })
-      resolve('')
-    })
-    })
-    };
-
-    worker.postMessage(cmp.data)
-    return promise
-
   }
 
 
@@ -272,7 +178,7 @@ export default class CharacterMorph extends Component {
 
     this.saveRectRec(this._charObj);
     const leafComponents = this.getLeafComponents(this._charObj)
-    this.runMorph(cmp, true)
+    runMorph(this.paths, cmp, true)
     this.svgEl.toggleAttribute("closing", true);
     setTimeout(() => {
       this.svgEl.toggleAttribute("closing", false);
@@ -501,7 +407,7 @@ export default class CharacterMorph extends Component {
     this.openedList.push(cmp);
 
     this.saveRectRec(this._charObj);
-    await this.runMorph(cmp)
+    await runMorph(this.paths, cmp)
     const openedComponents = this.toggleCmpOpenedState(cmp, true);
     this.updateHorizontalLen()
 

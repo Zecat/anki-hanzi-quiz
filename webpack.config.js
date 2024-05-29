@@ -27,7 +27,7 @@ const stylesHandler = "style-loader";
 
 const config = {
   entry: {
-    _morphWorker: './src/worker.ts',
+    _morphWorker: './src/morph/getMorphs.worker.ts',
     main: "./src/index.ts",
   },
   //target: 'webworker', // Specify the target as webworker for worker bundle

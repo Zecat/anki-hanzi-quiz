@@ -1,35 +1,8 @@
+import { getCmpStrokeData } from "../InteractiveCharacter"
+import { CharacterData } from "../decompose"
+import { makeUniform } from "../uniformPath"
 
-import { CharacterData } from './decompose'
-import { makeUniform } from "./uniformPath";
-
-const getCmpStrokeData = (cmp: CharacterData, i: number) : {data: CharacterData, idx: number} | undefined=> {
-    let j = 0
-   for (const subCmp of cmp.components) {
-       const len = subCmp.len || 0
-      j+=len
-       if (i<j) {
-           const relIdx = i - j + len
-           if (subCmp.strokes)
-               return {data: subCmp, idx:relIdx}
-           //else if (subCmp.character && subCmp.pinyin)
-           //    // NOTE If stroke data not found, fallback to the parent stroke subset
-           //    return {data: subCmp, idx:relIdx}
-           else
-               return getCmpStrokeData(subCmp, relIdx)
-       }
-   }
-    return undefined
-}
-
-self.onmessage = ((msg: any) => {
-    const morphs =  getMorphs(msg.data)
-  self.postMessage(morphs);
-});
-
-
-
-  const getMorphs = (cmpData: CharacterData)  =>{
-
+  export const getMorphs = (cmpData: CharacterData) => {
     const len = cmpData.len || 0
     const morphs = []
     for (let i = 0; i < len; i++) {
@@ -58,7 +31,6 @@ self.onmessage = ((msg: any) => {
       //  initialPath = data2.strokes[idx2]
       //}
       if (!initialPath) {
-        console.log()
         console.warn('No initial path', cmpData.character, i)
         throw new Error('ERR')
       }
@@ -72,7 +44,7 @@ self.onmessage = ((msg: any) => {
         throw new Error('ERR')
       }
 
-        const morph = makeUniform(
+      const morph = makeUniform(
         cmpData.strokes[i],
         cmpData.repartition[i],
         data.strokes[idx],
