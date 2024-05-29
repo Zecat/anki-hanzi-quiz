@@ -54,7 +54,7 @@ flex: 0 0 auto;
 #slideshow {
 display: flex;
 height: 100%;
-  transition: transform 1s ease;
+  transition: transform 0.7s ease;
 
 }
 
