@@ -9,7 +9,7 @@ export default class CharacterMorph extends Component {
     connectedCallback(): void;
     createSubGroup(parentGroup: Element): Element;
     getMorphs(cmpData: CharacterData): string[][];
-    runMorph(cmp: InteractiveCharacter, backward?: boolean): void;
+    runMorph(cmp: InteractiveCharacter, backward?: boolean): Promise<unknown>;
     createSubGroupRec(cmp: InteractiveCharacter): void;
     renderPaths(strokes: any): any[];
     set data(charObj: any);
@@ -18,7 +18,7 @@ export default class CharacterMorph extends Component {
     attachGridEventListener(cmp: InteractiveCharacter): void;
     isHorizontalCdl(cdl: string): boolean;
     generateGridRec(el: Element, cmp: InteractiveCharacter): void;
-    runMorphClose(cmp: InteractiveCharacter): void;
+    runMorphClose(cmp: InteractiveCharacter): Promise<unknown>;
     reassemble(): Promise<void>;
     onClick(e: any): void;
     updateHorizontalLen(): void;
@@ -36,7 +36,7 @@ export default class CharacterMorph extends Component {
     getLeafComponents(cmp: InteractiveCharacter, leafComponents?: InteractiveCharacter[]): InteractiveCharacter[];
     runOpenAnimation(cmp: InteractiveCharacter): void;
     animateGridHeight(fromHeight: number, toHeight: number): void;
-    open(cmp?: InteractiveCharacter): void;
+    open(cmp?: InteractiveCharacter): Promise<void>;
     static css: any;
     static template: any;
 }

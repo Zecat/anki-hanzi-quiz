@@ -60,7 +60,8 @@ const config = {
     new HtmlWebpackPlugin({
       inject: true,
       template: isProduction ? "index.html" : "index-dev.html",
-      inlineSource: ".(js|css)$", // Inline all js and css files
+      inlineSource: "^(?!.*_morphWorker\\.js$).*(js|css)$", // Inline all js and css files
+      //inlineSource: ".(js|css)$", // Inline all js and css files
       minify: true,
     }),
     // Plugin to inline JavaScript bundle into HTML

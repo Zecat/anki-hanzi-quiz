@@ -6,7 +6,7 @@
     "module": "esnext",
     "target": "es6",
 
-"lib": ["esnext", "dom", ],
+"lib": ["esnext", "dom", "es2020",],
     "declaration": true,
      "strict": true,
      "noImplicitAny": true /* Raise error on expressions and declarations with an implied 'any' type. */,

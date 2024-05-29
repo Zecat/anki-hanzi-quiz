@@ -2,19 +2,6 @@
 import { CharacterData } from './decompose'
 import { makeUniform } from "./uniformPath";
 
-
-
-// @ts-ignore
-window.worker_function = () => {
-
-//onmessage = (e) => {
-//  //const workerResult = `Result: ${e.data[0] * e.data[1]}`;
-//  console.log(e.data);
-//  if (e.data.type)
-//        return
-//  postMessage('yo');
-//};
-  console.log('aa')
 const getCmpStrokeData = (cmp: CharacterData, i: number) : {data: CharacterData, idx: number} | undefined=> {
     let j = 0
    for (const subCmp of cmp.components) {
@@ -35,11 +22,8 @@ const getCmpStrokeData = (cmp: CharacterData, i: number) : {data: CharacterData,
 }
 
 self.onmessage = ((msg: any) => {
-    console.log('ààààà')
     const morphs =  getMorphs(msg.data)
   self.postMessage(morphs);
-    //postMessage('yoo')
-  //  makeUniform(...msg.data)
 });
 
 
@@ -88,13 +72,6 @@ self.onmessage = ((msg: any) => {
         throw new Error('ERR')
       }
 
-      //worker.postMessage(
-      //  [
-      //  cmpData.strokes[i],
-      //  cmpData.repartition[i],
-      //  data.strokes[idx],
-      //  data.repartition[idx]])
-
         const morph = makeUniform(
         cmpData.strokes[i],
         cmpData.repartition[i],
@@ -105,4 +82,3 @@ self.onmessage = ((msg: any) => {
     }
     return morphs
   }
-}

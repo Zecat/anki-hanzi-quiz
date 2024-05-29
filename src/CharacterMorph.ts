@@ -11,6 +11,8 @@ import { InteractiveCharacter, getCmpForGridEl, getCmpStrokeData, getComponentAb
 import { makeUniform } from "./uniformPath";
 
 
+const worker = new Worker('/_morphWorker.js');
+
 const sum = (array: number[]): number =>
   array.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
 
@@ -93,19 +95,40 @@ export default class CharacterMorph extends Component {
   }
 
   runMorph(cmp: InteractiveCharacter, backward: boolean = false) {
+    //const morphs = this.getMorphs(cmp.data)
+
+    //morphs.forEach((m: any, i: number) => {
+    //  this.paths[firstIdx + i].setAttribute("d", m[backward ? 1 : 0]);
+    //})
+
+    //requestAnimationFrame(() => {
+    //  morphs.forEach((m: any, i: number) => {
+    //    this.paths[firstIdx + i].setAttribute("d", m[backward ? 0 : 1]);
+    //  })
+    //})
+    const { promise, resolve } = Promise.withResolvers();
 
     const firstIdx = getComponentAbsoluteFirstIndex(cmp)
-    const morphs = this.getMorphs(cmp.data)
 
-    morphs.forEach((m: any, i: number) => {
-      this.paths[firstIdx + i].setAttribute("d", m[backward ? 1 : 0]);
-    })
+    worker.onmessage = (event) => {
 
     requestAnimationFrame(() => {
-      morphs.forEach((m: any, i: number) => {
+      const morphs = event.data as string[][]
+    morphs.forEach((m, i) => {
+      this.paths[firstIdx + i].setAttribute("d", m[backward ? 1 : 0]);
+    })
+    requestAnimationFrame(() => {
+
+      morphs.forEach((m, i) => {
         this.paths[firstIdx + i].setAttribute("d", m[backward ? 0 : 1]);
       })
+      resolve('')
     })
+    })
+    };
+
+    worker.postMessage(cmp.data)
+    return promise
 
   }
 
@@ -242,15 +265,6 @@ export default class CharacterMorph extends Component {
     el.appendChild(subElWrapper);
   }
 
-  runMorphClose(cmp: InteractiveCharacter) {
-    // TODO try use animate to synchronize animation and avoid relying on css
-    this.svgEl.toggleAttribute("closing", true);
-    this.runMorph(cmp, true)
-    setTimeout(() => {
-      this.svgEl.toggleAttribute("closing", false);
-    }, this.animDuration)
-  }
-
   async reassemble() {
     const gridFromHeight = this._charObj.gridEl.clientHeight
     const cmp = this.openedList.pop();
@@ -258,8 +272,14 @@ export default class CharacterMorph extends Component {
 
     this.saveRectRec(this._charObj);
     const leafComponents = this.getLeafComponents(this._charObj)
+    this.runMorph(cmp, true)
+    this.svgEl.toggleAttribute("closing", true);
+    setTimeout(() => {
+      this.svgEl.toggleAttribute("closing", false);
+    }, this.animDuration)
     const closedComponents = this.toggleCmpOpenedState(cmp, false)
     this.updateHorizontalLen()
+
 
     let targetTransformOrigin: string, targetTransform: string
     const animPromises = leafComponents.map((leafCmp: InteractiveCharacter) => {
@@ -293,7 +313,6 @@ export default class CharacterMorph extends Component {
 
     this.animateGridHeight(gridFromHeight, this._charObj.gridEl.clientHeight)
 
-    this.runMorphClose(cmp)
 
   }
 
@@ -448,6 +467,7 @@ export default class CharacterMorph extends Component {
   runOpenAnimation(cmp: InteractiveCharacter) {
 
     const { cmpSvgGroup, prevTransform, toTransform, prevTransformOrigin, toTransformOrigin } = this.getComponentAnimationParams(cmp)
+    //cmpSvgGroup.style.transformOrigin = toTransform
     const anim = cmpSvgGroup.animate({
       transform: [prevTransform, toTransform],
       transformOrigin: [prevTransformOrigin, toTransformOrigin]
@@ -473,7 +493,7 @@ export default class CharacterMorph extends Component {
       this.animDuration)
   }
 
-  open(cmp: InteractiveCharacter = this._charObj) {
+  async open(cmp: InteractiveCharacter = this._charObj) {
 
     const gridFromHeight = this._charObj.gridEl.clientHeight
     if (!cmp.components.length) return;
@@ -481,6 +501,7 @@ export default class CharacterMorph extends Component {
     this.openedList.push(cmp);
 
     this.saveRectRec(this._charObj);
+    await this.runMorph(cmp)
     const openedComponents = this.toggleCmpOpenedState(cmp, true);
     this.updateHorizontalLen()
 
@@ -488,7 +509,6 @@ export default class CharacterMorph extends Component {
     const leafComponents = this.getLeafComponents(this._charObj)
     leafComponents.forEach(this.runOpenAnimation.bind(this))
     this.animateGridHeight(gridFromHeight, this._charObj.gridEl.clientHeight)
-    this.runMorph(cmp)
   }
 
   static css = css`
