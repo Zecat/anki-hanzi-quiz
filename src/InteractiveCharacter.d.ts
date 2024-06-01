@@ -23,3 +23,5 @@ export declare const getCmpStrokeData: (cmp: CharacterData, i: number) => {
     data: CharacterData;
     idx: number;
 } | undefined;
+export declare const getVerticalCharacterCount: (cmp: InteractiveCharacter) => number;
+export declare const getHorizontalCharacterCount: (cmp: InteractiveCharacter) => number;

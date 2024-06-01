@@ -595,16 +595,16 @@ pointer-events:none;
 scale: 1 -1;
   transform-origin: center center;
 overflow: visible;
-      fill: #444;
+      fill: #555;
 }
 
 #svg g {
   transform-origin: center 900px;
 }
 
-#svg > g[opened].leaf path,
+#svg > g[opened].leaf,
 g[opened] > g.leaf path {
-      fill: #888;
+      fill: #777;
 }
     /*
  ⿲

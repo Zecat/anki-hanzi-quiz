@@ -10,10 +10,7 @@ export default class CharacterMorph extends Component {
     createSubGroupRec(cmp: InteractiveCharacter): void;
     renderPaths(strokes: any): any[];
     set data(charObj: any);
-    getVerticalCharacterCount(cmp: InteractiveCharacter): number;
-    getHorizontalCharacterCount(cmp: InteractiveCharacter): number;
     attachGridEventListener(cmp: InteractiveCharacter): void;
-    isHorizontalCdl(cdl: string): boolean;
     generateGridRec(el: Element, cmp: InteractiveCharacter): void;
     reassemble(): Promise<void>;
     onClick(e: any): void;
