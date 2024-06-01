@@ -5,6 +5,7 @@ import { Component } from "pouic";
 import { InteractiveCharacter } from "./InteractiveCharacter";
 export default class CharacterMorph extends Component {
     constructor();
+    onResize(): void;
     connectedCallback(): void;
     createSubGroup(parentGroup: Element): Element;
     createSubGroupRec(cmp: InteractiveCharacter): void;

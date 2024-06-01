@@ -9,6 +9,8 @@ export default class CharactersSlideshowQuiz extends Component {
     currentCharacterComplete: boolean;
     sliderWidth: number;
     static css: any;
-    getShiftWidth(idx: number): string;
+    getShiftWidth(idx: number): number;
+    getSlideshowTransform(idx: number): string;
+    connectedCallback(): void;
     static template: any;
 }

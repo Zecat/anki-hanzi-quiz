@@ -27,8 +27,13 @@ export default class CharacterMorph extends Component {
     this.svgEl = this.shadowRoot.getElementById('svg')
   }
 
+  onResize() {
+    this.updateHorizontalLen()
+  }
+
   connectedCallback() {
     this.style.setProperty('--char-transition-duration', this.animDuration / 1000 + 's');
+    window.addEventListener('resize', this.onResize.bind(this));
   }
 
   createSubGroup(parentGroup: Element): Element {
@@ -202,6 +207,8 @@ export default class CharacterMorph extends Component {
   }
 
   updateHorizontalLen() {
+    if (!this._charObj)
+      return
     let horizontalLen = getHorizontalCharacterCount(this._charObj);
     // TODO add vertical constrains ?
     //let vertLen = getVerticalCharacterCount(this._charObj);

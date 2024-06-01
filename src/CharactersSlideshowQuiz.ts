@@ -5,44 +5,18 @@ import "./CharacterQuiz";
 import "@material/web/iconbutton/icon-button";
 import "@material/web/icon/icon";
 
+import { state } from "./state"
+
 export default class CharactersSlideshowQuiz extends Component {
   hanzi = "";
 
   charactersData: any[] = []
 
-   currentCharacterComplete = false
+  currentCharacterComplete = false
 
   sliderWidth = 0;
 
-  //onComplete(): void {
-  //  //setTimeout(() => {
-  //  //  if (this.isWordCompleted) {
-  //  //    this.nextCharIdx++
-  //  //    this.revealNextButtons = true
-  //  //  } else {
-  //  //    this.hanziWriter?.setCharacter(this.nextCharacter);
-
-  //  //    //const charData = this.hanziData[this.nextCharIdx-1]// TODO currentCharIdx
-  //  //    //this.hanziWriter.charData =charData
-
-  //  //    this.hanziWriterComponent.startQuiz();
-  //  //  }
-  //  //}, 1000);
-  //  //this.currentCharacterComplete=true
-  //}
-
-
-  //updated(changedProperties: Map<string, unknown>) {
-  //  if (changedProperties.has("selectedIdx")) {
-  //    const quizEl = this.shadowRoot?.querySelector(`#slideshow character-quiz:nth-of-type(${state.selectedIdx+1})`)
-  //    if (!quizEl)
-  //      this.currentCharacterComplete = false
-  //    else
-  //      this.currentCharacterComplete = (quizEl as CharacterQuiz).complete || false
-  //  }
-  //}
-
-	static css = css`
+  static css = css`
       :host {
 display: block;
         position: relative;
@@ -102,23 +76,31 @@ overflow: hidden;
 }
     `;
 
-getShiftWidth(idx:number) {
-   const quizEl = this.shadowRoot?.querySelector(`#slideshow div:nth-of-type(${idx+1})`)
-    const shift= quizEl ? (quizEl as HTMLElement).offsetLeft : 0; // TODO
-  return `transform: translateX(-${shift}px)`;
-}
+  getShiftWidth(idx: number) {
+    const quizEl = this.shadowRoot?.querySelector(`#slideshow div:nth-of-type(${idx + 1})`)
+    return quizEl ? -(quizEl as HTMLElement).offsetLeft : 0; // TODO
+  }
 
-  //isMorphHidden(opened:boolean) {
-  //  return  !opened
-  //}
+  getSlideshowTransform(idx: number) {
+    return `transform: translateX(${this.getShiftWidth(idx)}px)`;
+  }
 
-	static template = html`
+  connectedCallback() {
+    // HACK
+    window.addEventListener('resize', () => {
+      const slideshow = this.shadowRoot.getElementById('slideshow')
+      if (!slideshow) return
+      slideshow.style.transform = `translateX(${this.getShiftWidth(state.selectedIdx)}px)`
+    });
+  }
+
+  static template = html`
 
     <div id="slideshow"
         repeat="hanziData"
         as="hanziComponent"
         index-as="index"
-        style="{this.getShiftWidth(selectedIdx)}">
+        style="{this.getSlideshowTransform(selectedIdx)}">
 <div class="slide-wrapper">
 <div class="slide-wrapper-2">
           <character-quiz
