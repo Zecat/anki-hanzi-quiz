@@ -391,6 +391,8 @@ align-self: center;
     #hanzi-slideshow {
 --slide-padding: 0px 8px 8px;
       max-width: 500px;
+
+--slide-border: 1px solid #dfdfdf;
     }
 
 @media (min-aspect-ratio: 4/3) {
@@ -403,6 +405,9 @@ min-height: unset;
 }
 #hanzi-slideshow {
 --character-morph-height: 100vh;
+--slide-border: none;
+--character-quiz-border-bottom: 1px solid #dfdfdf;
+border-left: 1px solid #dfdfdf;
 box-shadow: 0 0 10px #e2e2e2;
 z-index: 1;
 width: 100vh;

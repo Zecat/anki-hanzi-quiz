@@ -69,13 +69,16 @@ padding: var(--slide-padding);
 }
 
 .slide-wrapper-2 {
-        border: 1px solid #dfdfdf;
       background: white;
 
+border: var(--slide-border);
 overflow: scroll;
 }
 character-morph {
 height: var(--character-morph-height);
+}
+character-quiz {
+border-bottom: var(--character-quiz-border-bottom); /* HACK */
 }
     `;
 
