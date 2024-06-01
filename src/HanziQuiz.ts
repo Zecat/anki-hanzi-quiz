@@ -368,6 +368,7 @@ align-self: center;
       justify-content: flex-end;
       align-items: center;
       overflow: hidden;
+      padding: 0 12px;
     }
 
     #button-easy {
@@ -384,7 +385,6 @@ align-self: center;
     }
 
     #char-title {
-      padding-left: 12px;
       margin: 0;
     }
 
