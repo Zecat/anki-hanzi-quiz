@@ -15,15 +15,13 @@ else
       platform = Platform.Web
 
 const getAnkiPrefix = () => {
-      return platform === Platform.Desktop ?
-        "" :
-        platform === Platform.Android ?
-        "" :
-        "."
+  return platform === Platform.Web ? "." : ""
 }
-console.log(getAnkiPrefix)
+
+export const getMediaUrl = (filename:string) =>{
+  return `${getAnkiPrefix()}/${filename}`
+}
 
 export const fetchMedia = (filename:string) =>{
-return fetch(`${getAnkiPrefix()}/${filename}`)
-  //return fetch(`http://192.168.1.18:3000/${filename}`)
+return fetch(getMediaUrl(filename))
 }

@@ -1,6 +1,7 @@
 import { InteractiveCharacter, getComponentAbsoluteFirstIndex } from "../InteractiveCharacter";
+import { getMediaUrl } from "../anki_api";
 
-const worker = new Worker('/_morphWorker.js')
+const worker = new Worker(getMediaUrl('_morphWorker.js'))
 // TODO fallback with no worker ?
 
 // TODO paths typing
