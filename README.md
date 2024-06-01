@@ -38,3 +38,21 @@ TODO add script to build the template and update a deck in anki
   - interaction
   - positioning
 - recursive auto opening of component without associated character
+
+## Automatic build, anki template update and sync
+
+### Overwrite warning
+
+Be aware that this will overwrite the template of the card and sync anki remotely
+
+### Setup
+
+copy `./scripts/update_anki_template/.env_example` to `./scripts/update_anki_template/.env` and fill the variable
+
+### run
+
+Ensure anki desktop is closed then run
+
+``` sh
+npm run anki
+```

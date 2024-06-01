@@ -41,7 +41,8 @@
     "docs": "typedoc --entryPoints src/main.ts",
     "lint": "eslint src/ --ext .js,.jsx,.ts,.tsx",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "anki": "webpack --mode=production --node-env=production && poetry -C ./scripts/update_anki_template run python ./scripts/update_anki_template/main.py "
   },
   "dependencies": {
     "@material/mwc-icon-button-toggle": "^0.27.0",
