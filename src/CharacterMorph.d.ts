@@ -31,6 +31,7 @@ export default class CharacterMorph extends Component {
     runOpenAnimation(cmp: InteractiveCharacter): void;
     animateGridHeight(fromHeight: number, toHeight: number): void;
     open(cmp?: InteractiveCharacter): Promise<void>;
+    updateLayout(): void;
     static css: any;
     static template: any;
 }

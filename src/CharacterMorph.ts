@@ -97,6 +97,7 @@ export default class CharacterMorph extends Component {
     this.generateGridRec(gridEl, charObj);
     this.createSubGroupRec(charObj);
     this.attachGridEventListener(charObj);
+
   }
 
   attachGridEventListener(cmp: InteractiveCharacter) {
@@ -214,12 +215,19 @@ export default class CharacterMorph extends Component {
     //let vertLen = getVerticalCharacterCount(this._charObj);
     if (!this._charObj)
       throw new Error('err')
+    let heightShift = 0
     if (this._charObj.opened)
       horizontalLen = Math.max(3, horizontalLen)
+    else {
+      const pinyinEl = this._charObj.gridEl.querySelector('.character-content > .pinyin')
+      const descriptionEl = this._charObj.gridEl.querySelector('.character-content > .description')
+      if (pinyinEl && descriptionEl)
+        heightShift = pinyinEl.clientHeight + descriptionEl.clientHeight
+    }
     //if (vertLen > 3)
     //  horizontalLen = Math.max(6, horizontalLen)
     const w = this.svgEl.clientWidth;
-    this._charObj.gridEl.style.setProperty('--sub-character-w', `${w / horizontalLen}px`);
+    this._charObj.gridEl.style.setProperty('--sub-character-w', `${w / horizontalLen - heightShift}px`);
   }
 
   cmpShouldAutoOpen(cmp: InteractiveCharacter) {
@@ -294,7 +302,7 @@ export default class CharacterMorph extends Component {
   }
 
   getComponentAnimationParams(cmp: InteractiveCharacter) {
-    if (!cmp.gridEl || !cmp.parent || !cmp.parent.gridEl)
+    if (!cmp.gridEl)
       throw new Error('err')
 
     const ge = cmp.gridEl
@@ -400,6 +408,13 @@ export default class CharacterMorph extends Component {
     const leafComponents = this.getLeafComponents(this._charObj)
     leafComponents.forEach(this.runOpenAnimation.bind(this))
     this.animateGridHeight(gridFromHeight, this._charObj.gridEl.clientHeight)
+  }
+
+  updateLayout() {
+    this.updateHorizontalLen()
+
+    this.saveRectRec(this._charObj);
+    this.runOpenAnimation(this._charObj)
   }
 
   static css = css`
@@ -511,6 +526,10 @@ position: absolute;
 pointer-events: none;
 left:0;
 top:0;
+/*TODO cleanup*/
+justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 
@@ -536,6 +555,8 @@ height: max-content;
     [cdl="⿱"] > .wrap,
     [cdl="⿳"] > .wrap {
 flex-direction: column;
+justify-content: unset;
+align-items: center;
     }
 
 .character-content > .char-area {

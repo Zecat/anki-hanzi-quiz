@@ -65,14 +65,17 @@ width: 100%;
 min-height: 100%;
 flex:none;
 box-sizing: border-box;
-      padding: 8px;
-padding-top: 0;
+padding: var(--slide-padding);
 }
 
 .slide-wrapper-2 {
         border: 1px solid #dfdfdf;
       background: white;
-overflow: hidden;
+
+overflow: scroll;
+}
+character-morph {
+height: var(--character-morph-height);
 }
     `;
 

@@ -149,8 +149,7 @@ export default class HanziQuiz extends Component {
         state.selectedIdx
       ];
     //morphEl.updateGroupTransform(state.currentComponent)
-    morphEl.updateHorizontalLen()
-
+    morphEl.updateLayout()
     //morphEl.open();
   }
 
@@ -306,7 +305,7 @@ if ('showOpenFilePicker' in window) {
     </div>
 
     <md-tabs
-      id="tab-bar"
+      id="rating-bar"
       @change="this.ratingButtonChange(event)"
       .active-tab-index="{minusone(rating)}"
     >
@@ -322,6 +321,7 @@ if ('showOpenFilePicker' in window) {
   `;
 
   static css = css`
+
 [hidden] {
 display: none !important;
 }
@@ -375,7 +375,7 @@ align-self: center;
       --mdc-theme-on-primary: white;
     }
 
-    #tab-bar {
+    #rating-bar {
       position: fixed;
       bottom: 0;
       width: 100%;
@@ -389,8 +389,32 @@ align-self: center;
     }
 
     #hanzi-slideshow {
+--slide-padding: 0px 8px 8px;
       max-width: 500px;
     }
+
+@media (min-aspect-ratio: 4/3) {
+#after-buttons {
+margin-top: 24px !important;
+}
+#quiz-area, #description {
+margin-right: min(500px,100vh);
+min-height: unset;
+}
+#hanzi-slideshow {
+--character-morph-height: 100vh;
+box-shadow: 0 0 10px #e2e2e2;
+z-index: 1;
+width: 100vh;
+height: 100vh;
+position: fixed;
+right: 0;
+--slide-padding: 0;
+}
+#rating-bar {
+width: calc(100% - min(500px,100vh));
+}
+}
 
     #hanzi-slideshow::before {
       position: absolute;
