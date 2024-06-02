@@ -68,7 +68,7 @@
     "paper": "^0.12.17",
     "parse-cc-cedict": "^2.1.0",
     "path-data-parser": "^0.1.0",
-    "pouic": "file:../../Silvanisations/pouic",
+    "pouic": "file:./src/pouic",
     "svg-inline-loader": "^0.8.2",
     "typedoc": "^0.25.9"
   }
