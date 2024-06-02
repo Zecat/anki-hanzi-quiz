@@ -378,7 +378,6 @@ export default class CharacterMorph extends Component {
   }
 
   updateAllStrokesLayout() {
-    console.log(this)
     if (!this._charObj) return
     const leafComponents = this.getLeafComponents(this._charObj)
     leafComponents.forEach(this.updateCmpStrokesLayout.bind(this))
