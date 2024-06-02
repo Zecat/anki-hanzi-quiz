@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+<style>
+
+#content, body {
+    margin: 0;
+font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    color: black;
+    background-color: white;
+}
+</style>
+
+<link rel="modulepreload" href="/_morphWorker.js">
+<script>
+const queryString = window.location.search;
+// Create a new URLSearchParams object from the query string
+const urlParams = new URLSearchParams(queryString);
+// Get the value of a specific parameter by its name
+const parameterValue = urlParams.get('hanzi');
+document.addEventListener('DOMContentLoaded', function() {
+  const hanziEl = document.createElement('hanzi-quiz')
+  hanziEl.setAttribute('hanzi', parameterValue)
+  document.body.appendChild(hanziEl)
+    hanziEl.setData({
+        description: `Description here`,
+    })
+
+});
+</script>
+
+</html>
