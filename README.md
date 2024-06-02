@@ -1,6 +1,8 @@
-# anki-hanzi-quizz
+# anki-hanzi-quiz
 
-Anki card template to learn Chinese character strokes.
+Anki card template to learn Chinese character strokes, featuring character decomposition. Offline support with included data.
+
+Demo https://zecat.github.io/anki-hanzi-quiz/?hanzi=你好 -> replace with your characters
 
 > This project is a work in progress
 
