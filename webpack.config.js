@@ -4,7 +4,8 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const HtmlWebpackInlineSourcePlugin = require("@effortlessmotion/html-webpack-inline-source-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
-const isProduction = process.env.NODE_ENV == "production";
+const isGhPages = process.env.NODE_ENV == "gh-pages";
+const isProduction = isGhPages || process.env.NODE_ENV == "production";
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 //const HtmlMinimizerPlugin = require("html-minimizer-webpack-plugin");
 
@@ -62,7 +63,7 @@ const config = {
   plugins: isProduction ?  [
     new HtmlWebpackPlugin({
       inject: true,
-      template: "index.html",
+      template: isGhPages ? "index-gh-pages.html" : "index.html",
       inlineSource: "^(?!.*_morphWorker\\.js$).*(js|css)$", // Inline all js and css files
       minify: true,
     }),
@@ -75,7 +76,7 @@ const config = {
 };
 
 module.exports = () => {
-  if (isProduction) {
+  if (isProduction || isGhPages) {
     config.mode = "production";
   } else {
     config.mode = "development";

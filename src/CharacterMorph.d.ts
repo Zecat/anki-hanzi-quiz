@@ -26,8 +26,13 @@ export default class CharacterMorph extends Component {
         toTransform: string;
         prevTransformOrigin: string;
         toTransformOrigin: string;
+        gridEl: HTMLElement;
+        gePrevTransform: string;
+        geToTransform: string;
     };
     getLeafComponents(cmp: InteractiveCharacter, leafComponents?: InteractiveCharacter[]): InteractiveCharacter[];
+    updateCmpStrokesLayout(cmp: InteractiveCharacter): void;
+    updateAllStrokesLayout(): void;
     runOpenAnimation(cmp: InteractiveCharacter): void;
     animateGridHeight(fromHeight: number, toHeight: number): void;
     open(cmp?: InteractiveCharacter): Promise<void>;
