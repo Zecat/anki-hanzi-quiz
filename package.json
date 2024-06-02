@@ -42,7 +42,8 @@
     "lint": "eslint src/ --ext .js,.jsx,.ts,.tsx",
     "test": "jest",
     "test:watch": "jest --watch",
-    "anki": "webpack --mode=production --node-env=production && poetry -C ./scripts/update_anki_template run python ./scripts/update_anki_template/main.py "
+    "anki": "webpack --mode=production --node-env=production && poetry -C ./scripts/update_anki_template run python ./scripts/update_anki_template/main.py ",
+    "build:characters": "node ./scripts/acjk/acjk_dict_to_json.js ./scripts/acjk/dictionaryZhHans.txt ./scripts/acjk/dictionaryZhHans.json ./dist"
   },
   "dependencies": {
     "@material/mwc-icon-button-toggle": "^0.27.0",

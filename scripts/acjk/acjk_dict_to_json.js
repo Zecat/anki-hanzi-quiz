@@ -7,6 +7,29 @@ const makemeahanziGraphics = require('./makemeahanzigraphics.json');
 const makemeahanziDictionnary = require('./makemeahanzidictionnary.json');
 const path = require('path');
 
+function createDirectoryIfNotExistsSync(dirPath) {
+    try {
+        if (!fs.existsSync(dirPath)) {
+            fs.mkdirSync(dirPath);
+            console.log(`Directory ${dirPath} created.`);
+        }
+    } catch (error) {
+        console.error(`Error creating directory ${dirPath}:`, error);
+        exit(1)
+    }
+}
+
+// Check if both input and output file names are provided
+if (process.argv.length !== 5) {
+  console.error("Usage: node script.js input_file output_file character_directory");
+  process.exit(1);
+}
+
+const inputFilePath = process.argv[2];
+const outputFilePath = process.argv[3];
+const charactersFolder = process.argv[4];
+createDirectoryIfNotExistsSync(charactersFolder)
+
 // Path to your CEDICT file
 //const cedictFilePath = './cedict_ts.u8';
 
@@ -259,21 +282,12 @@ const run = async () => {
       }
     }
     fs.writeFileSync(outputFilePath, JSON.stringify(transformedData, null, 2));
-    createFilesFromDictionary(transformedData, "./characters/")
+    createFilesFromDictionary(transformedData, charactersFolder)
     console.log(`Transformed data has been written to ${outputFilePath}`);
     //console.log([...notfound].length,[...notfound].includes("𡨄") )
     //for (const n of notfound)
     //  console.log(n)
   }
-
-  // Check if both input and output file names are provided
-  if (process.argv.length !== 4) {
-    console.error("Usage: node script.js input_file output_file");
-    process.exit(1);
-  }
-
-  const inputFilePath = process.argv[2];
-  const outputFilePath = process.argv[3];
 
   transformFile(inputFilePath, outputFilePath);
 };
