@@ -1,4 +1,4 @@
-import {fetchMedia} from './anki_api'
+import { fetchMedia } from './anki_api'
 import { computeRepartition, rotateStartPathToMedianBottom, StrokeAnalysis } from './uniformPath';
 
 import storage from "localforage";
@@ -22,38 +22,38 @@ export const fetchCharacter = async (char: string) => {
         return storageValue
 
     return fetchMedia(`_${char}.json`)
-    .then((response) => {
-        if (!response.ok) {
-            throw new Error("Dictionnary fetch request was not ok");
-        }
-        return response.json();
-    }).then((data) => {
-        data.character = char
-        if (data.strokes && data.strokes.length && data.medians) {
-            if (data.strokes.length != data.medians.length){
-                console.warn('strokes and medians length do not match for ', data.character)
-            } else {
-                data.strokes = data.strokes.map((stroke: string, i: number) =>
-                rotateStartPathToMedianBottom(stroke, data.medians[i])
-                )
-
-                data.repartition = data.strokes.map((_:any, i: number) => {
-                    try {
-                    return computeRepartition(data.strokes[i],data.medians[i])
-                    } catch(err) {
-                        throw new Error(`char ${char} stroke ${i}: ${err}`);
-                    }
-                })
-
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Dictionnary fetch request was not ok");
             }
-        }
-        storage.setItem(char, data);
-        _cachedChar[char] = data
-        return data
-    })
-    .catch((err) => {
-        throw new Error(char + "Dictionary fetch request failed: " + err);
-    });
+            return response.json();
+        }).then((data) => {
+            data.character = char
+            if (data.strokes && data.strokes.length && data.medians) {
+                if (data.strokes.length != data.medians.length) {
+                    console.warn('strokes and medians length do not match for ', data.character)
+                } else {
+                    data.strokes = data.strokes.map((stroke: string, i: number) =>
+                        rotateStartPathToMedianBottom(stroke, data.medians[i])
+                    )
+
+                    data.repartition = data.strokes.map((_: any, i: number) => {
+                        try {
+                            return computeRepartition(data.strokes[i], data.medians[i])
+                        } catch (err) {
+                            throw new Error(`char ${char} stroke ${i}: ${err}`);
+                        }
+                    })
+
+                }
+            }
+            storage.setItem(char, data);
+            _cachedChar[char] = data
+            return data
+        })
+        .catch((err) => {
+            throw new Error(char + "Dictionary fetch request failed: " + err);
+        });
 
 }
 

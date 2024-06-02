@@ -21,7 +21,7 @@ const initialState: any = {
   strokesVisible: false,
   rating: 4,
   hanziWriters: {},
-  lastFirstOrderCmp : undefined,
+  lastFirstOrderCmp: undefined,
 
   selectCharacterIdx: (idx: number) => {
     state.selectedIdx = idx;
@@ -95,11 +95,11 @@ const initialState: any = {
 export const state = setup(initialState)
 
 observe('selectedIdx', () => {
-    state.lastFirstOrderCmp = undefined
+  state.lastFirstOrderCmp = undefined
 })
 
 observe('hanzi', (newValue: string) => {
 
   const promises = Array.from(newValue).map(getCharacterData)
-  Promise.all(promises).then((data) => state.hanziData =  data.map(d => generateInteractiveCharacter(d)))
+  Promise.all(promises).then((data) => state.hanziData = data.map(d => generateInteractiveCharacter(d)))
 })

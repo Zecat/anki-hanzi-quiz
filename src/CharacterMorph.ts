@@ -177,11 +177,11 @@ export default class CharacterMorph extends Component {
         this.animDuration
       )
 
-    gridEl.animate({
-      transform: [gePrevTransform, geToTransform],
-    },
-      this.animDuration
-    )
+      gridEl.animate({
+        transform: [gePrevTransform, geToTransform],
+      },
+        this.animDuration
+      )
       anim.finished.then(() => {
         if (closedComponents.includes(leafCmp)) {
           targetTransform = toTransform
@@ -373,13 +373,13 @@ export default class CharacterMorph extends Component {
   updateCmpStrokesLayout(cmp: InteractiveCharacter) {
     const { cmpSvgGroup, toTransform, toTransformOrigin } = this.getComponentAnimationParams(cmp)
     if (!cmp.svgGroup) return
-      cmpSvgGroup.style.transform = toTransform
-      cmpSvgGroup.style.transformOrigin = toTransformOrigin
+    cmpSvgGroup.style.transform = toTransform
+    cmpSvgGroup.style.transformOrigin = toTransformOrigin
   }
 
   updateAllStrokesLayout() {
     console.log(this)
-    if(!this._charObj) return
+    if (!this._charObj) return
     const leafComponents = this.getLeafComponents(this._charObj)
     leafComponents.forEach(this.updateCmpStrokesLayout.bind(this))
   }
@@ -444,7 +444,7 @@ export default class CharacterMorph extends Component {
     const savedAnimDuration = this.animDuration
     this.animDuration = Math.min(300, savedAnimDuration) // HACK make animation faster during initial reveal
     this.runOpenAnimation(this._charObj)
-this.animDuration = savedAnimDuration
+    this.animDuration = savedAnimDuration
   }
 
   static css = css`

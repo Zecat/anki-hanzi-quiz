@@ -1,7 +1,7 @@
 import HanziWriter from "hanzi-writer";
 
 import { Component, register, html, css } from 'pouic'
-import {state} from "./state"
+import { state } from "./state"
 
 //import { ComponentDefinition } from "./HanziDesc";
 
@@ -26,31 +26,31 @@ export default class CharacterQuiz extends Component {
   hanzicomponent?: InteractiveCharacter;
 
   cmpMistakeThreshold = 2;
-lastMistakeStrokeNum = -1
+  lastMistakeStrokeNum = -1
   ignoreMistake = false
   hanziWriter: HanziWriter | undefined;
 
-  quizStarted= false
+  quizStarted = false
 
   static get observedAttributes() {
     return ['character', 'active', 'strokes-visible'];
   }
 
- attributeChangedCallback(name: string, _: string, newValue:string|null) {
+  attributeChangedCallback(name: string, _: string, newValue: string | null) {
     if (newValue && newValue[0] == "{")
       return
-   if (name == "strokes-visible")  {
+    if (name == "strokes-visible") {
       newValue != null ? this.hanziWriter?.showOutline() : this.hanziWriter?.hideOutline()
-   }
+    }
     if (name === 'character' && newValue != null) {
       this.createHanziWriter(newValue)
 
-     //this.startQuiz() // TODO security if hanziWriter not yet created
+      //this.startQuiz() // TODO security if hanziWriter not yet created
     }
-   if (name == "active" && newValue != null && !this.quizStarted) {
-     this.startQuiz() // TODO security if hanziWriter not yet created
-     this.quizStarted = true
-   }
+    if (name == "active" && newValue != null && !this.quizStarted) {
+      this.startQuiz() // TODO security if hanziWriter not yet created
+      this.quizStarted = true
+    }
 
   }
 
@@ -58,25 +58,25 @@ lastMistakeStrokeNum = -1
     //await this.updateComplete;
     const target = this.shadowRoot;
 
-     this.hanziWriter = HanziWriter.create(
+    this.hanziWriter = HanziWriter.create(
       <HTMLElement>(<unknown>target),
       hanzi,
       {
-//strokeFadeDuration: 0,
-        charDataLoader: (char, onComplete) => {fetchCharacter(char).then(onComplete)},
+        //strokeFadeDuration: 0,
+        charDataLoader: (char, onComplete) => { fetchCharacter(char).then(onComplete) },
         showCharacter: false,
         showHintAfterMisses: 1,
         highlightOnComplete: false,
         showOutline: false,
-      onMistake: this.onMistake.bind(this),
-      onCorrectStroke: this.onCorrectStroke.bind(this),
-padding: 10,
+        onMistake: this.onMistake.bind(this),
+        onCorrectStroke: this.onCorrectStroke.bind(this),
+        padding: 10,
         //renderer: "canvas",
         ...this.options,
       },
     );
 
-state.hanziWriters[hanzi] = this.hanziWriter
+    state.hanziWriters[hanzi] = this.hanziWriter
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -106,7 +106,7 @@ state.hanziWriters[hanzi] = this.hanziWriter
   startQuiz(quizStartStrokeNum: number = 0) {
     if (!this.hanziWriter) return;
     const c = state.getCurrentHanziWriter()
-let tmpDuration:number
+    let tmpDuration: number
     if (quizStartStrokeNum && c) {
       tmpDuration = c._options.strokeFadeDuration
       c._options.strokeFadeDuration = 0
@@ -114,25 +114,25 @@ let tmpDuration:number
 
     this.hanziWriter.quiz({
       quizStartStrokeNum,
-leniency: 1.45
+      leniency: 1.45
     });
 
     setTimeout(() => {
-    const c = state.getCurrentHanziWriter()
-    if (quizStartStrokeNum && c)
-      c._options.strokeFadeDuration = tmpDuration
-    },0)
+      const c = state.getCurrentHanziWriter()
+      if (quizStartStrokeNum && c)
+        c._options.strokeFadeDuration = tmpDuration
+    }, 0)
 
 
   }
 
 
-  checkCompleteRec(cmp:any) {
+  checkCompleteRec(cmp: any) {
     const parent = cmp.parent
 
-    if(!parent)
+    if (!parent)
       return
-    if(parent.components.every((cmp: any) => cmp.complete))
+    if (parent.components.every((cmp: any) => cmp.complete))
       parent.complete = true
     this.checkCompleteRec(parent)
   }
@@ -142,28 +142,28 @@ leniency: 1.45
       state.resetComponentMistakes(cmp)
       this.ignoreMistake = true
       // Wait a bit so the final stroke can be seen before requizing
-      setTimeout(()=> {
+      setTimeout(() => {
         const firstIdx = getComponentAbsoluteFirstIndex(cmp)
         this.startQuiz(firstIdx);
         this.ignoreMistake = false
 
-    state.lastFirstOrderCmp = undefined
+        state.lastFirstOrderCmp = undefined
       }, 600)
       return false
     }
     return true
   }
 
-  hasIntermediateCmpParent(cmp: InteractiveCharacter):boolean {
+  hasIntermediateCmpParent(cmp: InteractiveCharacter): boolean {
     if (!cmp.parent)
       return false
-    if (!cmp.parent.data.pinyin || !cmp.parent.data.definition){
+    if (!cmp.parent.data.pinyin || !cmp.parent.data.definition) {
       return this.hasIntermediateCmpParent(cmp.parent)
     }
     return true
   }
 
-  isFirstOrderCmp(cmp: InteractiveCharacter):boolean {
+  isFirstOrderCmp(cmp: InteractiveCharacter): boolean {
     if (!cmp.data.pinyin || !cmp.data.definition)
       return false
     if (cmp.parent && !cmp.parent.parent)
@@ -171,7 +171,7 @@ leniency: 1.45
     return this.hasIntermediateCmpParent(cmp)
   }
 
-  onCorrectStrokeForCmpRec(strokeIdx:number, cmp:InteractiveCharacter) {
+  onCorrectStrokeForCmpRec(strokeIdx: number, cmp: InteractiveCharacter) {
 
     const cmpNoProxy = (cmp as any).__target as InteractiveCharacter // HACK
     const [_, lastIdx] = getComponentAbsoluteIndexes(cmpNoProxy)
@@ -194,7 +194,7 @@ leniency: 1.45
         setTimeout(() => {
           const a: any = document.querySelector('#hanziquiz')
           a.decomposeCharacter()
-        // HACK show definition when character finished drawing
+          // HACK show definition when character finished drawing
         }, 300)
         return true
       }
@@ -206,12 +206,12 @@ leniency: 1.45
     if (!this.hanziWriter || !this.hanzicomponent)
       return
     const strokeIdx = strokeData.strokeNum;
-    const cmp = strokeIdxToCmp(this.hanzicomponent,strokeIdx);
+    const cmp = strokeIdxToCmp(this.hanzicomponent, strokeIdx);
     this.onCorrectStrokeForCmpRec(strokeIdx, cmp)
 
   }
 
-incrementMistakeRec(cmp: InteractiveCharacter) {
+  incrementMistakeRec(cmp: InteractiveCharacter) {
     cmp.mistakeCount++;
     if (cmp.parent)
       this.incrementMistakeRec(cmp.parent)
@@ -225,12 +225,12 @@ incrementMistakeRec(cmp: InteractiveCharacter) {
     this.lastMistakeStrokeNum = strokeData.strokeNum
 
     // TODO typing
-    const cmp = strokeIdxToCmp(this.hanzicomponent,strokeData.strokeNum);
-    state.rating = Math.max(1, state.rating-1);
+    const cmp = strokeIdxToCmp(this.hanzicomponent, strokeData.strokeNum);
+    state.rating = Math.max(1, state.rating - 1);
     this.incrementMistakeRec(cmp)
   }
 
-	static css = css`
+  static css = css`
       :host {
         position: relative;
         display: block;
@@ -260,7 +260,7 @@ stroke-linejoin:round;/*TODO probably useless*/
 }
     `;
 
-	static template = html`
+  static template = html`
           <svg
             xmlns="http://www.w3.org/2000/svg"
             id="grid-background-target"

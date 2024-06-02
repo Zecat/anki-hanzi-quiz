@@ -41,14 +41,14 @@ export default class HanziQuiz extends Component {
     // HACK Fix md-outline-button style
     const buttons = this.shadowRoot.querySelectorAll('md-outlined-button')
     setTimeout(() => {
-    for(const button of [...buttons]) {
-      const backgroundEl = button.shadowRoot.querySelector('.background');
-      const outlineEl = button.shadowRoot.querySelector('.outline');
-      if (!backgroundEl || !outlineEl)
-        continue
-       backgroundEl.style.background = "white";
-       outlineEl.style.zIndex = "1";
-    }
+      for (const button of [...buttons]) {
+        const backgroundEl = button.shadowRoot.querySelector('.background');
+        const outlineEl = button.shadowRoot.querySelector('.outline');
+        if (!backgroundEl || !outlineEl)
+          continue
+        backgroundEl.style.background = "white";
+        outlineEl.style.zIndex = "1";
+      }
     }, 0)
   }
 
@@ -119,8 +119,8 @@ export default class HanziQuiz extends Component {
     if (!state.currentComponent.decompositionVisible) {
       this.decomposeCharacter();
     } else if (!state.currentComponent.opened)
-        state.currentComponent.decompositionVisible = false
-      else
+      state.currentComponent.decompositionVisible = false
+    else
       this.reassembleCharacter();
   }
 
@@ -129,7 +129,7 @@ export default class HanziQuiz extends Component {
     const slideshow = this.shadowRoot.getElementById("hanzi-slideshow");
     const morphEl =
       slideshow.shadowRoot.querySelectorAll("character-morph")[
-        state.selectedIdx
+      state.selectedIdx
       ];
     morphEl.reassemble();
     if (!morphEl.openedList.length) {
@@ -146,7 +146,7 @@ export default class HanziQuiz extends Component {
     const slideshow = this.shadowRoot.getElementById("hanzi-slideshow");
     const morphEl =
       slideshow.shadowRoot.querySelectorAll("character-morph")[
-        state.selectedIdx
+      state.selectedIdx
       ];
     //morphEl.updateGroupTransform(state.currentComponent)
     morphEl.updateLayout()
@@ -165,10 +165,10 @@ export default class HanziQuiz extends Component {
 
   openFilePicker() {
 
-if ('showOpenFilePicker' in window) {
-    // The File System Access API is supported
-  (window.showOpenFilePicker as any)()
-}
+    if ('showOpenFilePicker' in window) {
+      // The File System Access API is supported
+      (window.showOpenFilePicker as any)()
+    }
   }
 
   static template = html`
