@@ -392,6 +392,7 @@ align-self: center;
 --slide-padding: 0px 8px 8px;
       max-width: 500px;
 
+--slide-wrapper-overflow: unset;
 --slide-border: 1px solid #dfdfdf;
     }
 
@@ -404,8 +405,8 @@ margin-right: min(500px,100vh);
 min-height: unset;
 }
 #hanzi-slideshow {
---character-morph-height: 100vh;
 --slide-border: none;
+--slide-wrapper-overflow: scroll;
 --character-quiz-border-bottom: 1px solid #dfdfdf;
 border-left: 1px solid #dfdfdf;
 box-shadow: 0 0 10px #e2e2e2;

@@ -184,17 +184,19 @@ leniency: 1.45
       if (this.isFirstOrderCmp(cmp)) {
         state.lastFirstOrderCmp = cmp;
       }
-        if (!cmp.parent || this.onCorrectStrokeForCmpRec(strokeIdx, cmp.parent) ){
-      cmp.complete = true // TODO this is weird
-      //this.checkCompleteRec(cmp)
-      // HACK trigger proxy update
-      if (state.currentComponent.complete)
-        state.currentComponent.complete = true
+      if (!cmp.parent || this.onCorrectStrokeForCmpRec(strokeIdx, cmp.parent)) {
+        cmp.complete = true // TODO this is weird
+        //this.checkCompleteRec(cmp)
+        // HACK trigger proxy update
+        if (state.currentComponent.complete)
+          state.currentComponent.complete = true
 
-      // HACK show definition on caracter finished
-      const a : any= document.querySelector('#hanziquiz')
-        a.decomposeCharacter()
-      return true
+        setTimeout(() => {
+          const a: any = document.querySelector('#hanziquiz')
+          a.decomposeCharacter()
+        // HACK show definition when character finished drawing
+        }, 300)
+        return true
       }
     }
     return false

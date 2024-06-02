@@ -25,10 +25,12 @@ export default class CharacterMorph extends Component {
     this.animation = undefined;
     this.characterInterpolator = undefined;
     this.svgEl = this.shadowRoot.getElementById('svg')
+    // TODO pouic repeat binding creates duplicates of the components
   }
 
   onResize() {
     this.updateHorizontalLen()
+    this.updateAllStrokesLayout()
   }
 
   connectedCallback() {
@@ -167,13 +169,19 @@ export default class CharacterMorph extends Component {
 
     let targetTransformOrigin: string, targetTransform: string
     const animPromises = leafComponents.map((leafCmp: InteractiveCharacter) => {
-      const { cmpSvgGroup, prevTransform, toTransform, prevTransformOrigin, toTransformOrigin } = this.getComponentAnimationParams(leafCmp)
+      const { cmpSvgGroup, prevTransform, toTransform, prevTransformOrigin, toTransformOrigin, gridEl, gePrevTransform, geToTransform } = this.getComponentAnimationParams(leafCmp)
       const anim = cmpSvgGroup.animate({
         transform: [prevTransform, toTransform],
         transformOrigin: [prevTransformOrigin, toTransformOrigin]
       },
         this.animDuration
       )
+
+    gridEl.animate({
+      transform: [gePrevTransform, geToTransform],
+    },
+      this.animDuration
+    )
       anim.finished.then(() => {
         if (closedComponents.includes(leafCmp)) {
           targetTransform = toTransform
@@ -337,16 +345,15 @@ export default class CharacterMorph extends Component {
     const toTransform = `scale(${String(r2)})`
     const toTransformOrigin = `${d} ${toY}px`
 
-    ge.animate({
-      transform: [`scale(${String(r)}) translate(${shiftX}px, ${-(geT - pgeT) / r}px)`, `scale(1) translate(0px, 0px)`],
-    },
-      this.animDuration
-    )
+    const gePrevTransform = `scale(${String(r)}) translate(${shiftX}px, ${-(geT - pgeT) / r}px)`;
+    const geToTransform = `scale(1) translate(0px, 0px)`
 
     const animParam = {
       cmpSvgGroup,
       prevTransform, toTransform,
-      prevTransformOrigin, toTransformOrigin
+      prevTransformOrigin, toTransformOrigin,
+      gridEl: ge,
+      gePrevTransform, geToTransform
     }
 
     return animParam
@@ -363,13 +370,33 @@ export default class CharacterMorph extends Component {
 
   }
 
+  updateCmpStrokesLayout(cmp: InteractiveCharacter) {
+    const { cmpSvgGroup, toTransform, toTransformOrigin } = this.getComponentAnimationParams(cmp)
+    if (!cmp.svgGroup) return
+      cmpSvgGroup.style.transform = toTransform
+      cmpSvgGroup.style.transformOrigin = toTransformOrigin
+  }
+
+  updateAllStrokesLayout() {
+    console.log(this)
+    if(!this._charObj) return
+    const leafComponents = this.getLeafComponents(this._charObj)
+    leafComponents.forEach(this.updateCmpStrokesLayout.bind(this))
+  }
+
   runOpenAnimation(cmp: InteractiveCharacter) {
 
-    const { cmpSvgGroup, prevTransform, toTransform, prevTransformOrigin, toTransformOrigin } = this.getComponentAnimationParams(cmp)
+    const { cmpSvgGroup, prevTransform, toTransform, prevTransformOrigin, toTransformOrigin, gridEl, gePrevTransform, geToTransform } = this.getComponentAnimationParams(cmp)
     //cmpSvgGroup.style.transformOrigin = toTransform
     const anim = cmpSvgGroup.animate({
       transform: [prevTransform, toTransform],
       transformOrigin: [prevTransformOrigin, toTransformOrigin]
+    },
+      this.animDuration
+    )
+
+    gridEl.animate({
+      transform: [gePrevTransform, geToTransform],
     },
       this.animDuration
     )
@@ -414,7 +441,10 @@ export default class CharacterMorph extends Component {
     this.updateHorizontalLen()
 
     this.saveRectRec(this._charObj);
+    const savedAnimDuration = this.animDuration
+    this.animDuration = Math.min(300, savedAnimDuration) // HACK make animation faster during initial reveal
     this.runOpenAnimation(this._charObj)
+this.animDuration = savedAnimDuration
   }
 
   static css = css`
@@ -423,6 +453,9 @@ export default class CharacterMorph extends Component {
 position: relative;
     margin-bottom: 20px;
 width: 100%;
+/*HACK*/
+justify-content: center;
+  display: flex;
 }
 
 /*HACK no opacity transiiton to prevent jump*/

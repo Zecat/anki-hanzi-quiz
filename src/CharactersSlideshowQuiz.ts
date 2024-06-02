@@ -72,10 +72,8 @@ padding: var(--slide-padding);
       background: white;
 
 border: var(--slide-border);
-overflow: scroll;
-}
-character-morph {
-height: var(--character-morph-height);
+overflow: var(--slide-wrapper-overflow);
+height: 100%;
 }
 character-quiz {
 border-bottom: var(--character-quiz-border-bottom); /* HACK */
