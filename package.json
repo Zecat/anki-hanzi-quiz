@@ -45,7 +45,7 @@
   "dependencies": {
     "@material/mwc-icon-button-toggle": "^0.27.0",
     "@material/web": "^1.5.0",
-    "bezier-intersect": "file:../bezier-intersect",
+    "bezier-intersect": "github:Zecat/bezier-intersect#master",
     "bezier-js": "^6.1.4",
     "eslint": "^9.4.0",
     "express": "^4.19.2",

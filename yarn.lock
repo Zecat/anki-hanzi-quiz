@@ -2132,9 +2132,9 @@ before-after-hook@^2.2.0:
   resolved "https://registry.npmjs.org/before-after-hook/-/before-after-hook-2.2.3.tgz"
   integrity sha512-NzUnlZexiaH/46WDhANlyR2bXRopNg4F/zuSA3OpZnllCUgRaOF2znDioDWrmbNVsuZk6l9pMquQB38cfBZwkQ==
 
-"bezier-intersect@file:../bezier-intersect":
+"bezier-intersect@github:Zecat/bezier-intersect#master":
   version "0.0.3"
-  resolved "file:../bezier-intersect"
+  resolved "git+ssh://git@github.com/Zecat/bezier-intersect.git#a86b2512cf5971eba81acaa90d0c98c577be99c3"
 
 bezier-js@^6.1.4:
   version "6.1.4"
