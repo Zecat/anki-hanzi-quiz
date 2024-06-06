@@ -7,21 +7,33 @@ import { getCharacterData } from './decompose'
 
 import { cleanDescription, cleanPinyin, getPinyinTone, cleanAndGetPinyinTone } from './processData'
 import { InteractiveCharacter, generateInteractiveCharacter } from './InteractiveCharacter'
-
-
+import { getAnkiCardType } from './anki_api'
 
 const initialState: any = {
-  vaar: 'initial',
+  ankiCardType: -2, // indicating unfetched
   minusone: (a: any) => a - 1,
   equal: (a: any, b: any) => a === b,
   hanzi: '',
-  toto: false,
   hanziData: [],
   selectedIdx: 0,
   strokesVisible: false,
   rating: 4,
   hanziWriters: {},
   lastFirstOrderCmp: undefined,
+  sentences: [],
+  sentence: "",
+
+  pinyinAsQuestion: computedProperty(['ankiCardType', 'sentence'], function (ankiCardType: number, sentence: string) {
+    return ankiCardType == 2 && sentence // 2 for card state 'review' // TODO create enum
+  }),
+
+  sentenceDisplayed: computedProperty(['sentences.length'], function (sentencesCount: number) {
+    return sentencesCount > 0
+  }),
+
+  canChangeSentence: computedProperty(['sentences.length'], function (sentencesCount: number) {
+    return sentencesCount > 1
+  }),
 
   selectCharacterIdx: (idx: number) => {
     state.selectedIdx = idx;
@@ -33,12 +45,9 @@ const initialState: any = {
   cleanAndGetPinyinTone,
 
   prev: () => {
-    //document.querySelector('hanzi-quiz')?.reassembleCharacter()
     state.selectedIdx = Math.max(0, state.selectedIdx - 1)
   },
   next: () => {
-    //document.querySelector('hanzi-quiz')?.reassembleCharacter()
-
     state.selectedIdx = Math.min(state.hanziData.length - 1, state.selectedIdx + 1)
   },
 
@@ -99,7 +108,10 @@ observe('selectedIdx', () => {
 })
 
 observe('hanzi', (newValue: string) => {
-
   const promises = Array.from(newValue).map(getCharacterData)
   Promise.all(promises).then((data) => state.hanziData = data.map(d => generateInteractiveCharacter(d)))
+})
+
+getAnkiCardType().then((type:number) => {
+  state.ankiCardType = type
 })

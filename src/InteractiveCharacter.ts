@@ -19,6 +19,7 @@ export type InteractiveCharacter = {
   components: InteractiveCharacter[];
   decompositionVisible: boolean;// TODO move this
   prevRect: any;
+  pinyinForceReveal: boolean;
   //morph: any
 }
 
@@ -53,6 +54,7 @@ export const _getEmptyInteractiveCharacter = (data: CharacterData, parent: Inter
     prevRect: undefined,
     charContentEl: undefined,
     charAreaEl: undefined,
+  pinyinForceReveal: false
     //morph: undefined
   }
 }

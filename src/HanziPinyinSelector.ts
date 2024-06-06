@@ -16,6 +16,7 @@ import { state } from "./state";
 import { MdTabs } from "@material/web/tabs/tabs.js";
 
 import { Component, register, html, css } from "pouic";
+import { cleanPinyin } from "./processData";
 
 export default class HanziPinyinSelector extends Component {
   onActiveTabIndexChange(e: CustomEvent): void {
@@ -23,6 +24,17 @@ export default class HanziPinyinSelector extends Component {
     const tabIndex = tabsEl.activeTabIndex;
     if (tabIndex !== state.selectedIdx)
       state.selectedIdx = tabIndex
+  }
+
+  onTabClick(index: number): void {
+      if (state.selectedIdx == index)
+        state.hanziData[index].pinyinForceReveal = true
+  }
+
+  getPinyinText (strArr: string[] | undefined, complete: boolean, pinyinAsQuestion: boolean, pinyinForceReveal: boolean): string {
+    if (!pinyinForceReveal && pinyinAsQuestion && !complete)
+      return "?"
+    return cleanPinyin(strArr)
   }
 
   static template = html`
@@ -34,7 +46,7 @@ id="tabs"
         index-as="index"
        .active-tab-index="{selectedIdx}"
 >
-  <md-primary-tab selected="{!index}">
+  <md-primary-tab selected="{!index}" @click="this.onTabClick(index)">
             <character-anim
               slot="icon"
               character="{char.data.character}"
@@ -47,7 +59,7 @@ id="tabs"
               tone="{cleanAndGetPinyinTone(char.data.pinyin)}"
               big="{!char.complete}"
             >
-              {cleanPinyin(char.data.pinyin)}
+              {this.getPinyinText(char.data.pinyin,char.complete,pinyinAsQuestion,char.pinyinForceReveal)}
             </div>
 </md-primary-tab>
 </md-tabs>

@@ -23,15 +23,9 @@ import { InteractiveCharacter } from "./InteractiveCharacter";
 export default class HanziQuiz extends Component {
   strokesVisible = false;
 
-  pinyin = "";
-
   hanziWriter: HanziWriter | undefined;
 
   nextCharIdx = 0;
-
-  description = "";
-
-
 
   static get observedAttributes() {
     return ["hanzi"];
@@ -58,20 +52,27 @@ export default class HanziQuiz extends Component {
     }
   }
 
-  getOcclusedDescription(description: string, uncompleteHanzi: string): string {
-    const occlused = description.replace(
-      new RegExp("[" + uncompleteHanzi + "]", "g"),
-      "?",
-    );
-    return occlused;
+  updateOcclusedDescription(description: string, hanzi: string, currentComponentCompleted: boolean): void {
+    if (!description)
+      return
+    if (!hanzi)
+      return
+    if(currentComponentCompleted === undefined)
+      return
+    const uncompletedHanzi = this.getUncompletedHanzi()
+
+    let regex = new RegExp(`[${uncompletedHanzi}]`, 'g');
+
+    const occlused = description.replace(regex,"＿");
+
+    this.shadowRoot.getElementById("description").innerHTML = occlused
   }
 
-  updateOcclusedDescription(): void {
-    const uncompleteHanzi = state.hanziData
+  getUncompletedHanzi(): string {
+    // HACK
+   return state.hanziData
       .filter((charObj: InteractiveCharacter) => !charObj.complete)
       .map((charObj: InteractiveCharacter) => charObj.data.character);
-    this.shadowRoot.getElementById("description").innerHTML =
-      this.getOcclusedDescription(this.description, uncompleteHanzi);
   }
 
   get nextCharacter(): string {
@@ -80,10 +81,15 @@ export default class HanziQuiz extends Component {
     return this.hanzi[i];
   }
 
+  changeSentence(): void {
+    if (state.sentences.length)
+      state.sentence = state.sentences[Math.floor(Math.random() * state.sentences.length)]
+  }
+
   setData(data: any) { // TODO better typing
-    //this.shadowRoot.getElementById("pinyin").setAttribute data.pinyin;
-    this.description = data.description;
-    this.updateOcclusedDescription();
+    state.sentences = data.sentences ? data.sentences.split('|') : []
+    state.description = data.description;
+    this.changeSentence()
   }
 
   onVisibilityButtonTapped(e: CustomEvent): void {
@@ -169,6 +175,21 @@ export default class HanziQuiz extends Component {
       // The File System Access API is supported
       (window.showOpenFilePicker as any)()
     }
+  }
+
+  getOcclusedSentence(sentence:string, hanzi:string, currentComponentCompleted: boolean) {
+    if (!sentence)
+      return ""
+    if (!hanzi)
+      return sentence
+    if(currentComponentCompleted === undefined)
+      return
+    const uncompletedHanzi = this.getUncompletedHanzi()
+    let regex = new RegExp(`[${uncompletedHanzi}]`, 'g');
+
+    // HACK
+    this.updateOcclusedDescription(state.description, hanzi, currentComponentCompleted)
+    return sentence.replace(regex, '＿');
   }
 
   static template = html`
@@ -278,7 +299,22 @@ export default class HanziQuiz extends Component {
           >Next</md-filled-button
         >
       </div>
-
+      <div id="sentence" hidden="{!sentenceDisplayed}">
+        <div id="sentence-text">{this.getOcclusedSentence(sentence,hanzi,currentComponent.complete)}</div>
+        <md-icon-button @click="this.changeSentence()" hidden="{!canChangeSentence}">
+          <md-icon>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px">
+              <path
+                fill="currentColor"
+                d="M440-122q-121-15-200.5-105.5T160-440q0-66 26-126.5T260-672l57 57q-38 34-57.5 79T240-440q0 88 56 155.5T440-202v80Zm80 0v-80q87-16 143.5-83T720-440q0-100-70-170t-170-70h-3l44 44-56 56-140-140 140-140 56 56-44 44h3q134 0 227 93t93 227q0 121-79.5 211.5T520-122Z"/>
+              </svg>
+          </md-icon>
+        </md-icon-button>
+      </div>
       <div id="character-def" hidden="{!currentComponent.complete}">
         {currentComponent.definition}
       </div>
@@ -496,6 +532,25 @@ bottom: 50px;
     [tone="5"] {
       color: grey;
     }
+    .pinyin-occlused {
+      color: black; /*TODO primary text color var*/
+    }
+
+#sentence {
+display: flex;
+font-size: 22px;
+border: 1px solid #d1d1d1;
+  border-radius: 16px;
+  background: white;
+margin: 0 12px;
+padding: 0 12px;
+line-height: 45px;
+}
+
+#sentence-text {
+flex: 1;
+}
+
   `;
 }
 

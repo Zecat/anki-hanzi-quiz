@@ -14,16 +14,15 @@ import HanziWriter from "hanzi-writer";
 import { Component } from "pouic";
 export default class HanziQuiz extends Component {
     strokesVisible: boolean;
-    pinyin: string;
     hanziWriter: HanziWriter | undefined;
     nextCharIdx: number;
-    description: string;
     static get observedAttributes(): string[];
     connectedCallback(): void;
     attributeChangedCallback(name: string, _: string, newValue: string): void;
-    getOcclusedDescription(description: string, uncompleteHanzi: string): string;
-    updateOcclusedDescription(): void;
+    updateOcclusedDescription(description: string, hanzi: string, currentComponentCompleted: boolean): void;
+    getUncompletedHanzi(): string;
     get nextCharacter(): string;
+    changeSentence(): void;
     setData(data: any): void;
     onVisibilityButtonTapped(e: CustomEvent): void;
     next(): void;
@@ -35,6 +34,7 @@ export default class HanziQuiz extends Component {
     getDecompsitionText(opened: boolean): "Recompose" | "Decompose";
     getPlecoLink(hanzi: string): string;
     openFilePicker(): void;
+    getOcclusedSentence(sentence: string, hanzi: string, currentComponentCompleted: boolean): string | undefined;
     static template: any;
     static css: any;
 }
