@@ -29,7 +29,10 @@ export default class CharacterMorph extends Component {
   }
 
   onResize() {
+    if (!this._charObj || !this._charObj.prevRect) // HACK
+      return
     this.updateHorizontalLen()
+    this.saveRectRec(this._charObj);
     this.updateAllStrokesLayout()
   }
 
