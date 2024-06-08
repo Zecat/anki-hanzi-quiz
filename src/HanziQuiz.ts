@@ -26,6 +26,7 @@ export default class HanziQuiz extends Component {
   hanziWriter: HanziWriter | undefined;
 
   nextCharIdx = 0;
+lastSentenceIdx = -1
 
   static get observedAttributes() {
     return ["hanzi"];
@@ -82,8 +83,14 @@ export default class HanziQuiz extends Component {
   }
 
   changeSentence(): void {
-    if (state.sentences.length)
-      state.sentence = state.sentences[Math.floor(Math.random() * state.sentences.length)]
+    if (!state.sentences.length) return
+    let idx;
+    do {
+        idx =  Math.floor(Math.random() * state.sentences.length)
+    } while(idx === this.lastSentenceIdx)
+    this.lastSentenceIdx = idx
+    const sentence = state.sentences[idx]
+    state.sentence = sentence.replace(/\s/g, '');
   }
 
   setData(data: any) { // TODO better typing
