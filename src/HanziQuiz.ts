@@ -201,6 +201,7 @@ lastSentenceIdx = -1
 
   static template = html`
     <div id="quiz-area">
+
       <div id="top-bar">
         <hanzi-pinyin-selector id="char-title"></hanzi-pinyin-selector>
         <div style="flex: 1"></div>
@@ -289,6 +290,24 @@ lastSentenceIdx = -1
       <characters-slideshow-quiz
         id="hanzi-slideshow"
       ></characters-slideshow-quiz>
+
+      <div id="sentence" hidden="{!sentenceDisplayed}">
+        <div id="sentence-text">{this.getOcclusedSentence(sentence,hanzi,currentComponent.complete)}</div>
+        <md-icon-button @click="this.changeSentence()" hidden="{!canChangeSentence}">
+          <md-icon>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px">
+              <path
+                fill="currentColor"
+                d="M440-122q-121-15-200.5-105.5T160-440q0-66 26-126.5T260-672l57 57q-38 34-57.5 79T240-440q0 88 56 155.5T440-202v80Zm80 0v-80q87-16 143.5-83T720-440q0-100-70-170t-170-70h-3l44 44-56 56-140-140 140-140 56 56-44 44h3q134 0 227 93t93 227q0 121-79.5 211.5T520-122Z"/>
+              </svg>
+          </md-icon>
+        </md-icon-button>
+      </div>
+
       <div id="after-buttons">
         <md-outlined-button
           reveal="{currentComponent.complete}"
@@ -305,22 +324,6 @@ lastSentenceIdx = -1
         <md-filled-button reveal="{complete}" @click="this.next()"
           >Next</md-filled-button
         >
-      </div>
-      <div id="sentence" hidden="{!sentenceDisplayed}">
-        <div id="sentence-text">{this.getOcclusedSentence(sentence,hanzi,currentComponent.complete)}</div>
-        <md-icon-button @click="this.changeSentence()" hidden="{!canChangeSentence}">
-          <md-icon>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              height="24px"
-              viewBox="0 -960 960 960"
-              width="24px">
-              <path
-                fill="currentColor"
-                d="M440-122q-121-15-200.5-105.5T160-440q0-66 26-126.5T260-672l57 57q-38 34-57.5 79T240-440q0 88 56 155.5T440-202v80Zm80 0v-80q87-16 143.5-83T720-440q0-100-70-170t-170-70h-3l44 44-56 56-140-140 140-140 56 56-44 44h3q134 0 227 93t93 227q0 121-79.5 211.5T520-122Z"/>
-              </svg>
-          </md-icon>
-        </md-icon-button>
       </div>
       <div id="character-def" hidden="{!currentComponent.complete}">
         {currentComponent.definition}
@@ -425,6 +428,7 @@ align-self: center;
       width: 100%;
       --mdc-tab-horizontal-padding: 0px;
       background: white;
+      border-top: 1px solid #ebebeb;
     }
 
     #char-title {
@@ -546,12 +550,20 @@ bottom: 50px;
 #sentence {
 display: flex;
 font-size: 22px;
-border: 1px solid #d1d1d1;
+
+/*
+  border: 1px solid #d1d1d1;
   border-radius: 16px;
+*/
+
   background: white;
-margin: 0 12px;
-padding: 0 12px;
+
+padding: 20px 12px;
 line-height: 45px;
+    margin-bottom: 22px;
+background: white;
+    border-bottom: 1px solid #e9e9e9;
+    border-top: 1px solid #e9e9e9;
 }
 
 #sentence-text {
