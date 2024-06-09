@@ -70,20 +70,60 @@ import {Bezier}  from 'bezier-js'
 //
 //}
 
-const bezierToPtArr=(b: any)=> { // TODO typing
-    const p = b.points
-    return [p[0].x,p[0].y,p[1].x,p[1].y,p[2].x,p[2].y]
+//const bezierToPtArr=(b: any)=> { // TODO typing
+//    const p = b.points
+//    return [p[0].x,p[0].y,p[1].x,p[1].y,p[2].x,p[2].y]
+//}
+
+type Point = [number, number];
+
+function interpolate(p0: Point, p1: Point, t: number): Point {
+    return [
+        (1 - t) * p0[0] + t * p1[0],
+        (1 - t) * p0[1] + t * p1[1]
+    ];
+}
+
+// casteljau algorithm
+function splitBezier(p0: Point, p1: Point, p2: Point, p3: Point, t: number): { left: Point[], right: Point[] } {
+    const q0 = interpolate(p0, p1, t);
+    const q1 = interpolate(p1, p2, t);
+    const q2 = interpolate(p2, p3, t);
+
+    const r0 = interpolate(q0, q1, t);
+    const r1 = interpolate(q1, q2, t);
+
+    const s = interpolate(r0, r1, t);
+
+    const left = [q0, r0, s];
+
+    const right = [r1, q2, p3];
+
+    return { left, right };
 }
 
 const splitSegment = (start: [number, number],seg: Segment, t: number) => {
     if (seg.key != 'C')
         throw new Error('Invalid segment, should be cubic')
-    const bez = new Bezier(...start,...seg.data);
-    const {left, right} = bez.split(t)
+    const p0 = start as Point;
+    const p1 = [seg.data[0],seg.data[1]] as Point
+    const p2 = [seg.data[2],seg.data[3]] as Point
+    const p3 = [seg.data[4],seg.data[5]] as Point
+    const a = splitBezier(p0, p1, p2, p3, t)
 
-    const leftSeg = {key: 'C', data: bezierToPtArr(left)}
-    const rightSeg = {key: 'C', data: bezierToPtArr(right)}
+    const leftSeg = {key: 'C', data: a.left.flat()}
+    const rightSeg = {key: 'C', data: a.right.flat()}
     return [leftSeg, rightSeg]
+
+    //const bez = new Bezier(...start,...seg.data);
+    //const {left, right} = bez.split(t)
+    //console.log('=>', left, right)
+
+    ////return [p[0].x,p[0].y,p[1].x,p[1].y,p[2].x,p[2].y]
+
+    //const leftSeg = {key: 'C', data: bezierToPtArr(left)}
+    //const rightSeg = {key: 'C', data: bezierToPtArr(right)}
+    //return [leftSeg, rightSeg]
 }
 
 //export const makeUniformOld = (pStr1: string, pStr2:string) => {
