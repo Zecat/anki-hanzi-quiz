@@ -478,7 +478,11 @@ opacity: 0;
 
 .character-content > .pinyin,
 .character-content > .description {
-transition: opacity 0.3s;
+transition: opacity 1s;
+@starting-style {
+ opacity: 0;
+}
+opacity: 1;
 
 }
 

@@ -71,6 +71,9 @@ export default class CharacterQuiz extends Component {
         onMistake: this.onMistake.bind(this),
         onCorrectStroke: this.onCorrectStroke.bind(this),
         padding: 10,
+drawingFadeDuration: 1000,
+strokeHighlightDuration: 1000,
+strokeFadeDuration: 500,
         //renderer: "canvas",
         ...this.options,
       },
@@ -202,6 +205,45 @@ export default class CharacterQuiz extends Component {
     return false
   }
 
+calculateCumulativeDistances(path: [number, number][]): number[] {
+    const distances: number[] = path.map((point, index, array) => {
+        if (index === 0) return 0;
+        const dx = point[0] - array[index - 1][0];
+        const dy = point[1] - array[index - 1][1];
+        return Math.sqrt(dx * dx + dy * dy);
+    });
+    return distances.reduce((acc: number[], dist) => {
+        acc.push((acc.length > 0 ? acc[acc.length - 1] : 0) + dist);
+        return acc;
+    }, []);
+}
+
+interpolatePath(pathA: [number, number][], pathB: [number, number][]): [number, number][] {
+    const cumulativeDistA = this.calculateCumulativeDistances(pathA);
+    const cumulativeDistB = this.calculateCumulativeDistances(pathB);
+
+    const totalDistA = cumulativeDistA[cumulativeDistA.length - 1];
+    const totalDistB = cumulativeDistB[cumulativeDistB.length - 1];
+
+    const normalizedDistA = cumulativeDistA.map(d => d / totalDistA);
+    const normalizedDistB = cumulativeDistB.map(d => d / totalDistB);
+
+    const interpolate = (t: number, dist: number[], values: number[]): number => {
+        for (let i = 1; i < dist.length; i++) {
+            if (t <= dist[i]) {
+                const t0 = dist[i - 1], t1 = dist[i];
+                const v0 = values[i - 1], v1 = values[i];
+                return v0 + (v1 - v0) * (t - t0) / (t1 - t0);
+            }
+        }
+        return values[values.length - 1];
+    };
+
+    const interpolateX = (t: number) => interpolate(t, normalizedDistA, pathA.map(point => point[0]));
+    const interpolateY = (t: number) => interpolate(t, normalizedDistA, pathA.map(point => point[1]));
+
+    return normalizedDistB.map(t => [interpolateX(t), interpolateY(t)]);
+}
   onCorrectStroke(strokeData: any): void {
     if (!this.hanziWriter || !this.hanzicomponent)
       return
@@ -209,6 +251,32 @@ export default class CharacterQuiz extends Component {
     const cmp = strokeIdxToCmp(this.hanzicomponent, strokeIdx);
     this.onCorrectStrokeForCmpRec(strokeIdx, cmp)
 
+    //const svg = this.shadowRoot.querySelector('svg[width] > g')
+
+    const pathEl = this.shadowRoot.querySelector('svg[width] > g > *:last-child')
+    //const points = this.hanziWriter?._quiz?._userStroke?.points
+    let points = strokeData.drawnPath.points
+    if (!points) return
+
+    points = points.map((p:any) => [p.x, p.y])
+
+    const medians = ((this.hanzicomponent as any).__target as InteractiveCharacter).data.medians
+    if (!medians) return
+    const median = medians[strokeIdx]
+
+    const newPoints = this.interpolatePath(median,points)
+
+    //svg.removeChild(pathEl)
+    //svg.insertBefore(pathEl, svg.firstChild);
+    let newPath = `M ${newPoints[0][0]} ${newPoints[0][1]} `
+    setTimeout(() => {
+
+    newPoints.slice(1).forEach((p:any)=>{
+     newPath += `L ${p[0]} ${p[1]}`
+    })
+    pathEl.setAttribute('d', newPath)
+    pathEl.toggleAttribute('validated', true)
+    },0)
   }
 
   incrementMistakeRec(cmp: InteractiveCharacter) {
@@ -252,11 +320,18 @@ export default class CharacterQuiz extends Component {
       #grid-background-target > line {
         stroke: #f0f0f0;
       }
-
       svg > g > path {
         stroke: #00000020 !important;
         stroke-width: 40px !important;
 stroke-linejoin:round;/*TODO probably useless*/
+transition: 1s ease-out;
+opacity: 1;
+}
+
+      svg > g > path[validated] {
+        stroke-width: 30px !important;
+opacity: 0.5;
+
 }
     `;
 
