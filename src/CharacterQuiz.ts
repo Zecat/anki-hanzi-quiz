@@ -14,7 +14,7 @@ import simplify from 'simplify-js';
 
 //import { runMorph } from "./morph/runMorph";
 import {Bezier}  from 'bezier-js'
-import { computeRepartition, makeUniform } from "./uniformPath";
+import { computeRepartition, makeUniform, rotateStartPathToMedianBottom } from "./uniformPath";
 type Point = { x: number, y: number };
 
 
@@ -81,9 +81,9 @@ export default class CharacterQuiz extends Component {
         onMistake: this.onMistake.bind(this),
         onCorrectStroke: this.onCorrectStroke.bind(this),
         padding: 10,
-drawingFadeDuration: 1000,
+drawingFadeDuration: 0,
 strokeHighlightDuration: 1000,
-strokeFadeDuration: 500,
+strokeFadeDuration: 0,
         //renderer: "canvas",
         ...this.options,
       },
@@ -390,10 +390,10 @@ createHalfCircleBezier(start: Point, end: Point): [Point, Point] {
     const angle = Math.atan2(dy, dx);
 
     // Calculate the control points using the radius and perpendicular vectors
-    const control1X = start.x - radius * Math.sin(angle);
-    const control1Y = start.y + radius * Math.cos(angle);
-    const control2X = end.x - radius * Math.sin(angle);
-    const control2Y = end.y + radius * Math.cos(angle);
+    const control1X = start.x + radius * Math.sin(angle);
+    const control1Y = start.y - radius * Math.cos(angle);
+    const control2X = end.x + radius * Math.sin(angle);
+    const control2Y = end.y - radius * Math.cos(angle);
 
     const control1: Point = { x: control1X, y: control1Y };
     const control2: Point = { x: control2X, y: control2Y };
@@ -436,8 +436,8 @@ invertBezierArr(bezArr: any) {
     const bcurve = curveToBezier(a as []);
     const b = this.convertToCubicBezierCurves(bcurve as [number, number][])
     const bezs = b.map(seg => new Bezier(seg))
-    const left = bezs.map(b => b.offset(20)).flat()
-    const right = bezs.map(b => b.offset(-20)).flat()
+    const left = bezs.map(b => b.offset(-20)).flat()
+    const right = bezs.map(b => b.offset(20)).flat()
     let lLast = left[left.length-1].points[3]
     let lFirst = left[0].points[0]
     let rLast = right[right.length-1].points[3]
@@ -454,8 +454,12 @@ invertBezierArr(bezArr: any) {
     //console.log('====', this.convertBezierArrayToSVGPath(c),"=====", topCapPath)
     //console.log(topCap)
     const path = this.convertBezierArrayToSVGPath(left) + topCapPath + this.convertBezierArrayToSVGPath2(rInvert) + botCapPath + 'Z'
-    const iStrokes = path
-    const iRep = computeRepartition(path, a)
+
+    const yolo = rotateStartPathToMedianBottom(path, a)
+    if (!yolo)
+      return
+    const iStrokes = yolo
+    const iRep = computeRepartition(iStrokes, a)
     const hc = (this.hanzicomponent as any).__target as InteractiveCharacter
     const fData = hc.data
     if (!fData || !fData.strokes || !fData.repartition) return
@@ -466,18 +470,37 @@ invertBezierArr(bezArr: any) {
         iStrokes, iRep,
         fStrokes, fRep,
       )
-    console.log(morph)
+    console.log(morph, iStrokes)
 
 
+    const el = this.shadowRoot.querySelector(`svg[width] > g > :nth-child(2) > :nth-child(${strokeIdx + 1})`)
+    if (!el) return
+    const cp = el.getAttribute('clip-path')
+    el.setAttribute('stroke-width', 2000)
+const match = cp.match(/#mask-\d+/);
+
+if (match) {
+    const substring = match[0];
+    console.log('Extracted substring:', substring);
+  const defPath = this.shadowRoot.querySelector(substring + ' > path')
+
+    defPath.setAttribute('d', morph[0])
+    setTimeout(() => {
+
+    defPath.setAttribute('d', morph[1])
+    },0)
+} else {
+    console.log('No match found');
+}
 
     //segsLen = segs.map(seg => (new Bezier(...seg.data)).length())
 
     //const p = 'M 0 1.00005519 C 0.55342686 0.99873585 0.99873585 0.55342686 C '
-    pathEl.setAttribute('d', morph[0])
-    setTimeout(() => {
-
-    pathEl.setAttribute('d', morph[1])
-    },0)
+//    pathEl.setAttribute('d', morph[0])
+//    setTimeout(() => {
+//
+//    pathEl.setAttribute('d', morph[1])
+//    },0)
 
     pathEl.toggleAttribute('validated', true)
 
@@ -542,17 +565,22 @@ invertBezierArr(bezArr: any) {
         stroke: #f0f0f0;
       }
       svg > g > path {
-        stroke: #00000020 !important;
-        stroke-width: 3px !important;
+        stroke: #555555 !important;
+        stroke-width: 40px !important;
 stroke-linejoin:round;/*TODO probably useless*/
-transition: 1s ease-out;
+transition: 0.5s ease-out, stroke-width 0s;
 opacity: 1;
-        stroke: black !important;
+}
+
+clipPath > path {
+
+transition: 1s ease-out;
 }
 
       svg > g > path[validated] {
-        stroke-width: 3px !important;
+        stroke-width: 0px !important;
 /*opacity: 0.5;*/
+fill: #555555;
 
 }
     `;
