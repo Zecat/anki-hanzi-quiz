@@ -12,6 +12,8 @@ import "./HanziWriter";
 import { Component } from "pouic";
 export default class HanziPinyinSelector extends Component {
     onActiveTabIndexChange(e: CustomEvent): void;
+    onTabClick(index: number): void;
+    getPinyinText(strArr: string[] | undefined, complete: boolean, pinyinAsQuestion: boolean, pinyinForceReveal: boolean): string;
     static template: any;
     static css: any;
 }

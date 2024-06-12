@@ -16,6 +16,7 @@ export default class HanziQuiz extends Component {
     strokesVisible: boolean;
     hanziWriter: HanziWriter | undefined;
     nextCharIdx: number;
+    lastSentenceIdx: number;
     static get observedAttributes(): string[];
     connectedCallback(): void;
     attributeChangedCallback(name: string, _: string, newValue: string): void;
@@ -29,6 +30,8 @@ export default class HanziQuiz extends Component {
     ratingButtonChange(e: CustomEvent): void;
     isHintHidden(complete: boolean, strokesVisible: boolean): boolean;
     toggleDecomposition(): void;
+    practice(): void;
+    getSelectedIdxMorphEl(): any;
     reassembleCharacter(): void;
     decomposeCharacter(): void;
     getDecompsitionText(opened: boolean): "Recompose" | "Decompose";

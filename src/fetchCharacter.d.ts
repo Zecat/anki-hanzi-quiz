@@ -9,6 +9,6 @@ export type CharDataItem = {
     radical: string;
     acjk: string;
     strokes: string[];
-    medians: string[];
+    medians: [number, number][][];
     repartition: StrokeAnalysis[];
 };

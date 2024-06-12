@@ -13,6 +13,8 @@ export default class CharacterMorph extends Component {
     set data(charObj: any);
     attachGridEventListener(cmp: InteractiveCharacter): void;
     generateGridRec(el: Element, cmp: InteractiveCharacter): void;
+    reset(): void;
+    _resetRec(cmp: InteractiveCharacter): void;
     reassemble(): Promise<void>;
     onClick(e: any): void;
     updateHorizontalLen(): void;

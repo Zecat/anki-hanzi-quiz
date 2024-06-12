@@ -12,6 +12,7 @@ export type InteractiveCharacter = {
     components: InteractiveCharacter[];
     decompositionVisible: boolean;
     prevRect: any;
+    pinyinForceReveal: boolean;
 };
 export declare const getCmpForGridEl: (target: HTMLElement, cmp: InteractiveCharacter) => InteractiveCharacter | undefined;
 export declare const _getEmptyInteractiveCharacter: (data: CharacterData, parent: InteractiveCharacter | undefined) => InteractiveCharacter;
