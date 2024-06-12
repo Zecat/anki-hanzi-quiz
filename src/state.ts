@@ -77,6 +77,8 @@ const initialState: any = {
 
   resetComponentMistakes: (cmp: InteractiveCharacter = state.currentComponent) => {
     cmp.mistakeCount = 0;
+    cmp.complete = false // TODO useless ?
+    state.currentComponent.complete = false;
     cmp.components.forEach(state.resetComponentMistakes)
   },
 

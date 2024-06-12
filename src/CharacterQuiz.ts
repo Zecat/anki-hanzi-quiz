@@ -81,8 +81,8 @@ export default class CharacterQuiz extends Component {
         onMistake: this.onMistake.bind(this),
         onCorrectStroke: this.onCorrectStroke.bind(this),
         padding: 10,
-drawingFadeDuration: 0,
-strokeHighlightDuration: 1000,
+drawingFadeDuration: 1000,
+strokeHighlightDuration: 600,
 strokeFadeDuration: 0,
         //renderer: "canvas",
         ...this.options,
@@ -156,18 +156,53 @@ svg.addEventListener('touchstart', updateTouchstart);
     this.checkCompleteRec(parent)
   }
 
+  cmpFadeOut(cmp: InteractiveCharacter) {
+      const [firstIdx, lastIdx] = getComponentAbsoluteIndexes(cmp)
+    const allPaths = [...this.shadowRoot.querySelectorAll(`svg[width] > g > :nth-child(2) > *`)]
+      const cmpPaths = allPaths.slice(firstIdx, lastIdx+1)
+
+      const animations = cmpPaths.map((el, i) => {
+// Start the vibration animation
+            const vibration = el.animate({
+                transform:[
+                'translate(0, 0)',
+                'translate(-2px, 2px)',
+                'translate(2px, -2px)',
+                'translate(-2px, 2px)',
+                'translate(2px, -2px)',
+                'translate(0, 0)'
+              ]
+            }, {
+              delay: 100*i,
+                duration: 300,
+                iterations: 3
+            });
+
+            // Once the vibration animation finishes, start the fade-out animation
+            return vibration.finished.then(() => {
+                return el.animate({
+                    opacity: [1, 0]
+                }, {
+                    duration: 300,
+                }).finished.then(() => el.style.opacity = '0'); // manually hide the element as fill: 'forwards' seem to take over anything
+            });
+      })
+    return Promise.all(animations)
+  }
+
   mistakeCheck(cmp: InteractiveCharacter): boolean {
     if (cmp.mistakeCount >= 3) {
-      state.resetComponentMistakes(cmp)
-      this.ignoreMistake = true
-      // Wait a bit so the final stroke can be seen before requizing
-      setTimeout(() => {
+       this.cmpFadeOut(cmp).then(() => {
         const firstIdx = getComponentAbsoluteFirstIndex(cmp)
         this.startQuiz(firstIdx);
         this.ignoreMistake = false
 
         state.lastFirstOrderCmp = undefined
-      }, this.drawingDuration*1000)
+       })
+
+      state.resetComponentMistakes(cmp)
+      this.ignoreMistake = true
+
       return false
     }
     return true
@@ -416,23 +451,8 @@ invertBezierArr(bezArr: any) {
   })
 }
 
-  onCorrectStroke(strokeData: any): void {
-    if (!this.hanziWriter || !this.hanzicomponent)
-      return
-    const strokeIdx = strokeData.strokeNum;
-    const cmp = strokeIdxToCmp(this.hanzicomponent, strokeIdx);
-    this.onCorrectStrokeForCmpRec(strokeIdx, cmp)
-
-    //const svg = this.shadowRoot.querySelector('svg[width] > g')
-
-    const pathEl = this.shadowRoot.querySelector('svg[width] > g > *:last-child')
-    //const points = this.hanziWriter?._quiz?._userStroke?.points
-    let points = strokeData.drawnPath.points
-    if (!points) return
-
-
-    const tolerance = 10; // Adjust tolerance as needed
-    //const highQuality = true;
+  getDrawnPointsMorph(points: any, fStrokes:any, fRep: any) {
+    const tolerance = 10;
     const simplifiedPoints = simplify(points, tolerance, false);
     let a = simplifiedPoints.map((p:any) => [p.x, p.y])
     if (a.length === 2) {
@@ -441,8 +461,8 @@ invertBezierArr(bezArr: any) {
     const bcurve = curveToBezier(a as []);
     const b = this.convertToCubicBezierCurves(bcurve as [number, number][])
     const bezs = b.map(seg => new Bezier(seg))
-    const left = bezs.map(b => b.offset(-20)).flat()
-    const right = bezs.map(b => b.offset(20)).flat()
+    const left = bezs.map(b => b.offset(-30)).flat()
+    const right = bezs.map(b => b.offset(30)).flat()
     let lLast = left[left.length-1].points[3]
     let lFirst = left[0].points[0]
     let rLast = right[right.length-1].points[3]
@@ -456,78 +476,66 @@ invertBezierArr(bezArr: any) {
 
     const topCapPath = this.convertArrayToSVGPathPartial(topCap)
     const botCapPath = this.convertArrayToSVGPathPartial(botCap)
-    //console.log('====', this.convertBezierArrayToSVGPath(c),"=====", topCapPath)
-    //console.log(topCap)
     const path = this.convertBezierArrayToSVGPath(left) + topCapPath + this.convertBezierArrayToSVGPath2(rInvert) + botCapPath + 'Z'
 
-    const yolo = rotateStartPathToMedianBottom(path, a)
-    if (!yolo)
-      return
-    const iStrokes = yolo
+    const iStrokes = rotateStartPathToMedianBottom(path, a)
+    if (!iStrokes)
+      throw new Error('err')
     const iRep = computeRepartition(iStrokes, a)
-    const hc = (this.hanzicomponent as any).__target as InteractiveCharacter
-    const fData = hc.data
-    if (!fData || !fData.strokes || !fData.repartition) return
-    const fStrokes = fData.strokes[strokeIdx]
-    const fRep = fData.repartition[strokeIdx]
 
       const morph = makeUniform(
         iStrokes, iRep,
         fStrokes, fRep,
       )
+  return morph
+}
 
-
+  applyDrawingMorph(strokeIdx: number, morph: any) {
     const el = this.shadowRoot.querySelector(`svg[width] > g > :nth-child(2) > :nth-child(${strokeIdx + 1})`)
-    if (!el) return
+    if (!el) throw new Error('err')
     const cp = el.getAttribute('clip-path')
     el.setAttribute('stroke-width', 2000)
 const match = cp.match(/#mask-\d+/);
 
-if (match) {
+if (!match) throw new Error('err')
     const substring = match[0];
-    console.log('Extracted substring:', substring);
   const defPath = this.shadowRoot.querySelector(substring + ' > path')
-  defPath.style.transition = `${this.drawingDuration}s ease`
 
-    requestAnimationFrame(() => {
-    defPath.setAttribute('d', morph[0])
-    requestAnimationFrame(() => {
+  el.animate({
+    stroke: ['#393939', '#555555']
+  }, {
+    duration: this.drawingDuration*1000,easing: 'ease'
+  })
 
-    defPath.setAttribute('d', morph[1])
-    })
-    })
-} else {
-    console.log('No match found');
+  defPath.animate({
+    d: [`path('${morph[0]}')`, `path('${morph[1]}')`]
+  }, {
+    duration:this.drawingDuration*1000, easing: 'ease'
+  })
 }
 
-    //segsLen = segs.map(seg => (new Bezier(...seg.data)).length())
+  onCorrectStroke(strokeData: any): void {
+    if (!this.hanziWriter || !this.hanzicomponent)
+      return
+    const strokeIdx = strokeData.strokeNum;
+    const cmp = strokeIdxToCmp(this.hanzicomponent, strokeIdx);
+    this.onCorrectStrokeForCmpRec(strokeIdx, cmp)
 
-    //const p = 'M 0 1.00005519 C 0.55342686 0.99873585 0.99873585 0.55342686 C '
-//    pathEl.setAttribute('d', morph[0])
-//    setTimeout(() => {
-//
-//    pathEl.setAttribute('d', morph[1])
-//    },0)
+    const hc = (this.hanzicomponent as any).__target as InteractiveCharacter
+    const fData = hc.data
 
-    pathEl.toggleAttribute('validated', true)
+    let points = strokeData.drawnPath.points
+    if (!points) return
 
-//    const medians = ((this.hanzicomponent as any).__target as InteractiveCharacter).data.medians
-//    if (!medians) return
-//    const median = medians[strokeIdx]
-//
-//    const newPoints = this.interpolatePath(median,points)
-//
-//    //svg.removeChild(pathEl)
-//    //svg.insertBefore(pathEl, svg.firstChild);
-//    let newPath = `M ${newPoints[0][0]} ${newPoints[0][1]} `
-//    setTimeout(() => {
-//
-//    newPoints.slice(1).forEach((p:any)=>{
-//     newPath += `L ${p[0]} ${p[1]}`
-//    })
-//    pathEl.setAttribute('d', newPath)
-//    pathEl.toggleAttribute('validated', true)
-//    },0)
+    if (!fData || !fData.strokes || !fData.repartition) return
+    const fStrokes = fData.strokes[strokeIdx]
+    const fRep = fData.repartition[strokeIdx]
+    const morph = this.getDrawnPointsMorph( points, fStrokes, fRep)
+    this.applyDrawingMorph(strokeIdx, morph)
+
+    const drawnPathEl = this.shadowRoot.querySelector('svg[width] > g > path:last-child')
+    if (!drawnPathEl) throw new Error('err')
+    drawnPathEl.toggleAttribute('validated') // immediately hide the drawn stroke
   }
 
   incrementMistakeRec(cmp: InteractiveCharacter) {
@@ -571,20 +579,16 @@ if (match) {
       #grid-background-target > line {
         stroke: #f0f0f0;
       }
+
       svg > g > path {
-        stroke: #555555 !important;
-        stroke-width: 40px !important;
-stroke-linejoin:round;/*TODO probably useless*/
-transition: 0.5s ease-out, stroke-width 0s;
-opacity: 1;
-}
+        stroke: #393939 !important;
+        stroke-width: 60px !important;
+        stroke-linejoin:round;/*TODO probably useless*/
+      }
 
       svg > g > path[validated] {
-        stroke-width: 0px !important;
-/*opacity: 0.5;*/
-fill: #555555;
-
-}
+        display: none;
+      }
     `;
 
   static template = html`
