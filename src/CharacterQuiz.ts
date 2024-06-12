@@ -112,7 +112,13 @@ strokeFadeDuration: 0,
     //  onCorrectStroke: this.onCorrectStroke.bind(this),
     //  quizStartStrokeNum,
     //});
-
+   const svg = this.hanziWriter.target.node
+    const updateTouchstart = (() => {this.touchstart = performance.now()}).bind(this)
+    const updateDrawingDuration = (() => {this.drawingDuration = (performance.now() - this.touchstart)/1000*3; }).bind(this)
+svg.addEventListener('touchstart', updateTouchstart);
+    svg.addEventListener('mousedown', updateTouchstart);
+    svg.addEventListener('touchend', updateDrawingDuration);
+    svg.addEventListener('mouseup', updateDrawingDuration);
     return this.hanziWriter;
   }
 
@@ -161,7 +167,7 @@ strokeFadeDuration: 0,
         this.ignoreMistake = false
 
         state.lastFirstOrderCmp = undefined
-      }, 600)
+      }, this.drawingDuration*1000)
       return false
     }
     return true
@@ -208,7 +214,7 @@ strokeFadeDuration: 0,
           const a: any = document.querySelector('#hanziquiz')
           a.decomposeCharacter()
           // HACK show definition when character finished drawing
-        }, 300)
+        }, this.drawingDuration*1000)
         return true
       }
     }
@@ -429,7 +435,6 @@ invertBezierArr(bezArr: any) {
     //const highQuality = true;
     const simplifiedPoints = simplify(points, tolerance, false);
     let a = simplifiedPoints.map((p:any) => [p.x, p.y])
-    console.log('points', a.map(p=>`L ${p[0]} ${p[1]} `).join(''))
     if (a.length === 2) {
       a = [a[0], [(a[0][0]+a[1][0])/2,(a[0][1]+a[1][1])/2],a[1]]
     }
@@ -470,7 +475,6 @@ invertBezierArr(bezArr: any) {
         iStrokes, iRep,
         fStrokes, fRep,
       )
-    console.log(morph, iStrokes)
 
 
     const el = this.shadowRoot.querySelector(`svg[width] > g > :nth-child(2) > :nth-child(${strokeIdx + 1})`)
@@ -483,12 +487,15 @@ if (match) {
     const substring = match[0];
     console.log('Extracted substring:', substring);
   const defPath = this.shadowRoot.querySelector(substring + ' > path')
+  defPath.style.transition = `${this.drawingDuration}s ease`
 
+    requestAnimationFrame(() => {
     defPath.setAttribute('d', morph[0])
-    setTimeout(() => {
+    requestAnimationFrame(() => {
 
     defPath.setAttribute('d', morph[1])
-    },0)
+    })
+    })
 } else {
     console.log('No match found');
 }
@@ -570,11 +577,6 @@ if (match) {
 stroke-linejoin:round;/*TODO probably useless*/
 transition: 0.5s ease-out, stroke-width 0s;
 opacity: 1;
-}
-
-clipPath > path {
-
-transition: 1s ease-out;
 }
 
       svg > g > path[validated] {
