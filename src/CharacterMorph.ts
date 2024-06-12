@@ -154,6 +154,30 @@ export default class CharacterMorph extends Component {
     el.appendChild(subElWrapper);
   }
 
+  reset() {
+    this.svgEl.toggleAttribute("closing", false);
+    this._charObj.gridEl.style.setProperty('--sub-character-w', 'unset');
+    state.currentComponent.opened = false // HACK
+    this._resetRec(this._charObj)
+    this._charObj.data.strokes.forEach((stroke: string, i: number) => {
+      this.paths[i].setAttribute('d', stroke)
+    })
+  }
+
+  _resetRec(cmp:InteractiveCharacter) {
+    if(!cmp.svgGroup || !cmp.gridEl) return
+const cmpSvgGr = cmp.svgGroup as HTMLElement
+   cmpSvgGr.style.transform = ''
+   cmpSvgGr.style.transformOrigin = ''
+   cmpSvgGr.toggleAttribute("opened", false);
+
+   cmp.gridEl.toggleAttribute("opened", false);
+   cmp.gridEl.toggleAttribute("opening", false);
+   cmp.gridEl.toggleAttribute("closing", false);
+   cmp.opened = false
+   cmp.components.forEach(this._resetRec.bind(this))
+  }
+
   async reassemble() {
     const gridFromHeight = this._charObj.gridEl.clientHeight
     const cmp = this.openedList.pop();

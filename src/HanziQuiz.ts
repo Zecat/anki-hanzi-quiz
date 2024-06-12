@@ -137,13 +137,25 @@ lastSentenceIdx = -1
       this.reassembleCharacter();
   }
 
-  reassembleCharacter() {
-    //state.currentComponent.opened = true
+  practice() {
+    state.restartCurrentQuiz()
+    const morphEl = this.getSelectedIdxMorphEl()
+    morphEl.reset()
+  }
+
+  getSelectedIdxMorphEl() {
     const slideshow = this.shadowRoot.getElementById("hanzi-slideshow");
     const morphEl =
       slideshow.shadowRoot.querySelectorAll("character-morph")[
       state.selectedIdx
       ];
+    if (!morphEl) throw new Error('err')
+    return morphEl
+  }
+
+  reassembleCharacter() {
+    //state.currentComponent.opened = true
+    const morphEl = this.getSelectedIdxMorphEl()
     morphEl.reassemble();
     if (!morphEl.openedList.length) {
       setTimeout(() => {
@@ -153,14 +165,10 @@ lastSentenceIdx = -1
   }
 
   decomposeCharacter() {
+    const morphEl = this.getSelectedIdxMorphEl()
     state.currentComponent.decompositionVisible = true;
     state.lastFirstOrderCmp = undefined // hide last visible hint
     //state.currentComponent.opened = true;
-    const slideshow = this.shadowRoot.getElementById("hanzi-slideshow");
-    const morphEl =
-      slideshow.shadowRoot.querySelectorAll("character-morph")[
-      state.selectedIdx
-      ];
     //morphEl.updateGroupTransform(state.currentComponent)
     morphEl.updateLayout()
     //morphEl.open();
@@ -255,7 +263,7 @@ lastSentenceIdx = -1
           </md-icon>
         </md-icon-button>
 
-        <md-icon-button @click="restartCurrentQuiz()">
+        <md-icon-button @click="this.practice()">
           <md-icon>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -311,7 +319,7 @@ lastSentenceIdx = -1
       <div id="after-buttons">
         <md-outlined-button
           reveal="{currentComponent.complete}"
-          @click="restartCurrentQuiz()"
+          @click="this.practice()"
           >Practice</md-outlined-button
         >
         <md-outlined-button
