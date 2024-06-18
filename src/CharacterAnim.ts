@@ -20,7 +20,10 @@ export default class CharacterAnim extends Component {
      if (newValue != null && oldValue==null) {
         this.hanziWriter?.updateDimensions({ width: 48, height: 48 });
          this.hanziWriter?.animateCharacter();
+     } else if (newValue == null) {
+         this.hanziWriter?.hideCharacter();
      }
+
       // this.hanziWriter?.showOutline() : this.hanziWriter?.hideOutline()
    }
   }

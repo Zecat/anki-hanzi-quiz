@@ -1,21 +1,19 @@
 import HanziWriter from "hanzi-writer";
 
+
 import { Component, register, html, css } from 'pouic'
 import { state } from "./state"
-
-//import { ComponentDefinition } from "./HanziDesc";
-
 import { fetchCharacter } from "./fetchCharacter";
 import { getComponentAbsoluteFirstIndex, getComponentAbsoluteIndexes, InteractiveCharacter, strokeIdxToCmp } from "./InteractiveCharacter";
+import simplifySvgPath from '@luncheon/simplify-svg-path'
 
-import { curveToBezier} from 'points-on-curve/lib/curve-to-bezier.js';
-//import { Point } from 'points-on-curve';
-import simplify from 'simplify-js';
-
-//import { runMorph } from "./morph/runMorph";
 import {Bezier}  from 'bezier-js'
-import { computeRepartition, makeUniform, rotateStartPathToMedianBottom } from "./uniformPath";
+import { computeRepartition2, makeUniform } from "./uniformPath";
+import { absolutize, parsePath } from "path-data-parser";
+import { Segment} from "path-data-parser/lib/parser";
 type Point = { x: number, y: number };
+type Cubic = [number,number,number,number,number,number,number,number]
+type Cubic6 = [number,number,number,number,number,number]
 
 
 /*
@@ -65,14 +63,12 @@ export default class CharacterQuiz extends Component {
   }
 
   createHanziWriter(hanzi: string): HanziWriter {
-    //await this.updateComplete;
     const target = this.shadowRoot;
 
     this.hanziWriter = HanziWriter.create(
       <HTMLElement>(<unknown>target),
       hanzi,
       {
-        //strokeFadeDuration: 0,
         charDataLoader: (char, onComplete) => { fetchCharacter(char).then(onComplete) },
         showCharacter: false,
         showHintAfterMisses: 1,
@@ -84,7 +80,6 @@ export default class CharacterQuiz extends Component {
 drawingFadeDuration: 1000,
 strokeHighlightDuration: 600,
 strokeFadeDuration: 0,
-        //renderer: "canvas",
         ...this.options,
       },
     );
@@ -296,23 +291,22 @@ interpolatePath(pathA: [number, number][], pathB: [number, number][]): [number, 
     return normalizedDistB.map(t => [interpolateX(t), interpolateY(t)]);
 }
 
-convertArrayToSVGPathPartial(p: any[]): string {
-    let svgPath = '';
-
-    for(let i=0;i<p.length; i+=6) {
-      svgPath += `C ${p[i]} ${p[i+1]}, ${p[i+2]} ${p[i+3]}, ${p[i+4]} ${p[i+5]} `
-    }
-
-    return svgPath;
+convertArrayToSVGPath(p: Cubic): string {
+      return  `M ${p[0]} ${p[1]} C ${p[2]} ${p[3]}, ${p[4]} ${p[5]}, ${p[6]} ${p[7]} `
 }
+
+convertArrayToSVGPathPartial(p: Cubic6): string {
+      return  `C ${p[0]} ${p[1]} ${p[2]} ${p[3]}, ${p[4]} ${p[5]} `
+}
+
 convertBezierArrayToSVGPath(bezierArray: any[]): string {
     let svgPath = '';
 
       const p = bezierArray[0].points[0];
-      svgPath += `M ${p.x} ${p.y} `;
+      svgPath += `M ${+p.x.toFixed(2)},${+p.y.toFixed(2)}`;
     bezierArray.forEach(bezier => {
-      const p = bezier.points
-      svgPath += `C ${p[1].x} ${p[1].y}, ${p[2].x} ${p[2].y},  ${p[3].x} ${p[3].y} `;
+      const p = bezier.points.map((p:{x:number,y:number}) => ({x:+p.x.toFixed(2),y:+p.y.toFixed(2)}))
+      svgPath += `C ${p[1].x},${p[1].y} ${p[2].x},${p[2].y} ${p[3].x},${p[3].y}`;
     });
 
     return svgPath;
@@ -323,7 +317,7 @@ convertBezierArrayToSVGPath2(bezierArray: any[]): string {
 
     bezierArray.forEach(bezier => {
       const p = bezier.points
-      svgPath += `C ${p[1].x} ${p[1].y}, ${p[2].x} ${p[2].y},  ${p[3].x} ${p[3].y} `;
+      svgPath += `C ${p[1].x},${p[1].y} ${p[2].x},${p[2].y} ${p[3].x}, ${p[3].y} `;
     });
 
     return svgPath;
@@ -413,9 +407,6 @@ convertToCubicBezierCurves(points: [number,number][]): [number,number, number, n
     ];
 }
 createHalfCircleBezier(start: Point, end: Point): [Point, Point] {
-    // Calculate the midpoint between start and end
-    //const midX = (start.x + end.x) / 2;
-    //const midY = (start.y + end.y) / 2;
 
     // Calculate the vector from start to end
     const dx = end.x - start.x;
@@ -451,43 +442,79 @@ invertBezierArr(bezArr: any) {
   })
 }
 
-  getDrawnPointsMorph(points: any, fStrokes:any, fRep: any) {
-    const tolerance = 10;
-    const simplifiedPoints = simplify(points, tolerance, false);
-    let a = simplifiedPoints.map((p:any) => [p.x, p.y])
-    if (a.length === 2) {
-      a = [a[0], [(a[0][0]+a[1][0])/2,(a[0][1]+a[1][1])/2],a[1]]
+  segmentsToValues(segs: Segment[]) : Cubic[]{
+    if (segs[0].key != 'M')
+      throw new Error('err')
+  const values:Cubic[] = []
+    for (let i = 1; i < segs.length; i++) {
+      const a = segs[i-1].data.slice(-2) as [number, number]
+      if (a.length != 2)
+        throw new Error('err')
+      const b = segs[i].data  as [number, number,number, number,number, number]
+      if (b.length != 6)
+        throw new Error('err')
+      const data:Cubic = [...a ,...b]
+      if (data.length != 8)
+        throw new Error('err')
+      values.push(data as Cubic)
     }
-    const bcurve = curveToBezier(a as []);
-    const b = this.convertToCubicBezierCurves(bcurve as [number, number][])
-    const bezs = b.map(seg => new Bezier(seg))
-    const left = bezs.map(b => b.offset(-30)).flat()
-    const right = bezs.map(b => b.offset(30)).flat()
+  return values
+}
+
+  getDrawnPointsMorph(points: any, fStrokes:any, fRep: any) {
+    const bStr = simplifySvgPath(points, {
+    closed : false,
+    tolerance:  50,
+    precision:  2,
+  })
+    const paths = absolutize(parsePath(bStr))
+
+    const d0 = paths[0].data
+    const d1 = paths[1].data
+
+    // Prevent the control point from being exactly on the point as this causes problem with Bezier offset function
+    if (d0[0] === d1[0] && d0[1] === d1[1]) {
+      d1[0] = (d1[0] + d1[2]) / 2
+      d1[1] = (d1[1] + d1[3]) / 2
+    }
+
+    const dl = paths[paths.length - 1].data
+    const dbl = paths[paths.length - 1].data.slice(-2) // The [x,y] component of the previous segment tip position - either M or C -
+    if (dl[4] === dl[2] && dl[5] === dl[3]) {
+      dl[2] = (dl[4] + dbl[0]) / 2
+      dl[3] = (dl[5] + dbl[1]) / 2
+    }
+
+  const segs = this.segmentsToValues(paths)
+
+    const bezs = segs.map(seg => new Bezier(...seg))
+    const left: Bezier[] = bezs.map(b => b.offset(-30) as Bezier[]).flat()
+    const right: Bezier[] = bezs.map(b => b.offset(30) as Bezier[]).flat()
+
     let lLast = left[left.length-1].points[3]
     let lFirst = left[0].points[0]
     let rLast = right[right.length-1].points[3]
     let rFirst = right[0].points[0]
+
     const d = this.createHalfCircleBezier(   lLast, rLast )
     const e = this.createHalfCircleBezier(   rFirst, lFirst )
-    const topCap = [d[0].x, d[0].y, d[1].x, d[1].y, rLast.x, rLast.y]
-    const botCap = [e[0].x, e[0].y, e[1].x, e[1].y, lFirst.x, lFirst.y]
+    const topCap:Cubic6 = [d[0].x, d[0].y, d[1].x, d[1].y, rLast.x, rLast.y]
+    const botCap:Cubic = [rFirst.x, rFirst.y,e[0].x, e[0].y, e[1].x, e[1].y, lFirst.x, lFirst.y]
 
     const rInvert = this.invertBezierArr(right)
 
     const topCapPath = this.convertArrayToSVGPathPartial(topCap)
-    const botCapPath = this.convertArrayToSVGPathPartial(botCap)
-    const path = this.convertBezierArrayToSVGPath(left) + topCapPath + this.convertBezierArrayToSVGPath2(rInvert) + botCapPath + 'Z'
+    const botCapPath = this.convertArrayToSVGPath(botCap)
 
-    const iStrokes = rotateStartPathToMedianBottom(path, a)
-    if (!iStrokes)
-      throw new Error('err')
-    const iRep = computeRepartition(iStrokes, a)
+     const path = botCapPath +  this.convertBezierArrayToSVGPath2(left) + topCapPath + this.convertBezierArrayToSVGPath2(rInvert) + ' Z'
+    const iStrokes = path // TODO cleanup
+    const iRep = computeRepartition2(iStrokes, left.length, 0.5, 1 + left.length , 0.5)
 
       const morph = makeUniform(
         iStrokes, iRep,
         fStrokes, fRep,
       )
-  return morph
+ return morph
 }
 
   applyDrawingMorph(strokeIdx: number, morph: any) {

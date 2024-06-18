@@ -437,7 +437,8 @@ export const computeRepartition=(p: string, median: any): StrokeAnalysis => {
     const segs : Segment[] = path.slice(1, -2)
 let segsLen: number[]
     try {
-     segsLen = segs.map(seg => (new Bezier(...seg.data)).length())
+        // TODO when doing ...seg.data the start value is missing ?
+     segsLen = segs.map(seg => (new Bezier(...seg.data as [number,number,number,number,number,number,])).length())
     } catch(e) {
        console.log(p, segs, e)
         throw new Error('yo')
@@ -445,6 +446,94 @@ let segsLen: number[]
 
     const topIdx:number = segs.indexOf(topSegProg.seg)
     const botIdx:number = segs.indexOf(botSegProg.seg)
+
+    if (topIdx < 0|| botIdx < 0)
+        throw new Error('Error') // NOTE This should not happen
+
+    const lSegs:Segment[] = segs.slice(0, topIdx+1)
+    const rSegs: Segment[] = segs.slice(topIdx)
+    rSegs.push(segs[0])
+
+    const lLens : number[]= segsLen.slice(0, topIdx+1)
+    const rLens: number[] = segsLen.slice(topIdx)
+    rLens.push(segsLen[0])
+
+    const lLensOrg = [...lLens]
+    const rLensOrg = [...rLens]
+
+    lLens[0]*=(1-botSegProg.t)
+    lLens[lLens.length-1]*=topSegProg.t
+
+    rLens[0]*=(1-topSegProg.t)
+    rLens[rLens.length-1]*=botSegProg.t
+
+    let lRatios : number[]= [...lLens]
+
+    const lLen: number = sum(lLens)
+    lRatios = lRatios.map(r => r/lLen)
+    const lCumulRatios = cumulativePrevSum(lRatios)
+
+    let rRatios: number[] = [...rLens]
+
+    const rLen:number = sum(rLens)
+    rRatios = rRatios.map(r => r/rLen)
+
+    const rCumulRatios = cumulativePrevSum(rRatios)
+
+    const lAnalysis: SegAnalysis[] = lSegs.map((_, i:number): SegAnalysis=> ({
+    ratio: lRatios[i],
+    cumulRatio: lCumulRatios[i],
+    len: lLensOrg[i],
+    seg: lSegs[i]
+    }))
+
+    const rAnalysis: SegAnalysis[] = rSegs.map((_, i:number): SegAnalysis=> ({
+    ratio: rRatios[i],
+    cumulRatio: rCumulRatios[i],
+    len: rLensOrg[i],
+    seg: rSegs[i]
+    }))
+
+    const analysis : StrokeAnalysis = {
+        top: topSegProg,
+        bot: botSegProg,
+        left: lAnalysis,
+        right: rAnalysis,
+        lLen,rLen
+    }
+    return analysis
+}
+
+
+export const computeRepartition2=(p: string, topIdx:number, topT:number, botIdx:number, botT:number): StrokeAnalysis => {
+    const path = normalize(parsePath(p))
+
+    let topSegProg :SegProgress = {seg:path[topIdx], t: topT}
+    let botSegProg :SegProgress = {seg:path[botIdx], t: botT}
+
+    if (!topSegProg) {
+        throw new Error('Error, top not found')
+    }
+
+    if (!botSegProg) {
+        throw new Error('Error, bottom not found')
+    }
+
+    //changeStartSeg(path, botSegProg.seg)
+
+    const segs : Segment[] = path.slice(1, -2)
+    //topIdx = segs.indexOf(topSegProg.seg)
+    //botIdx = segs.indexOf(botSegProg.seg)
+
+let segsLen: number[]
+    try {
+        // TODO when doing ...seg.data the start value is missing ?
+     segsLen = segs.map(seg => (new Bezier(...seg.data as [number,number,number,number,number,number,])).length())
+    } catch(e) {
+       console.log(p, segs, e)
+        throw new Error('yo')
+    }
+
 
     if (topIdx < 0|| botIdx < 0)
         throw new Error('Error') // NOTE This should not happen
