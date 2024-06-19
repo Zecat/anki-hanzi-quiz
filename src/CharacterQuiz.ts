@@ -7,13 +7,13 @@ import { fetchCharacter } from "./fetchCharacter";
 import { getComponentAbsoluteFirstIndex, getComponentAbsoluteIndexes, InteractiveCharacter, strokeIdxToCmp } from "./InteractiveCharacter";
 import simplifySvgPath from '@luncheon/simplify-svg-path'
 
-import {Bezier}  from 'bezier-js'
+import { Bezier } from 'bezier-js'
 import { computeRepartition2, makeUniform } from "./uniformPath";
 import { absolutize, parsePath } from "path-data-parser";
-import { Segment} from "path-data-parser/lib/parser";
+import { Segment } from "path-data-parser/lib/parser";
 type Point = { x: number, y: number };
-type Cubic = [number,number,number,number,number,number,number,number]
-type Cubic6 = [number,number,number,number,number,number]
+type Cubic = [number, number, number, number, number, number, number, number]
+type Cubic6 = [number, number, number, number, number, number]
 
 
 /*
@@ -77,9 +77,9 @@ export default class CharacterQuiz extends Component {
         onMistake: this.onMistake.bind(this),
         onCorrectStroke: this.onCorrectStroke.bind(this),
         padding: 10,
-drawingFadeDuration: 1000,
-strokeHighlightDuration: 600,
-strokeFadeDuration: 0,
+        drawingFadeDuration: 1000,
+        strokeHighlightDuration: 600,
+        strokeFadeDuration: 0,
         ...this.options,
       },
     );
@@ -107,10 +107,10 @@ strokeFadeDuration: 0,
     //  onCorrectStroke: this.onCorrectStroke.bind(this),
     //  quizStartStrokeNum,
     //});
-   const svg = this.hanziWriter.target.node
-    const updateTouchstart = (() => {this.touchstart = performance.now()}).bind(this)
-    const updateDrawingDuration = (() => {this.drawingDuration = (performance.now() - this.touchstart)/1000*3; }).bind(this)
-svg.addEventListener('touchstart', updateTouchstart);
+    const svg = this.hanziWriter.target.node
+    const updateTouchstart = (() => { this.touchstart = performance.now() }).bind(this)
+    const updateDrawingDuration = (() => { this.drawingDuration = (performance.now() - this.touchstart) / 1000 * 3; }).bind(this)
+    svg.addEventListener('touchstart', updateTouchstart);
     svg.addEventListener('mousedown', updateTouchstart);
     svg.addEventListener('touchend', updateDrawingDuration);
     svg.addEventListener('mouseup', updateDrawingDuration);
@@ -152,48 +152,48 @@ svg.addEventListener('touchstart', updateTouchstart);
   }
 
   cmpFadeOut(cmp: InteractiveCharacter) {
-      const [firstIdx, lastIdx] = getComponentAbsoluteIndexes(cmp)
+    const [firstIdx, lastIdx] = getComponentAbsoluteIndexes(cmp)
     const allPaths = [...this.shadowRoot.querySelectorAll(`svg[width] > g > :nth-child(2) > *`)]
-      const cmpPaths = allPaths.slice(firstIdx, lastIdx+1)
+    const cmpPaths = allPaths.slice(firstIdx, lastIdx + 1)
 
-      const animations = cmpPaths.map((el, i) => {
-// Start the vibration animation
-            const vibration = el.animate({
-                transform:[
-                'translate(0, 0)',
-                'translate(-2px, 2px)',
-                'translate(2px, -2px)',
-                'translate(-2px, 2px)',
-                'translate(2px, -2px)',
-                'translate(0, 0)'
-              ]
-            }, {
-              delay: 100*i,
-                duration: 300,
-                iterations: 3
-            });
+    const animations = cmpPaths.map((el, i) => {
+      // Start the vibration animation
+      const vibration = el.animate({
+        transform: [
+          'translate(0, 0)',
+          'translate(-2px, 2px)',
+          'translate(2px, -2px)',
+          'translate(-2px, 2px)',
+          'translate(2px, -2px)',
+          'translate(0, 0)'
+        ]
+      }, {
+        delay: 100 * i,
+        duration: 300,
+        iterations: 3
+      });
 
-            // Once the vibration animation finishes, start the fade-out animation
-            return vibration.finished.then(() => {
-                return el.animate({
-                    opacity: [1, 0]
-                }, {
-                    duration: 300,
-                }).finished.then(() => el.style.opacity = '0'); // manually hide the element as fill: 'forwards' seem to take over anything
-            });
-      })
+      // Once the vibration animation finishes, start the fade-out animation
+      return vibration.finished.then(() => {
+        return el.animate({
+          opacity: [1, 0]
+        }, {
+          duration: 300,
+        }).finished.then(() => el.style.opacity = '0'); // manually hide the element as fill: 'forwards' seem to take over anything
+      });
+    })
     return Promise.all(animations)
   }
 
   mistakeCheck(cmp: InteractiveCharacter): boolean {
     if (cmp.mistakeCount >= 3) {
-       this.cmpFadeOut(cmp).then(() => {
+      this.cmpFadeOut(cmp).then(() => {
         const firstIdx = getComponentAbsoluteFirstIndex(cmp)
         this.startQuiz(firstIdx);
         this.ignoreMistake = false
 
         state.lastFirstOrderCmp = undefined
-       })
+      })
 
       state.resetComponentMistakes(cmp)
       this.ignoreMistake = true
@@ -244,27 +244,27 @@ svg.addEventListener('touchstart', updateTouchstart);
           const a: any = document.querySelector('#hanziquiz')
           a.decomposeCharacter()
           // HACK show definition when character finished drawing
-        }, this.drawingDuration*1000)
+        }, this.drawingDuration * 1000)
         return true
       }
     }
     return false
   }
 
-calculateCumulativeDistances(path: [number, number][]): number[] {
+  calculateCumulativeDistances(path: [number, number][]): number[] {
     const distances: number[] = path.map((point, index, array) => {
-        if (index === 0) return 0;
-        const dx = point[0] - array[index - 1][0];
-        const dy = point[1] - array[index - 1][1];
-        return Math.sqrt(dx * dx + dy * dy);
+      if (index === 0) return 0;
+      const dx = point[0] - array[index - 1][0];
+      const dy = point[1] - array[index - 1][1];
+      return Math.sqrt(dx * dx + dy * dy);
     });
     return distances.reduce((acc: number[], dist) => {
-        acc.push((acc.length > 0 ? acc[acc.length - 1] : 0) + dist);
-        return acc;
+      acc.push((acc.length > 0 ? acc[acc.length - 1] : 0) + dist);
+      return acc;
     }, []);
-}
+  }
 
-interpolatePath(pathA: [number, number][], pathB: [number, number][]): [number, number][] {
+  interpolatePath(pathA: [number, number][], pathB: [number, number][]): [number, number][] {
     const cumulativeDistA = this.calculateCumulativeDistances(pathA);
     const cumulativeDistB = this.calculateCumulativeDistances(pathB);
 
@@ -275,44 +275,44 @@ interpolatePath(pathA: [number, number][], pathB: [number, number][]): [number, 
     const normalizedDistB = cumulativeDistB.map(d => d / totalDistB);
 
     const interpolate = (t: number, dist: number[], values: number[]): number => {
-        for (let i = 1; i < dist.length; i++) {
-            if (t <= dist[i]) {
-                const t0 = dist[i - 1], t1 = dist[i];
-                const v0 = values[i - 1], v1 = values[i];
-                return v0 + (v1 - v0) * (t - t0) / (t1 - t0);
-            }
+      for (let i = 1; i < dist.length; i++) {
+        if (t <= dist[i]) {
+          const t0 = dist[i - 1], t1 = dist[i];
+          const v0 = values[i - 1], v1 = values[i];
+          return v0 + (v1 - v0) * (t - t0) / (t1 - t0);
         }
-        return values[values.length - 1];
+      }
+      return values[values.length - 1];
     };
 
     const interpolateX = (t: number) => interpolate(t, normalizedDistA, pathA.map(point => point[0]));
     const interpolateY = (t: number) => interpolate(t, normalizedDistA, pathA.map(point => point[1]));
 
     return normalizedDistB.map(t => [interpolateX(t), interpolateY(t)]);
-}
+  }
 
-convertArrayToSVGPath(p: Cubic): string {
-      return  `M ${p[0]} ${p[1]} C ${p[2]} ${p[3]}, ${p[4]} ${p[5]}, ${p[6]} ${p[7]} `
-}
+  convertArrayToSVGPath(p: Cubic): string {
+    return `M ${p[0]} ${p[1]} C ${p[2]} ${p[3]}, ${p[4]} ${p[5]}, ${p[6]} ${p[7]} `
+  }
 
-convertArrayToSVGPathPartial(p: Cubic6): string {
-      return  `C ${p[0]} ${p[1]} ${p[2]} ${p[3]}, ${p[4]} ${p[5]} `
-}
+  convertArrayToSVGPathPartial(p: Cubic6): string {
+    return `C ${p[0]} ${p[1]} ${p[2]} ${p[3]}, ${p[4]} ${p[5]} `
+  }
 
-convertBezierArrayToSVGPath(bezierArray: any[]): string {
+  convertBezierArrayToSVGPath(bezierArray: any[]): string {
     let svgPath = '';
 
-      const p = bezierArray[0].points[0];
-      svgPath += `M ${+p.x.toFixed(2)},${+p.y.toFixed(2)}`;
+    const p = bezierArray[0].points[0];
+    svgPath += `M ${+p.x.toFixed(2)},${+p.y.toFixed(2)}`;
     bezierArray.forEach(bezier => {
-      const p = bezier.points.map((p:{x:number,y:number}) => ({x:+p.x.toFixed(2),y:+p.y.toFixed(2)}))
+      const p = bezier.points.map((p: { x: number, y: number }) => ({ x: +p.x.toFixed(2), y: +p.y.toFixed(2) }))
       svgPath += `C ${p[1].x},${p[1].y} ${p[2].x},${p[2].y} ${p[3].x},${p[3].y}`;
     });
 
     return svgPath;
-}
+  }
 
-convertBezierArrayToSVGPath2(bezierArray: any[]): string {
+  convertBezierArrayToSVGPath2(bezierArray: any[]): string {
     let svgPath = '';
 
     bezierArray.forEach(bezier => {
@@ -321,21 +321,21 @@ convertBezierArrayToSVGPath2(bezierArray: any[]): string {
     });
 
     return svgPath;
-}
+  }
 
-//convertBezierArrayToCubicArray(bezierArray: any[]): string {
-//    let svgPath = '';
-//
-//      const p = bezierArray[0].points[0];
-//      svgPath += `M ${p.x} ${p.y} `;
-//    bezierArray.forEach(bezier => {
-//      const p = bezier.points
-//      svgPath += `C ${p[1].x} ${p[1].y}, ${p[2].x} ${p[2].y},  ${p[3].x} ${p[3].y}`;
-//    });
-//
-//    return svgPath;
-//}
-convertToSVGPath(bezierCurves: [number, number][]): string {
+  //convertBezierArrayToCubicArray(bezierArray: any[]): string {
+  //    let svgPath = '';
+  //
+  //      const p = bezierArray[0].points[0];
+  //      svgPath += `M ${p.x} ${p.y} `;
+  //    bezierArray.forEach(bezier => {
+  //      const p = bezier.points
+  //      svgPath += `C ${p[1].x} ${p[1].y}, ${p[2].x} ${p[2].y},  ${p[3].x} ${p[3].y}`;
+  //    });
+  //
+  //    return svgPath;
+  //}
+  convertToSVGPath(bezierCurves: [number, number][]): string {
     if (bezierCurves.length === 0) return '';
 
     const commands: string[] = [];
@@ -344,36 +344,36 @@ convertToSVGPath(bezierCurves: [number, number][]): string {
     commands.push(`M ${startX} ${startY}`);
 
     for (let i = 1; i < bezierCurves.length; i += 3) {
-        if (i + 2 >= bezierCurves.length) break;
+      if (i + 2 >= bezierCurves.length) break;
 
-        const [cp1x, cp1y] = bezierCurves[i];
-        const [cp2x, cp2y] = bezierCurves[i + 1];
-        const [x, y] = bezierCurves[i + 2];
+      const [cp1x, cp1y] = bezierCurves[i];
+      const [cp2x, cp2y] = bezierCurves[i + 1];
+      const [x, y] = bezierCurves[i + 2];
 
-        commands.push(`C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x} ${y}`);
+      commands.push(`C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x} ${y}`);
     }
 
     return commands.join(' ');
-}
-convertToCubicBezierCurves(points: [number,number][]): [number,number, number, number, number,number, number, number][] {
+  }
+  convertToCubicBezierCurves(points: [number, number][]): [number, number, number, number, number, number, number, number][] {
     //if (points.length < 4 || points.length % 4 !== 0) {
     //    throw new Error('Invalid number of points to form cubic Bezier curves.');
     //}
 
-    const cubicBezierCurves: [number,number, number, number, number,number, number, number][] = [];
+    const cubicBezierCurves: [number, number, number, number, number, number, number, number][] = [];
 
-    for (let i = 0; i+3 < points.length; i += 3) {
-        cubicBezierCurves.push([
-            points[i][0], points[i][1],
-            points[i + 1][0], points[i + 1][1],
-            points[i + 2][0], points[i + 2][1],
-            points[i + 3][0], points[i + 3][1]
-        ]);
+    for (let i = 0; i + 3 < points.length; i += 3) {
+      cubicBezierCurves.push([
+        points[i][0], points[i][1],
+        points[i + 1][0], points[i + 1][1],
+        points[i + 2][0], points[i + 2][1],
+        points[i + 3][0], points[i + 3][1]
+      ]);
     }
 
     return cubicBezierCurves;
-}
- approximateHalfCircle(A: [number, number], B: [number, number]): [number, number][] {
+  }
+  approximateHalfCircle(A: [number, number], B: [number, number]): [number, number][] {
     // Calculate the midpoint of the diameter
     const midpointX = (A[0] + B[0]) / 2;
     const midpointY = (A[1] + B[1]) / 2;
@@ -397,16 +397,16 @@ convertToCubicBezierCurves(points: [number,number][]): [number,number, number, n
     const cp2y2 = B[1];
 
     return [
-        //A,
-        [cp1x1, cp1y1],
-        [cp2x1, cp2y1],
-        [midpointX, midpointY],
-        [cp1x2, cp1y2],
-        [cp2x2, cp2y2],
-        B
+      //A,
+      [cp1x1, cp1y1],
+      [cp2x1, cp2y1],
+      [midpointX, midpointY],
+      [cp1x2, cp1y2],
+      [cp2x2, cp2y2],
+      B
     ];
-}
-createHalfCircleBezier(start: Point, end: Point): [Point, Point] {
+  }
+  createHalfCircleBezier(start: Point, end: Point): [Point, Point] {
 
     // Calculate the vector from start to end
     const dx = end.x - start.x;
@@ -431,42 +431,42 @@ createHalfCircleBezier(start: Point, end: Point): [Point, Point] {
     const control2: Point = { x: control2X, y: control2Y };
 
     return [control1, control2];
-}
+  }
 
 
-invertBezierArr(bezArr: any) {
- const rArr = [...bezArr].reverse()
-  return rArr.map(b => {
-    const p = [...b.points].reverse()
-    return new Bezier(p)
-  })
-}
+  invertBezierArr(bezArr: any) {
+    const rArr = [...bezArr].reverse()
+    return rArr.map(b => {
+      const p = [...b.points].reverse()
+      return new Bezier(p)
+    })
+  }
 
-  segmentsToValues(segs: Segment[]) : Cubic[]{
+  segmentsToValues(segs: Segment[]): Cubic[] {
     if (segs[0].key != 'M')
       throw new Error('err')
-  const values:Cubic[] = []
+    const values: Cubic[] = []
     for (let i = 1; i < segs.length; i++) {
-      const a = segs[i-1].data.slice(-2) as [number, number]
+      const a = segs[i - 1].data.slice(-2) as [number, number]
       if (a.length != 2)
         throw new Error('err')
-      const b = segs[i].data  as [number, number,number, number,number, number]
+      const b = segs[i].data as [number, number, number, number, number, number]
       if (b.length != 6)
         throw new Error('err')
-      const data:Cubic = [...a ,...b]
+      const data: Cubic = [...a, ...b]
       if (data.length != 8)
         throw new Error('err')
       values.push(data as Cubic)
     }
-  return values
-}
+    return values
+  }
 
-  getDrawnPointsMorph(points: any, fStrokes:any, fRep: any) {
+  getDrawnPointsMorph(points: any, fStrokes: any, fRep: any) {
     const bStr = simplifySvgPath(points, {
-    closed : false,
-    tolerance:  50,
-    precision:  2,
-  })
+      closed: false,
+      tolerance: 50,
+      precision: 2,
+    })
     const paths = absolutize(parsePath(bStr))
 
     const d0 = paths[0].data
@@ -485,61 +485,61 @@ invertBezierArr(bezArr: any) {
       dl[3] = (dl[5] + dbl[1]) / 2
     }
 
-  const segs = this.segmentsToValues(paths)
+    const segs = this.segmentsToValues(paths)
 
     const bezs = segs.map(seg => new Bezier(...seg))
     const left: Bezier[] = bezs.map(b => b.offset(-30) as Bezier[]).flat()
     const right: Bezier[] = bezs.map(b => b.offset(30) as Bezier[]).flat()
 
-    let lLast = left[left.length-1].points[3]
+    let lLast = left[left.length - 1].points[3]
     let lFirst = left[0].points[0]
-    let rLast = right[right.length-1].points[3]
+    let rLast = right[right.length - 1].points[3]
     let rFirst = right[0].points[0]
 
-    const d = this.createHalfCircleBezier(   lLast, rLast )
-    const e = this.createHalfCircleBezier(   rFirst, lFirst )
-    const topCap:Cubic6 = [d[0].x, d[0].y, d[1].x, d[1].y, rLast.x, rLast.y]
-    const botCap:Cubic = [rFirst.x, rFirst.y,e[0].x, e[0].y, e[1].x, e[1].y, lFirst.x, lFirst.y]
+    const d = this.createHalfCircleBezier(lLast, rLast)
+    const e = this.createHalfCircleBezier(rFirst, lFirst)
+    const topCap: Cubic6 = [d[0].x, d[0].y, d[1].x, d[1].y, rLast.x, rLast.y]
+    const botCap: Cubic = [rFirst.x, rFirst.y, e[0].x, e[0].y, e[1].x, e[1].y, lFirst.x, lFirst.y]
 
     const rInvert = this.invertBezierArr(right)
 
     const topCapPath = this.convertArrayToSVGPathPartial(topCap)
     const botCapPath = this.convertArrayToSVGPath(botCap)
 
-     const path = botCapPath +  this.convertBezierArrayToSVGPath2(left) + topCapPath + this.convertBezierArrayToSVGPath2(rInvert) + ' Z'
+    const path = botCapPath + this.convertBezierArrayToSVGPath2(left) + topCapPath + this.convertBezierArrayToSVGPath2(rInvert) + ' Z'
     const iStrokes = path // TODO cleanup
-    const iRep = computeRepartition2(iStrokes, left.length, 0.5, 1 + left.length , 0.5)
+    const iRep = computeRepartition2(iStrokes, left.length, 0.5, 1 + left.length, 0.5)
 
-      const morph = makeUniform(
-        iStrokes, iRep,
-        fStrokes, fRep,
-      )
- return morph
-}
+    const morph = makeUniform(
+      iStrokes, iRep,
+      fStrokes, fRep,
+    )
+    return morph
+  }
 
   applyDrawingMorph(strokeIdx: number, morph: any) {
     const el = this.shadowRoot.querySelector(`svg[width] > g > :nth-child(2) > :nth-child(${strokeIdx + 1})`)
     if (!el) throw new Error('err')
     const cp = el.getAttribute('clip-path')
     el.setAttribute('stroke-width', 2000)
-const match = cp.match(/#mask-\d+/);
+    const match = cp.match(/#mask-\d+/);
 
-if (!match) throw new Error('err')
+    if (!match) throw new Error('err')
     const substring = match[0];
-  const defPath = this.shadowRoot.querySelector(substring + ' > path')
+    const defPath = this.shadowRoot.querySelector(substring + ' > path')
 
-  el.animate({
-    stroke: ['#393939', '#555555']
-  }, {
-    duration: this.drawingDuration*1000,easing: 'ease'
-  })
+    el.animate({
+      stroke: ['#393939', '#555555']
+    }, {
+      duration: this.drawingDuration * 1000, easing: 'ease'
+    })
 
-  defPath.animate({
-    d: [`path('${morph[0]}')`, `path('${morph[1]}')`]
-  }, {
-    duration:this.drawingDuration*1000, easing: 'ease'
-  })
-}
+    defPath.animate({
+      d: [`path('${morph[0]}')`, `path('${morph[1]}')`]
+    }, {
+      duration: this.drawingDuration * 1000, easing: 'ease'
+    })
+  }
 
   onCorrectStroke(strokeData: any): void {
     if (!this.hanziWriter || !this.hanzicomponent)
@@ -557,7 +557,7 @@ if (!match) throw new Error('err')
     if (!fData || !fData.strokes || !fData.repartition) return
     const fStrokes = fData.strokes[strokeIdx]
     const fRep = fData.repartition[strokeIdx]
-    const morph = this.getDrawnPointsMorph( points, fStrokes, fRep)
+    const morph = this.getDrawnPointsMorph(points, fStrokes, fRep)
     this.applyDrawingMorph(strokeIdx, morph)
 
     const drawnPathEl = this.shadowRoot.querySelector('svg[width] > g > path:last-child')
