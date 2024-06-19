@@ -1,8 +1,4 @@
 import { setup, observe, computedProperty } from 'pouic'
-//import { getDecomposition, ComponentDefinition } from "./HanziDesc";
-
-
-//import { fetchCharacter, CharDataItem } from "./fetchCharacter";
 import { getCharacterData } from './decompose'
 
 import { cleanDescription, cleanPinyin, getPinyinTone, cleanAndGetPinyinTone } from './processData'

@@ -92,14 +92,7 @@ export default class CharacterQuiz extends Component {
     });
 
     resizeObserver.observe((this.shadowRoot as ShadowRoot).host);
-    //Reflect.set(this.hanziWriter, "startQuiz",this.startQuiz)
-    //this.hanziWriter.quiz = this.startQuiz
 
-    //this.hanziWriter.quiz = ({
-    //  onMistake: this.onMistake.bind(this),
-    //  onCorrectStroke: this.onCorrectStroke.bind(this),
-    //  quizStartStrokeNum,
-    //});
     const svg = this.hanziWriter.target.node
     const updateTouchstart = (() => { this.touchstart = performance.now() }).bind(this)
     const updateDrawingDuration = (() => { this.drawingDuration = (performance.now() - this.touchstart) / 1000 * 3; }).bind(this)
@@ -129,8 +122,6 @@ export default class CharacterQuiz extends Component {
       if (quizStartStrokeNum && c)
         c._options.strokeFadeDuration = tmpDuration
     }, 0)
-
-
   }
 
 
