@@ -1,22 +1,22 @@
 function cumulativePrevSum(array: number[]): number[] {
-  if (!Array.isArray(array)) {
-    throw new Error("Input is not an array");
-  }
+    if (!Array.isArray(array)) {
+        throw new Error("Input is not an array");
+    }
 
-  const arr = array.reduce((acc: number[], curr: number) => {
-    const lastSum = acc.length > 0 ? acc[acc.length - 1] : 0;
-    acc.push(lastSum + curr);
-    return acc;
-  }, []);
+    const arr = array.reduce((acc: number[], curr: number) => {
+        const lastSum = acc.length > 0 ? acc[acc.length - 1] : 0;
+        acc.push(lastSum + curr);
+        return acc;
+    }, []);
     // TODO clean up
-  arr.unshift(0)
+    arr.unshift(0)
     arr.pop()
     return arr
 }
 
 const sum = (array: number[]): number =>
-  array.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
-import {Bezier}  from 'bezier-js'
+    array.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+import { Bezier } from 'bezier-js'
 
 //  const printCubic = (p: any) => {
 //    return `C${p[0].x},${p[0].y} ${p[1].x},${p[1].y} ${p[2].x},${p[2].y}`
@@ -102,17 +102,17 @@ function splitBezier(p0: Point, p1: Point, p2: Point, p3: Point, t: number): { l
     return { left, right };
 }
 
-const splitSegment = (start: [number, number],seg: Segment, t: number) => {
+const splitSegment = (start: [number, number], seg: Segment, t: number) => {
     if (seg.key != 'C')
         throw new Error('Invalid segment, should be cubic')
     const p0 = start as Point;
-    const p1 = [seg.data[0],seg.data[1]] as Point
-    const p2 = [seg.data[2],seg.data[3]] as Point
-    const p3 = [seg.data[4],seg.data[5]] as Point
+    const p1 = [seg.data[0], seg.data[1]] as Point
+    const p2 = [seg.data[2], seg.data[3]] as Point
+    const p3 = [seg.data[4], seg.data[5]] as Point
     const a = splitBezier(p0, p1, p2, p3, t)
 
-    const leftSeg = {key: 'C', data: a.left.flat()}
-    const rightSeg = {key: 'C', data: a.right.flat()}
+    const leftSeg = { key: 'C', data: a.left.flat() }
+    const rightSeg = { key: 'C', data: a.right.flat() }
     return [leftSeg, rightSeg]
 
     //const bez = new Bezier(...start,...seg.data);
@@ -144,31 +144,31 @@ const splitSegment = (start: [number, number],seg: Segment, t: number) => {
 //    return [pStr1, pStr2]
 //}
 
-import { parsePath, serialize, normalize} from 'path-data-parser';
-import {  Segment} from 'path-data-parser/src/parser';
+import { parsePath, serialize, normalize } from 'path-data-parser';
+import { Segment } from 'path-data-parser/src/parser';
 //import {Segment} from 'path-data-parser/types'
- import {
-   cubicBezierLine,
- } from 'bezier-intersect';
+import {
+    cubicBezierLine,
+} from 'bezier-intersect';
 
-export const makeUniform =  (pStr1: string, rep1:StrokeAnalysis, pStr2: string, rep2: StrokeAnalysis) => {
-      const p1 = _makeUniform(
-          pStr1,
-          rep1,
-          pStr2,
-          rep2,
-      )
+export const makeUniform = (pStr1: string, rep1: StrokeAnalysis, pStr2: string, rep2: StrokeAnalysis) => {
+    const p1 = _makeUniform(
+        pStr1,
+        rep1,
+        pStr2,
+        rep2,
+    )
 
-      const p2 = _makeUniform(
-          pStr2,
-          rep2,
-          pStr1,
-          rep1,
-      )
+    const p2 = _makeUniform(
+        pStr2,
+        rep2,
+        pStr1,
+        rep1,
+    )
     return [p1, p2]
 }
 
-export const _makeUniform = (pStr1: string, rep1:StrokeAnalysis, pStr2: string, rep2: StrokeAnalysis) => {
+export const _makeUniform = (pStr1: string, rep1: StrokeAnalysis, pStr2: string, rep2: StrokeAnalysis) => {
     const p1 = parsePath(pStr1)
     const p2 = parsePath(pStr2)
 
@@ -176,7 +176,7 @@ export const _makeUniform = (pStr1: string, rep1:StrokeAnalysis, pStr2: string, 
         throw new Error('Invalid path')
     }
 
-    const rep1R = rep1.right.map((sa: SegAnalysis)=>({...sa})) // Clone
+    const rep1R = rep1.right.map((sa: SegAnalysis) => ({ ...sa })) // Clone
     const rep2R = rep2.right
 
     let i2 = rep2.right.length - 1;
@@ -186,79 +186,79 @@ export const _makeUniform = (pStr1: string, rep1:StrokeAnalysis, pStr2: string, 
         i2--;
     }
 
-     //const yo = rep1R[rep1.right.length - 2].seg.data.slice(-2) as [number, number]
+    //const yo = rep1R[rep1.right.length - 2].seg.data.slice(-2) as [number, number]
     const tipIdx = i2;
 
-   for (;i2 >= 0; i2--) {
-       while(i1 > 0 && rep2R[i2].cumulRatio < rep1R[i1].cumulRatio) { i1--}
-       const pathProgress = rep2R[i2].cumulRatio - rep1R[i1].cumulRatio // half path progress of the segment we want to extract
-       let t = pathProgress *rep1.rLen/ rep1R[i1].len
+    for (; i2 >= 0; i2--) {
+        while (i1 > 0 && rep2R[i2].cumulRatio < rep1R[i1].cumulRatio) { i1-- }
+        const pathProgress = rep2R[i2].cumulRatio - rep1R[i1].cumulRatio // half path progress of the segment we want to extract
+        let t = pathProgress * rep1.rLen / rep1R[i1].len
 
-       if (i1 === 0) {
-           t += rep1.top.t
-       }
-       //if (t<0.01 || t > 0.99)
-       //    continue
-       //r?   r
-       //l1Seg l1Tot
-       //l1Seg * r / l1Tot = l1Seg/l1tot * (r/1) = rep1R[i1].ratio * pathProgress
+        if (i1 === 0) {
+            t += rep1.top.t
+        }
+        //if (t<0.01 || t > 0.99)
+        //    continue
+        //r?   r
+        //l1Seg l1Tot
+        //l1Seg * r / l1Tot = l1Seg/l1tot * (r/1) = rep1R[i1].ratio * pathProgress
 
-       const start = (i1===0 ? rep1.left[rep1.left.length-2]:rep1R[i1-1]).seg.data.slice(-2) as [number, number]
-     //const start = rep1R[i1==0 ? rep1.right.length-1:i1-1].seg.data.slice(-2) as [number, number]
-       const segs = splitSegment(start, rep1R[i1].seg, t)
-       p1.splice(i1+rep1.left.length, 1, ...segs)
-       rep1R[i1].len *= t // update len for next iteration
-       rep1R[i1].seg = segs[0]
-   }
+        const start = (i1 === 0 ? rep1.left[rep1.left.length - 2] : rep1R[i1 - 1]).seg.data.slice(-2) as [number, number]
+        //const start = rep1R[i1==0 ? rep1.right.length-1:i1-1].seg.data.slice(-2) as [number, number]
+        const segs = splitSegment(start, rep1R[i1].seg, t)
+        p1.splice(i1 + rep1.left.length, 1, ...segs)
+        rep1R[i1].len *= t // update len for next iteration
+        rep1R[i1].seg = segs[0]
+    }
 
-    const rep1L = rep1.left.map((sa: SegAnalysis)=>({...sa})) // Clone
+    const rep1L = rep1.left.map((sa: SegAnalysis) => ({ ...sa })) // Clone
     const rep2L = rep2.left
 
-    rep1L[rep1L.length-1].len = rep1R[0].len
-    rep1L[rep1L.length-1].seg = rep1R[0].seg
+    rep1L[rep1L.length - 1].len = rep1R[0].len
+    rep1L[rep1L.length - 1].seg = rep1R[0].seg
 
     i2 = rep2.left.length - 1;
     i1 = rep1.left.length - 1;
 
 
-   for (;i2 >= 0; i2--) {
-       while (i1 > 0 && rep2L[i2].cumulRatio < rep1L[i1].cumulRatio) {i1--}
+    for (; i2 >= 0; i2--) {
+        while (i1 > 0 && rep2L[i2].cumulRatio < rep1L[i1].cumulRatio) { i1-- }
 
-       const pathProgress = rep2L[i2].cumulRatio - rep1L[i1].cumulRatio // half path progress of the segment we want to extract
-       let t = pathProgress *rep1.lLen/ rep1L[i1].len
+        const pathProgress = rep2L[i2].cumulRatio - rep1L[i1].cumulRatio // half path progress of the segment we want to extract
+        let t = pathProgress * rep1.lLen / rep1L[i1].len
 
-       if (i1 === 0)
-           t += rep1.bot.t
+        if (i1 === 0)
+            t += rep1.bot.t
 
-       //if (t<0.01 || t > 0.99)
-       //    continue
+        //if (t<0.01 || t > 0.99)
+        //    continue
 
-       const start = (i1===0 ? p1[0]:rep1L[i1-1].seg).data.slice(-2) as [number, number]
-     //const start = rep1L[i1==0 ? rep1.left.length-1:i1-1].seg.data.slice(-2) as [number, number]
-       const segs = splitSegment(start, rep1L[i1].seg, t)
+        const start = (i1 === 0 ? p1[0] : rep1L[i1 - 1].seg).data.slice(-2) as [number, number]
+        //const start = rep1L[i1==0 ? rep1.left.length-1:i1-1].seg.data.slice(-2) as [number, number]
+        const segs = splitSegment(start, rep1L[i1].seg, t)
 
-       p1.splice(i1+1, 1, ...segs)
-       rep1L[i1].len *= t // update len for next iteration
-       rep1L[i1].seg = segs[0]
-   }
+        p1.splice(i1 + 1, 1, ...segs)
+        rep1L[i1].len *= t // update len for next iteration
+        rep1L[i1].seg = segs[0]
+    }
     let newStartSeg: Segment | undefined = undefined
 
-    const rep1RLast = rep1R[rep1R.length-1]
+    const rep1RLast = rep1R[rep1R.length - 1]
     rep1RLast.len = rep1L[0].len
     rep1RLast.seg = rep1L[0].seg
 
-    for (i2 = rep2R.length -1; i2 > tipIdx; i2--) {
-       const pathProgress = rep2R[i2].cumulRatio - rep1RLast.cumulRatio // half path progress of the segment we want to extract
-       let t = pathProgress *rep1.rLen/ rep1RLast.len
-       //if (t<0.01 || t > 0.99)
-       //    continue
+    for (i2 = rep2R.length - 1; i2 > tipIdx; i2--) {
+        const pathProgress = rep2R[i2].cumulRatio - rep1RLast.cumulRatio // half path progress of the segment we want to extract
+        let t = pathProgress * rep1.rLen / rep1RLast.len
+        //if (t<0.01 || t > 0.99)
+        //    continue
 
-       //const start = (i1===0 ? rep1.left[rep1.left.length-2]:rep1R[i1-1]).seg.data.slice(-2) as [number, number]
-       // console.log(p1)
-       const segs = splitSegment(p1[0].data as [number, number], rep1RLast.seg, t)
-       p1.splice(1, 1, ...segs)
-       rep1RLast.seg = segs[0]
-       rep1RLast.len *= t
+        //const start = (i1===0 ? rep1.left[rep1.left.length-2]:rep1R[i1-1]).seg.data.slice(-2) as [number, number]
+        // console.log(p1)
+        const segs = splitSegment(p1[0].data as [number, number], rep1RLast.seg, t)
+        p1.splice(1, 1, ...segs)
+        rep1RLast.seg = segs[0]
+        rep1RLast.len *= t
         if (!newStartSeg)
             newStartSeg = segs[1]
     }
@@ -275,68 +275,68 @@ export const _makeUniform = (pStr1: string, rep1:StrokeAnalysis, pStr2: string, 
 
 const getProlongatedMedianTop = (medians: any) => {
     const tmp = medians.slice(-2)
-    const lastMedian = [[tmp[0][0],tmp[0][1]], [tmp[1][0], tmp[1][1]]]
+    const lastMedian = [[tmp[0][0], tmp[0][1]], [tmp[1][0], tmp[1][1]]]
 
     if (lastMedian.length != 2)
         throw new Error("Incorrect median")
-    lastMedian[0][0] = (lastMedian[1][0] + lastMedian[0][0])/2
-    lastMedian[0][1] = (lastMedian[1][1] + lastMedian[0][1])/2
-    lastMedian[1][0] = lastMedian[0][0] + (lastMedian[1][0] - lastMedian[0][0])*3 // prolongate the segment, *2 was too short for 就
-    lastMedian[1][1] = lastMedian[0][1] + (lastMedian[1][1] - lastMedian[0][1])*3
+    lastMedian[0][0] = (lastMedian[1][0] + lastMedian[0][0]) / 2
+    lastMedian[0][1] = (lastMedian[1][1] + lastMedian[0][1]) / 2
+    lastMedian[1][0] = lastMedian[0][0] + (lastMedian[1][0] - lastMedian[0][0]) * 3 // prolongate the segment, *2 was too short for 就
+    lastMedian[1][1] = lastMedian[0][1] + (lastMedian[1][1] - lastMedian[0][1]) * 3
     return lastMedian
 }
 
 const getProlongatedMedianBottom = (medians: any) => {
     const tmp = medians.slice(0, 2)
-    const lastMedian = [[tmp[0][0],tmp[0][1]], [tmp[1][0], tmp[1][1]]]
+    const lastMedian = [[tmp[0][0], tmp[0][1]], [tmp[1][0], tmp[1][1]]]
 
     if (lastMedian.length != 2)
         throw new Error("Incorrect median")
-    lastMedian[0][0] = (lastMedian[1][0] + lastMedian[0][0])/2
-    lastMedian[0][1] = (lastMedian[1][1] + lastMedian[0][1])/2
-    lastMedian[1][0] = lastMedian[0][0] - (lastMedian[1][0] - lastMedian[0][0])*4
-    lastMedian[1][1] = lastMedian[0][1] - (lastMedian[1][1] - lastMedian[0][1])*4
+    lastMedian[0][0] = (lastMedian[1][0] + lastMedian[0][0]) / 2
+    lastMedian[0][1] = (lastMedian[1][1] + lastMedian[0][1]) / 2
+    lastMedian[1][0] = lastMedian[0][0] - (lastMedian[1][0] - lastMedian[0][0]) * 4
+    lastMedian[1][1] = lastMedian[0][1] - (lastMedian[1][1] - lastMedian[0][1]) * 4
     return lastMedian
 }
 
-const convertLtoC= (p0: [number, number], p1:[number, number]): [number, number, number, number, number, number] => {
+const convertLtoC = (p0: [number, number], p1: [number, number]): [number, number, number, number, number, number] => {
     return [
-                p0[0] + (p0[0] - p1[0])/3,
-                p0[1] + (p0[1] - p1[1])/3,
-                p0[0] + 2*(p0[0] - p1[0])/3,
-                p0[1] + 2*(p0[1] - p1[1])/3,
-p1[0],
-p1[1],
-            ]
+        p0[0] + (p0[0] - p1[0]) / 3,
+        p0[1] + (p0[1] - p1[1]) / 3,
+        p0[0] + 2 * (p0[0] - p1[0]) / 3,
+        p0[1] + 2 * (p0[1] - p1[1]) / 3,
+        p1[0],
+        p1[1],
+    ]
 
 }
 
-export const rotateStartPathToMedianBottom=(p: string, median: any) => {
+export const rotateStartPathToMedianBottom = (p: string, median: any) => {
     //median tip seg
     const mts = getProlongatedMedianBottom(median)
 
     const path = normalize(parsePath(p))
     // Some "L" are inserted because of convertion from "Q" as found in character 纟, we convert "L" to "C"
-    path.forEach((p,i) => {
+    path.forEach((p, i) => {
         if (p.key == "L") {
-           p.key = "C"
+            p.key = "C"
             const p0 = path[i].data.slice(-2) as [number, number]
             p.data = convertLtoC(p0, p.data as [number, number])
         }
     })
 
     const res: Number[] = []
-    for (let i = 0; i <  path.length; i++) {
-const {key, data} = path[i]
+    for (let i = 0; i < path.length; i++) {
+        const { key, data } = path[i]
         if (key == "C") {
-           const [xs, ys ] = path[i-1].data.slice(-2)
+            const [xs, ys] = path[i - 1].data.slice(-2)
             cubicBezierLine(xs, ys, ...data, mts[0][0], mts[0][1], mts[1][0], mts[1][1], res)
             if (res.length) {
                 const itemsToInsert = path.slice(i, path.length - 1);
-                path.splice(i, path.length - i-1)
+                path.splice(i, path.length - i - 1)
                 path.splice(1, 0, ...itemsToInsert);
 
-                const next = path[path.length-2].data.slice(-2)
+                const next = path[path.length - 2].data.slice(-2)
                 path[0].data = next
                 return serialize(path)
             }
@@ -345,14 +345,14 @@ const {key, data} = path[i]
     return undefined
 }
 
-export const ask=(p:any) =>{
+export const ask = (p: any) => {
     console.log(parsePath(p))
 }
 
 
 type SegProgress = {
-   seg: Segment
-   t: number
+    seg: Segment
+    t: number
 }
 
 type IntersecRes = {
@@ -360,14 +360,14 @@ type IntersecRes = {
     t: number
 }
 
-type  SegAnalysis = {
+type SegAnalysis = {
     ratio: number
     cumulRatio: number
     len: number
     seg: Segment
 }
 
-export type StrokeAnalysis ={
+export type StrokeAnalysis = {
     top: SegProgress
     bot: SegProgress
     left: SegAnalysis[]
@@ -376,45 +376,45 @@ export type StrokeAnalysis ={
     rLen: number
 }
 
-const changeStartSeg=(path: Segment[], newStart: Segment ) =>{
+const changeStartSeg = (path: Segment[], newStart: Segment) => {
     const i = path.indexOf(newStart)
     if (i < 0)
         throw new Error('new start not in path')
     const itemsToInsert = path.slice(i, path.length - 1);
-    path.splice(i, path.length - i-1)
+    path.splice(i, path.length - i - 1)
     path.splice(1, 0, ...itemsToInsert);
 
-    const next = path[path.length-2].data.slice(-2)
+    const next = path[path.length - 2].data.slice(-2)
     path[0].data = next
     return serialize(path)
 
 }
 
-export const computeRepartition=(p: string, median: any): StrokeAnalysis => {
+export const computeRepartition = (p: string, median: any): StrokeAnalysis => {
     const medTop = getProlongatedMedianTop(median).flat()
     const medBot = getProlongatedMedianBottom(median).flat()
     const path = normalize(parsePath(p))
-    let topSegProg :SegProgress | undefined = undefined
-    let botSegProg :SegProgress | undefined = undefined
+    let topSegProg: SegProgress | undefined = undefined
+    let botSegProg: SegProgress | undefined = undefined
 
     let res: IntersecRes[]
-    for (let i = 1; i <  path.length-1; i++) {
+    for (let i = 1; i < path.length - 1; i++) {
         const seg = path[i]
-        const {key: segKey, data: segData} = seg
+        const { key: segKey, data: segData } = seg
         if (segKey == "C") {
-        res = []
-            const segStart = path[i-1].data.slice(-2)
+            res = []
+            const segStart = path[i - 1].data.slice(-2)
             if (!topSegProg) {
                 cubicBezierLine(...segStart, ...segData, ...medTop, res)
                 if (res.length) {
-                    topSegProg = {seg, t : res[0].t}
+                    topSegProg = { seg, t: res[0].t }
                     continue
                 }
             }
             if (!botSegProg) {
                 cubicBezierLine(...segStart, ...segData, ...medBot, res)
                 if (res.length) {
-                    botSegProg = {seg, t : res[0].t}
+                    botSegProg = { seg, t: res[0].t }
                     continue
                 }
             }
@@ -427,89 +427,88 @@ export const computeRepartition=(p: string, median: any): StrokeAnalysis => {
         throw new Error('Error, top not found')
 
     }
-    if (!botSegProg)
-        {
+    if (!botSegProg) {
         throw new Error('Error, bottom not found')
     }
 
     changeStartSeg(path, botSegProg.seg)
 
-    const segs : Segment[] = path.slice(1, -2)
-let segsLen: number[]
+    const segs: Segment[] = path.slice(1, -2)
+    let segsLen: number[]
     try {
         // TODO when doing ...seg.data the start value is missing ?
-     segsLen = segs.map(seg => (new Bezier(...seg.data as [number,number,number,number,number,number,])).length())
-    } catch(e) {
-       console.log(p, segs, e)
+        segsLen = segs.map(seg => (new Bezier(...seg.data as [number, number, number, number, number, number,])).length())
+    } catch (e) {
+        console.log(p, segs, e)
         throw new Error('yo')
     }
 
-    const topIdx:number = segs.indexOf(topSegProg.seg)
-    const botIdx:number = segs.indexOf(botSegProg.seg)
+    const topIdx: number = segs.indexOf(topSegProg.seg)
+    const botIdx: number = segs.indexOf(botSegProg.seg)
 
-    if (topIdx < 0|| botIdx < 0)
+    if (topIdx < 0 || botIdx < 0)
         throw new Error('Error') // NOTE This should not happen
 
-    const lSegs:Segment[] = segs.slice(0, topIdx+1)
+    const lSegs: Segment[] = segs.slice(0, topIdx + 1)
     const rSegs: Segment[] = segs.slice(topIdx)
     rSegs.push(segs[0])
 
-    const lLens : number[]= segsLen.slice(0, topIdx+1)
+    const lLens: number[] = segsLen.slice(0, topIdx + 1)
     const rLens: number[] = segsLen.slice(topIdx)
     rLens.push(segsLen[0])
 
     const lLensOrg = [...lLens]
     const rLensOrg = [...rLens]
 
-    lLens[0]*=(1-botSegProg.t)
-    lLens[lLens.length-1]*=topSegProg.t
+    lLens[0] *= (1 - botSegProg.t)
+    lLens[lLens.length - 1] *= topSegProg.t
 
-    rLens[0]*=(1-topSegProg.t)
-    rLens[rLens.length-1]*=botSegProg.t
+    rLens[0] *= (1 - topSegProg.t)
+    rLens[rLens.length - 1] *= botSegProg.t
 
-    let lRatios : number[]= [...lLens]
+    let lRatios: number[] = [...lLens]
 
     const lLen: number = sum(lLens)
-    lRatios = lRatios.map(r => r/lLen)
+    lRatios = lRatios.map(r => r / lLen)
     const lCumulRatios = cumulativePrevSum(lRatios)
 
     let rRatios: number[] = [...rLens]
 
-    const rLen:number = sum(rLens)
-    rRatios = rRatios.map(r => r/rLen)
+    const rLen: number = sum(rLens)
+    rRatios = rRatios.map(r => r / rLen)
 
     const rCumulRatios = cumulativePrevSum(rRatios)
 
-    const lAnalysis: SegAnalysis[] = lSegs.map((_, i:number): SegAnalysis=> ({
-    ratio: lRatios[i],
-    cumulRatio: lCumulRatios[i],
-    len: lLensOrg[i],
-    seg: lSegs[i]
+    const lAnalysis: SegAnalysis[] = lSegs.map((_, i: number): SegAnalysis => ({
+        ratio: lRatios[i],
+        cumulRatio: lCumulRatios[i],
+        len: lLensOrg[i],
+        seg: lSegs[i]
     }))
 
-    const rAnalysis: SegAnalysis[] = rSegs.map((_, i:number): SegAnalysis=> ({
-    ratio: rRatios[i],
-    cumulRatio: rCumulRatios[i],
-    len: rLensOrg[i],
-    seg: rSegs[i]
+    const rAnalysis: SegAnalysis[] = rSegs.map((_, i: number): SegAnalysis => ({
+        ratio: rRatios[i],
+        cumulRatio: rCumulRatios[i],
+        len: rLensOrg[i],
+        seg: rSegs[i]
     }))
 
-    const analysis : StrokeAnalysis = {
+    const analysis: StrokeAnalysis = {
         top: topSegProg,
         bot: botSegProg,
         left: lAnalysis,
         right: rAnalysis,
-        lLen,rLen
+        lLen, rLen
     }
     return analysis
 }
 
 
-export const computeRepartition2=(p: string, topIdx:number, topT:number, botIdx:number, botT:number): StrokeAnalysis => {
+export const computeRepartition2 = (p: string, topIdx: number, topT: number, botIdx: number, botT: number): StrokeAnalysis => {
     const path = normalize(parsePath(p))
 
-    let topSegProg :SegProgress = {seg:path[topIdx], t: topT}
-    let botSegProg :SegProgress = {seg:path[botIdx], t: botT}
+    let topSegProg: SegProgress = { seg: path[topIdx], t: topT }
+    let botSegProg: SegProgress = { seg: path[botIdx], t: botT }
 
     if (!topSegProg) {
         throw new Error('Error, top not found')
@@ -521,73 +520,73 @@ export const computeRepartition2=(p: string, topIdx:number, topT:number, botIdx:
 
     //changeStartSeg(path, botSegProg.seg)
 
-    const segs : Segment[] = path.slice(1, -2)
+    const segs: Segment[] = path.slice(1, -2)
     //topIdx = segs.indexOf(topSegProg.seg)
     //botIdx = segs.indexOf(botSegProg.seg)
 
-let segsLen: number[]
+    let segsLen: number[]
     try {
         // TODO when doing ...seg.data the start value is missing ?
-     segsLen = segs.map(seg => (new Bezier(...seg.data as [number,number,number,number,number,number,])).length())
-    } catch(e) {
-       console.log(p, segs, e)
+        segsLen = segs.map(seg => (new Bezier(...seg.data as [number, number, number, number, number, number,])).length())
+    } catch (e) {
+        console.log(p, segs, e)
         throw new Error('yo')
     }
 
 
-    if (topIdx < 0|| botIdx < 0)
+    if (topIdx < 0 || botIdx < 0)
         throw new Error('Error') // NOTE This should not happen
 
-    const lSegs:Segment[] = segs.slice(0, topIdx+1)
+    const lSegs: Segment[] = segs.slice(0, topIdx + 1)
     const rSegs: Segment[] = segs.slice(topIdx)
     rSegs.push(segs[0])
 
-    const lLens : number[]= segsLen.slice(0, topIdx+1)
+    const lLens: number[] = segsLen.slice(0, topIdx + 1)
     const rLens: number[] = segsLen.slice(topIdx)
     rLens.push(segsLen[0])
 
     const lLensOrg = [...lLens]
     const rLensOrg = [...rLens]
 
-    lLens[0]*=(1-botSegProg.t)
-    lLens[lLens.length-1]*=topSegProg.t
+    lLens[0] *= (1 - botSegProg.t)
+    lLens[lLens.length - 1] *= topSegProg.t
 
-    rLens[0]*=(1-topSegProg.t)
-    rLens[rLens.length-1]*=botSegProg.t
+    rLens[0] *= (1 - topSegProg.t)
+    rLens[rLens.length - 1] *= botSegProg.t
 
-    let lRatios : number[]= [...lLens]
+    let lRatios: number[] = [...lLens]
 
     const lLen: number = sum(lLens)
-    lRatios = lRatios.map(r => r/lLen)
+    lRatios = lRatios.map(r => r / lLen)
     const lCumulRatios = cumulativePrevSum(lRatios)
 
     let rRatios: number[] = [...rLens]
 
-    const rLen:number = sum(rLens)
-    rRatios = rRatios.map(r => r/rLen)
+    const rLen: number = sum(rLens)
+    rRatios = rRatios.map(r => r / rLen)
 
     const rCumulRatios = cumulativePrevSum(rRatios)
 
-    const lAnalysis: SegAnalysis[] = lSegs.map((_, i:number): SegAnalysis=> ({
-    ratio: lRatios[i],
-    cumulRatio: lCumulRatios[i],
-    len: lLensOrg[i],
-    seg: lSegs[i]
+    const lAnalysis: SegAnalysis[] = lSegs.map((_, i: number): SegAnalysis => ({
+        ratio: lRatios[i],
+        cumulRatio: lCumulRatios[i],
+        len: lLensOrg[i],
+        seg: lSegs[i]
     }))
 
-    const rAnalysis: SegAnalysis[] = rSegs.map((_, i:number): SegAnalysis=> ({
-    ratio: rRatios[i],
-    cumulRatio: rCumulRatios[i],
-    len: rLensOrg[i],
-    seg: rSegs[i]
+    const rAnalysis: SegAnalysis[] = rSegs.map((_, i: number): SegAnalysis => ({
+        ratio: rRatios[i],
+        cumulRatio: rCumulRatios[i],
+        len: rLensOrg[i],
+        seg: rSegs[i]
     }))
 
-    const analysis : StrokeAnalysis = {
+    const analysis: StrokeAnalysis = {
         top: topSegProg,
         bot: botSegProg,
         left: lAnalysis,
         right: rAnalysis,
-        lLen,rLen
+        lLen, rLen
     }
     return analysis
 }
