@@ -84,8 +84,61 @@ type Cubic6 = [number, number, number, number, number, number]
     }
     return values
   }
+//function pointsToSvgPath(points: Point[]): string {
+//    if (points.length === 0) {
+//        return "";
+//    }
+//
+//    // Initialize the path with the 'Move to' command for the first point
+//    let svgPath = `M ${points[0].x} ${points[0].y}`;
+//
+//    // Append 'Line to' commands for each subsequent point
+//    for (let i = 1; i < points.length; i++) {
+//        svgPath += ` L ${points[i].x} ${points[i].y}`;
+//    }
+//
+//    return svgPath;
+//}
 
- export const getDrawnPointsMorph = (points: any, fStrokes: any, fRep: any) => {
+const distanceSquared = (p1: Point, p2: Point) => {
+  return Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y-p2.y, 2)
+  }
+
+/* User is slower to draw the stroke on the edge, which results in perturbation in the line going the wrong direction. For simplicity, any line drawn on the first/last N points with a distance smaller than a threshold is considered perturbation and will be truncated. TODO If it appears that too much points are removed, we can add an angle shift condition*/
+const removeCapPerturbation =(points: Point[]) :Point[]=>{
+  const isPerturbationDistanceThreshold = 16
+  const len = points.length
+  const perturbIdxCheckCount = 4
+  const perturbBottomIdxCheckCount = Math.min(perturbIdxCheckCount, len)
+  const perturbTopIdxCheckCount = Math.max(len - 1 - perturbIdxCheckCount,0)
+  let newFirstIdx = 0
+  let newLastIdx = len - 1
+
+  for (let i = 1; i < perturbBottomIdxCheckCount; i++) {
+    const p1 = points[i-1]
+    const p2 = points[i]
+    console.log(p1,p2, i, distanceSquared(p1,p2))
+    if (distanceSquared(p1,p2) < isPerturbationDistanceThreshold) {
+      newFirstIdx = i
+    }
+  }
+
+  // TODO test, I haven't precisely checked the behavior
+  for (let i = len - 2; i > perturbTopIdxCheckCount; i--) {
+    const p1 = points[i+1]
+    const p2 = points[i]
+    console.log(p1,p2, i, distanceSquared(p1,p2))
+    if (distanceSquared(p1,p2) < isPerturbationDistanceThreshold) {
+      newLastIdx = i
+    }
+  }
+
+  points = points.slice(newFirstIdx, newLastIdx + 1)
+  return points
+}
+
+ export const getDrawnPointsMorph = (points: Point[], fStrokes: any, fRep: any) => {
+    points = removeCapPerturbation(points)
     const bStr = simplifySvgPath(points, {
       closed: false,
       tolerance: 50,
@@ -120,6 +173,8 @@ type Cubic6 = [number, number, number, number, number, number]
     let rLast = right[right.length - 1].points[3]
     let rFirst = right[0].points[0]
 
+     console.log(lLast, rLast, rFirst, lFirst)
+
     const d = createHalfCircleBezier(lLast, rLast)
     const e = createHalfCircleBezier(rFirst, lFirst)
     const topCap: Cubic6 = [d[0].x, d[0].y, d[1].x, d[1].y, rLast.x, rLast.y]
@@ -132,6 +187,7 @@ type Cubic6 = [number, number, number, number, number, number]
 
     const path = botCapPath + convertBezierArrayToSVGPath(left) + topCapPath + convertBezierArrayToSVGPath(rInvert) + ' Z'
     const iStrokes = path // TODO cleanup
+     console.log(path)
     const iRep = computeRepartition2(iStrokes, left.length, 0.5, 1 + left.length, 0.5)
 
     const morph = makeUniform(

@@ -22,4 +22,5 @@ export type StrokeAnalysis = {
     rLen: number;
 };
 export declare const computeRepartition: (p: string, median: any) => StrokeAnalysis;
+export declare const computeRepartition2: (p: string, topIdx: number, topT: number, botIdx: number, botT: number) => StrokeAnalysis;
 export {};

@@ -518,11 +518,7 @@ export const computeRepartition2 = (p: string, topIdx: number, topT: number, bot
         throw new Error('Error, bottom not found')
     }
 
-    //changeStartSeg(path, botSegProg.seg)
-
     const segs: Segment[] = path.slice(1, -2)
-    //topIdx = segs.indexOf(topSegProg.seg)
-    //botIdx = segs.indexOf(botSegProg.seg)
 
     let segsLen: number[]
     try {
@@ -532,7 +528,6 @@ export const computeRepartition2 = (p: string, topIdx: number, topT: number, bot
         console.log(p, segs, e)
         throw new Error('yo')
     }
-
 
     if (topIdx < 0 || botIdx < 0)
         throw new Error('Error') // NOTE This should not happen
